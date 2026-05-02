@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Additional Files/">
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="CONTRIBUTING.md" />
+    <File Path="LICENSE.md" />
+    <File Path="NuGet.Config" />
+    <File Path="README.md" />
+    <File Path="SECURITY.md" />
+  </Folder>
+  <Project Path="Beskar.Markdown/Beskar.Markdown.csproj" />
+</Solution>
