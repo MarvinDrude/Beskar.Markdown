@@ -13,6 +13,8 @@ public ref struct MarkdownParser(
    ReadOnlySpan<char> rawText,
    Span<MarkdownNode> initialNodeBuffer)
 {
+   public ReadOnlySpan<MarkdownNode> WrittenNodes => _writer.WrittenSpan;
+   
    private ReadOnlySpan<char> _rawText = rawText;
    private BufferWriter<MarkdownNode> _writer = new(initialNodeBuffer);
 
@@ -38,10 +40,19 @@ public ref struct MarkdownParser(
       while (iterator.TryMoveNext(out var state))
       {
          var matchedLevels = 1; // ignore the document node
+         
+         // Phase one: continue open blocks if possible
          for (var i = 1; i < openBlockCount; i++)
          {
             var nodeIdx = openBlocks[i];
             ref var node = ref _writer.GetReference(nodeIdx);
+            
+            // check for interrupts
+            if (node.Type is NodeType.Paragraph)
+            {
+               if (!state.IsBlank) matchedLevels++;
+               break;
+            }
             
             var parser = options.GetParserForType((int)node.Type);
             if (parser == null || !parser.CanContinue(ref node, ref state))
@@ -55,22 +66,46 @@ public ref struct MarkdownParser(
          openBlockCount = matchedLevels;
          var matchedNew = false;
          
+         // Phase two: try to match new blocks
          while (openBlockCount < options.MaxBlockDepth)
          {
             var currentParentIndex = openBlocks[openBlockCount - 1];
             var foundNewNodeIndex = -1;
 
+            // Check if we are currently inside a paragraph that might be interrupted
+            var isParagraphOpen = _writer.WrittenSpan[currentParentIndex].Type is NodeType.Paragraph;
+            var testParentIndex = isParagraphOpen ? openBlocks[openBlockCount - 2] : currentParentIndex;
+            
             for (var index = 0; index < options.BlockParsers.Length; index++)
             {
                var parser = options.BlockParsers[index];
+               // Skip the paragraph fallback here, we handle it explicitly in Phase three
+               if (parser.SupportedTypeValue == (int)NodeType.Paragraph)
+               {
+                  continue;
+               }
                
-               foundNewNodeIndex = parser.TryMatch(ref state, currentParentIndex, ref _writer);
-               if (foundNewNodeIndex != -1) break;
+               var tempState = state;
+               foundNewNodeIndex = parser.TryMatch(ref tempState, testParentIndex, ref _writer);
+               
+               if (foundNewNodeIndex != -1) 
+               {
+                  state = tempState; // commit state change
+                  break;
+               }
             }
 
             if (foundNewNodeIndex != -1)
             {
                matchedNew = true;
+               
+               if (isParagraphOpen)
+               {
+                  // The new block interrupted the paragraph
+                  openBlockCount--;
+                  currentParentIndex = testParentIndex;
+               }
+               
                LinkNodes(currentParentIndex, foundNewNodeIndex);
 
                var newType = (int)_writer.WrittenSpan[foundNewNodeIndex].Type;
@@ -86,10 +121,42 @@ public ref struct MarkdownParser(
             break; // no more block parsers matched
          }
 
-         if (!matchedNew && !state.IsBlank)
+         if (!matchedNew)
          {
-            // handle leaf
-            _ = "";
+            var currentParentIndex = openBlocks[openBlockCount - 1];
+            ref var parentNode = ref _writer.GetReference(currentParentIndex);
+
+            if (state.IsBlank)
+            {
+               // close paragraph on a blank line
+               if (parentNode.Type is NodeType.Paragraph)
+               {
+                  openBlockCount--;
+               }
+            }
+            else
+            {
+               if (parentNode.Type is NodeType.Paragraph)
+               {
+                  // Continuation: Extend the TextSpan of the existing paragraph
+                  var currentLength = (state.GlobalOffset + state.RawLine.Length) - parentNode.TextSpan.Start;
+                  parentNode.TextSpan = parentNode.TextSpan with { Length = currentLength };
+               }
+               else
+               {
+                  // Start a new paragraph
+                  var pParser = options.GetParserForType((int)NodeType.Paragraph);
+                  if (pParser != null)
+                  {
+                     var pIndex = pParser.TryMatch(ref state, currentParentIndex, ref _writer);
+                     if (pIndex != -1)
+                     {
+                        LinkNodes(currentParentIndex, pIndex);
+                        openBlocks[openBlockCount++] = pIndex;
+                     }
+                  }
+               }
+            }
          }
       }
    }

@@ -37,16 +37,18 @@ public sealed class HeaderParser : IBlockParser
       }
 
       var nodeIndex = writer.WrittenSpan.Length;
+      var offset = (hasSpaceAfter ? 1 : 0);
+      
       writer.Add(new MarkdownNode()
       {
          Type = NodeType.Header,
-         TextSpan = new TextSpan(state.GlobalOffset + level, state.RawLine.Length),
+         TextSpan = new TextSpan(state.GlobalOffset + level + offset, state.RawLine.Length - level - offset),
          FirstChildIndex = -1,
          NextSiblingIndex = -1,
          HeadingLevel = level
       });
 
-      var sliceAmount = level + (hasSpaceAfter ? 1 : 0);
+      var sliceAmount = level + offset;
       state.Slice(sliceAmount);
       
       return nodeIndex;

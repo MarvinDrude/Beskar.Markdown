@@ -19,20 +19,22 @@ public sealed class BlockQuoteParser : IBlockParser
       }
 
       var nodeIndex = writer.WrittenSpan.Length;
+      var increment = state.FirstNonSpaceIndex + 1;
+      
+      if (state.RawLine.Length > increment && state.RawLine[increment] == ' ')
+      {
+         increment++;
+      }
+
       writer.Add(new MarkdownNode()
       {
          Type = NodeType.BlockQuote,
-         TextSpan = new TextSpan(state.GlobalOffset + state.FirstNonSpaceIndex, state.RawLine.Length),
+         TextSpan = new TextSpan(state.GlobalOffset + increment, state.RawLine.Length - increment),
          FirstChildIndex = -1,
          NextSiblingIndex = -1
       });
       
-      state.Slice(state.FirstNonSpaceIndex + 1);
-      if (!state.IsBlank && state.RawLine[0] == ' ')
-      {
-         state.Slice(1);
-      }
-
+      state.Slice(increment);
       return nodeIndex;
    }
 

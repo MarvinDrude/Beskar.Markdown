@@ -44,8 +44,10 @@ public sealed class ParserOptions
       => _blockParserLookup.ContainsKey(type);
    
    public static ParserOptions Default => new([
+      // Default block parsers
       new CodeBlockParser(),
       new HeaderParser(),
       new BlockQuoteParser(),
+      new ParagraphParser()
    ]);
 }
