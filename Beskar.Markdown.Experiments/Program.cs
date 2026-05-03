@@ -13,7 +13,7 @@ const string example =
    - Item 3
    
    Hier ist ein Text.
-   Wie sieht er aus?
+   Wie sieht er aus? *bold* aa
    
    > Hallo
    > > Inner Hallo
@@ -25,7 +25,7 @@ const string example =
    
    ###### Heading 6
    ##### Heading 5
-   #### Heading 4
+   #### Heading 4 *bold extra* a
    ### Heading 3
    ## Heading 2
    # Heading 1

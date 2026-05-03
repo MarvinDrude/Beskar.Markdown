@@ -165,6 +165,10 @@ public ref struct MarkdownParser(
             }
          }
       }
+      
+      // process inlines
+      var inlineParser = new InlineParser(_rawText);
+      inlineParser.Parse(ref _writer, options);
    }
 
    private void LinkNodes(int parentIndex, int childIndex)
