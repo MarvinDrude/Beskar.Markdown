@@ -54,6 +54,9 @@ const string example =
    ## Heading 2**dsad**
    # Heading 1** * double * **
    
+   Hardbeak \
+   Test \
+   
    1. First
       - aa
          - bb

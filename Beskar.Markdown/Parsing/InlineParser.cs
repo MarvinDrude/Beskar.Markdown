@@ -51,8 +51,12 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText)
             
             if (nextNode != -1)
             {
-               // add soft break if another line
-               AddInlineNode(ref writer, parentIndex, NodeType.SoftBreak, state.GlobalOffset, 0);
+               var lastNodeIndex = writer.WrittenSpan.Length - 1;
+               if (lastNodeIndex < 0 || writer.WrittenSpan[lastNodeIndex].Type != NodeType.LineBreak)
+               {
+                  // add soft break if another line
+                  AddInlineNode(ref writer, parentIndex, NodeType.SoftBreak, state.GlobalOffset, 0);
+               }
             }
          }
       }
