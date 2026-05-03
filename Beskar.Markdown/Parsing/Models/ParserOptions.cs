@@ -47,6 +47,8 @@ public sealed class ParserOptions
       // Default block parsers
       new CodeBlockParser(),
       new HeaderParser(),
+      new ListParser(),
+      new ListItemParser(),
       new BlockQuoteParser(),
       new ParagraphParser()
    ]);

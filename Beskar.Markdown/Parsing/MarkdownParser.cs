@@ -121,7 +121,7 @@ public ref struct MarkdownParser(
             break; // no more block parsers matched
          }
 
-         if (!matchedNew)
+         if (!matchedNew || !state.IsBlank)
          {
             var currentParentIndex = openBlocks[openBlockCount - 1];
             ref var parentNode = ref _writer.GetReference(currentParentIndex);

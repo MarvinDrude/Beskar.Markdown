@@ -24,6 +24,8 @@ public struct MarkdownNode
    public char ListMarker;
    [FieldOffset(20)] // NodeType.CodeBlock (start of lang string)
    public int CodeLangSpanStart;
+   [FieldOffset(20)] // NodeType.ListItem
+   public int ListIndent;
    
    // --- Second offset Metadata
    [FieldOffset(24)] // NodeType.List 
