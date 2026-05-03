@@ -23,9 +23,17 @@ public sealed class ListItemParser : IBlockParser
       }
 
       var nodeIndex = writer.WrittenSpan.Length;
-      var globalOffset = state.GlobalOffset;
+      var markerStartOffset = state.GlobalOffset + state.FirstNonSpaceIndex;
+      var originalLeadingSpaces = state.LeadingSpaces;
+      var visibleMarkerLength = 0;
       
-      state.Slice(markerLength);
+      for (var i = state.FirstNonSpaceIndex; i < state.RawLine.Length; i++)
+      {
+         if (state.RawLine[i] == ' ' || state.RawLine[i] == '\t') break;
+         visibleMarkerLength++;
+      }
+      
+      state.Slice(state.FirstNonSpaceIndex + markerLength);
       
       var spacesAfterMarker = 0;
       while (spacesAfterMarker < state.RawLine.Length && state.RawLine[spacesAfterMarker] == ' ')
@@ -38,13 +46,13 @@ public sealed class ListItemParser : IBlockParser
          spacesAfterMarker = 1;
       }
 
-      var contentIndent = markerLength + spacesAfterMarker;
+      var contentIndent = originalLeadingSpaces + markerLength + spacesAfterMarker;
       state.Slice(spacesAfterMarker);
 
       writer.Add(new MarkdownNode()
       {
          Type = NodeType.ListItem,
-         TextSpan = new TextSpan(globalOffset + state.FirstNonSpaceIndex, markerLength),
+         TextSpan = new TextSpan(markerStartOffset, visibleMarkerLength),
          ListIndent = contentIndent,
          FirstChildIndex = -1,
          NextSiblingIndex = -1

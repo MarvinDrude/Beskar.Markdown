@@ -25,7 +25,9 @@ const string example =
    -----
    
    Hier ist ein Text. 2
-   Wie sieht er aus? 2
+   Wie sieht er aus? 2 `code inline` s
+   
+   `css`
    
    <div>
       <span>Test</span>
@@ -34,12 +36,32 @@ const string example =
    
    _____
    
+   ```csharp
+   >
+   class Program 
+   {
+      private string Test = "> **";
+   }
+   ```
+   
+   Hier title [Link text](https://google.com)
+   Image: ![Alt text](https://google.com)
+   
    ###### Heading 6
    ##### Heading 5
    #### Heading 4 *bold extra* a
    ### Heading 3
    ## Heading 2**dsad**
    # Heading 1** * double * **
+   
+   1. First
+      - aa
+         - bb
+         - cc
+      - aaa
+   2. Second
+      * adsa
+   22. Third
    """;
 
 var options = ParserOptions.Default;

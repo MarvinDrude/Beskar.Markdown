@@ -11,11 +11,136 @@ public sealed class CodeBlockParser : IBlockParser
    
    public int TryMatch(ref LineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
    {
-      return -1;
+      if (state.IsBlank || state.LeadingSpaces >= 4)
+      {
+         return -1;
+      }
+      
+      var marker = state.FirstChar;
+      if (marker != '`' && marker != '~')
+      {
+         return -1;
+      }
+      
+      var count = 0;
+      var rawLine = state.RawLine;
+      var i = state.FirstNonSpaceIndex;
+      
+      for (; i < rawLine.Length; i++)
+      {
+         if (rawLine[i] == marker)
+         {
+            count++;
+         }
+         else
+         {
+            break;
+         }
+      }
+      
+      if (count < 3) return -1;
+      
+      var langStart = -1;
+      var langLength = 0;
+      
+      for (; i < rawLine.Length; i++)
+      {
+         if (rawLine[i] != ' ' && rawLine[i] != '\t')
+         {
+            langStart = i;
+            break;
+         }
+      }
+      
+      if (langStart != -1)
+      {
+         var langEnd = langStart;
+         for (; langEnd < rawLine.Length; langEnd++)
+         {
+            if (rawLine[langEnd] == ' ' || rawLine[langEnd] == '\t') break;
+         }
+         
+         langLength = langEnd - langStart;
+         if (marker == '`')
+         {
+            for (var j = langStart; j < rawLine.Length; j++)
+            {
+               if (rawLine[j] == '`') return -1;
+            }
+         }
+      }
+      
+      var nodeIndex = writer.WrittenSpan.Length;
+      writer.Add(new MarkdownNode()
+      {
+         Type = NodeType.CodeBlock,
+         TextSpan = new TextSpan(-1, 0),
+         FirstChildIndex = -1,
+         NextSiblingIndex = -1,
+         CodeBlockMarker = marker,
+         CodeBlockFenceCount = (ushort)count,
+         CodeLangSpanStart = langStart != -1 ? state.GlobalOffset + langStart : 0,
+         CodeLangSpanLength = langLength
+      });
+
+      state.Slice(state.RawLine.Length);
+      return nodeIndex;
    }
 
    public bool CanContinue(ref MarkdownNode node, ref LineState state)
    {
-      return false;
+      var marker = node.CodeBlockMarker;
+      var minCount = node.CodeBlockFenceCount;
+
+      var isClosingFence = false;
+      
+      // A closing fence cannot be indented by 4 or more spaces, and must start with the same marker
+      if (!state.IsBlank && state.LeadingSpaces < 4 && state.FirstChar == marker)
+      {
+         var count = 0;
+         for (var i = state.FirstNonSpaceIndex; i < state.RawLine.Length; i++)
+         {
+            if (state.RawLine[i] == marker) count++;
+            else break;
+         }
+
+         if (count >= minCount)
+         {
+            isClosingFence = true;
+            for (var i = state.FirstNonSpaceIndex + count; i < state.RawLine.Length; i++)
+            {
+               var c = state.RawLine[i];
+               if (c != ' ' && c != '\t' && c != '\r' && c != '\n')
+               {
+                  isClosingFence = false;
+                  break;
+               }
+            }
+         }
+      }
+
+      if (isClosingFence)
+      {
+         state.Slice(state.RawLine.Length);
+         if (node.TextSpan.Start == -1)
+         {
+            node.TextSpan = new TextSpan(state.GlobalOffset, 0);
+         }
+         
+         return false;
+      }
+      
+      if (node.TextSpan.Start == -1)
+      {
+         node.TextSpan = new TextSpan(state.GlobalOffset, state.RawLine.Length);
+      }
+      else
+      {
+         var newLength = (state.GlobalOffset - node.TextSpan.Start) + state.RawLine.Length;
+         node.TextSpan = node.TextSpan with { Length = newLength };
+      }
+      
+      state.Slice(state.RawLine.Length);
+      return !isClosingFence;
    }
 }
