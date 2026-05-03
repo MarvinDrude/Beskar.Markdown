@@ -10,4 +10,8 @@
      <PackageReference Include="Me.Memory" Version="1.4.0" />
    </ItemGroup>
 
+   <ItemGroup>
+     <Folder Include="Parsing\Inlines\" />
+   </ItemGroup>
+
 </Project>

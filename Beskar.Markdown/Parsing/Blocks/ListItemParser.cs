@@ -23,6 +23,8 @@ public sealed class ListItemParser : IBlockParser
       }
 
       var nodeIndex = writer.WrittenSpan.Length;
+      var globalOffset = state.GlobalOffset;
+      
       state.Slice(markerLength);
       
       var spacesAfterMarker = 0;
@@ -42,6 +44,7 @@ public sealed class ListItemParser : IBlockParser
       writer.Add(new MarkdownNode()
       {
          Type = NodeType.ListItem,
+         TextSpan = new TextSpan(globalOffset + state.FirstNonSpaceIndex, markerLength),
          ListIndent = contentIndent,
          FirstChildIndex = -1,
          NextSiblingIndex = -1

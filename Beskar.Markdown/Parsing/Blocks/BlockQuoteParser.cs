@@ -29,7 +29,6 @@ public sealed class BlockQuoteParser : IBlockParser
       writer.Add(new MarkdownNode()
       {
          Type = NodeType.BlockQuote,
-         TextSpan = new TextSpan(state.GlobalOffset + increment, state.RawLine.Length - increment),
          FirstChildIndex = -1,
          NextSiblingIndex = -1
       });

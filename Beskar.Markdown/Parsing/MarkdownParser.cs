@@ -126,21 +126,27 @@ public ref struct MarkdownParser(
             var currentParentIndex = openBlocks[openBlockCount - 1];
             ref var parentNode = ref _writer.GetReference(currentParentIndex);
 
-            if (state.IsBlank)
+            if (state.IsBlank && parentNode.Type is NodeType.Paragraph)
             {
                // close paragraph on a blank line
-               if (parentNode.Type is NodeType.Paragraph)
-               {
-                  openBlockCount--;
-               }
+               openBlockCount--;
             }
             else
             {
                if (parentNode.Type is NodeType.Paragraph)
                {
                   // Continuation: Extend the TextSpan of the existing paragraph
-                  var currentLength = (state.GlobalOffset + state.RawLine.Length) - parentNode.TextSpan.Start;
-                  parentNode.TextSpan = parentNode.TextSpan with { Length = currentLength };
+                  var textIndex = _writer.WrittenSpan.Length;
+                  _writer.Add(new MarkdownNode()
+                  {
+                     Type = NodeType.Text,
+                     TextSpan = new TextSpan(state.GlobalOffset + state.FirstNonSpaceIndex, state.RawLine.Length),
+                     FirstChildIndex = -1,
+                     NextSiblingIndex = -1
+                  });
+                  
+                  LinkNodes(currentParentIndex, textIndex);
+                  state.Slice(state.RawLine.Length);
                }
                else
                {
