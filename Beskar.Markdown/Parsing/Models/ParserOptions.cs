@@ -67,6 +67,8 @@ public sealed class ParserOptions
       new ListParser(),
       new ListItemParser(),
       new BlockQuoteParser(),
+      new ThematicBreakParser(),
+      new HtmlParser(),
       new ParagraphParser()
    ], [
       // Default inline parsers

@@ -10,7 +10,9 @@ const string example =
    
    - Item 1
    - Item 2
-   - Item 3
+   - Item 3 **bold** test
+      * Item 3.1
+      * Item 3.2
    
    Hier ist ein Text.
    Wie sieht er aus? *bold* aa
@@ -20,15 +22,24 @@ const string example =
    > > Inner Hallo2
    > Hallo2
    
+   -----
+   
    Hier ist ein Text. 2
    Wie sieht er aus? 2
+   
+   <div>
+      <span>Test</span>
+      <!-- Test -->
+   </div>
+   
+   _____
    
    ###### Heading 6
    ##### Heading 5
    #### Heading 4 *bold extra* a
    ### Heading 3
-   ## Heading 2
-   # Heading 1
+   ## Heading 2**dsad**
+   # Heading 1** * double * **
    """;
 
 var options = ParserOptions.Default;

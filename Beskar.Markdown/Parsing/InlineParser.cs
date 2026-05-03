@@ -89,6 +89,8 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText)
                   // any plain text left over before?
                   AddInlineNode(ref writer, parentIndex, NodeType.Text, plainTextStart, plainTextLength);
                   plainTextLength = 0;
+                  
+                  plainTextStart = state.GlobalOffset;
                }
 
                if (parser.TryMatch(ref state, parentIndex, ref writer, ref this))
