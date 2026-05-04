@@ -72,10 +72,11 @@ public sealed class ParserOptions
       new ParagraphParser()
    ], [
       // Default inline parsers
-      new BoldParser(),
+      new EscapeCharParser(),
       new InlineCodeParser(),
-      new LinkParser(),
       new ImageParser(),
+      new LinkParser(),
+      new BoldParser(),
       new LineBreakParser(),
       new InlineHtmlParser()
    ]);
