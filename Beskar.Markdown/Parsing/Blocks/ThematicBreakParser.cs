@@ -6,7 +6,7 @@ namespace Beskar.Markdown.Parsing.Blocks;
 
 public sealed class ThematicBreakParser : IBlockParser
 {
-   public int Priority => 5_000;
+   public int Priority => 10_085;
    public int SupportedTypeValue => (int)NodeType.ThematicBreak;
    
    public int TryMatch(ref LineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer)

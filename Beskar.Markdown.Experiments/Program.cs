@@ -12,6 +12,12 @@ const string example =
    
    __foo__ aa_adsa *aa
    
+   - - - - -
+   
+   ## Heading Trail ##
+   ## Heading Trail 2 ###
+   ## Heading Trail 3 \##
+   
    ## Heading 2
    Test
    

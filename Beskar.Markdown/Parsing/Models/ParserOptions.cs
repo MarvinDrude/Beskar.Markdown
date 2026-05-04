@@ -64,10 +64,10 @@ public sealed class ParserOptions
       // Default block parsers
       new CodeBlockParser(),
       new HeaderParser(),
+      new ThematicBreakParser(),
       new ListParser(),
       new ListItemParser(),
       new BlockQuoteParser(),
-      new ThematicBreakParser(),
       new HtmlParser(),
       new ParagraphParser()
    ], [

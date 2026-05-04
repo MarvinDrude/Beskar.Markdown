@@ -138,7 +138,7 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
          ref var closer = ref _delimiters.GetReference(i);
          if (!closer.Active || !closer.CanClose) continue;
 
-         for (int j = i - 1; j >= 0; j--)
+         for (var j = i - 1; j >= 0; j--)
          {
             ref var opener = ref _delimiters.GetReference(j);
 
@@ -161,11 +161,9 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
 
             var emphType = consumed == 1 ? NodeType.Emphasis : NodeType.StrongEmphasis;
 
-            // Gather values before any potential buffer reallocation
             var firstChildIdx = writer.WrittenSpan[openerNodeIdx].NextSiblingIndex;
             var afterCloser = writer.WrittenSpan[closerNodeIdx].NextSiblingIndex;
 
-            // Detach closer from children chain
             if (firstChildIdx == closerNodeIdx)
             {
                firstChildIdx = -1;
@@ -184,22 +182,19 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
 
             if (openerFullyConsumed)
             {
-               // Reuse opener node as emphasis
                ref var openerNode = ref writer.GetReference(openerNodeIdx);
+               
                openerNode.Type = emphType;
                openerNode.FirstChildIndex = firstChildIdx;
                openerNode.NextSiblingIndex = closerFullyConsumed ? afterCloser : closerNodeIdx;
             }
             else
             {
-               // Opener partially consumed: keep it as Text, create new emphasis node
                var openerSpan = writer.WrittenSpan[openerNodeIdx].TextSpan;
 
-               // Shrink opener to remaining delimiters (consume from end)
                writer.GetReference(openerNodeIdx).TextSpan =
                   new TextSpan(openerSpan.Start, opener.Length - consumed);
 
-               // Create new emphasis node (may reallocate buffer)
                var emphIdx = writer.WrittenSpan.Length;
                writer.Add(new MarkdownNode()
                {
@@ -209,11 +204,9 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
                   NextSiblingIndex = closerFullyConsumed ? afterCloser : closerNodeIdx
                });
 
-               // Re-obtain ref after potential reallocation
                writer.GetReference(openerNodeIdx).NextSiblingIndex = emphIdx;
             }
 
-            // Update closer if partially consumed (consume from start)
             if (!closerFullyConsumed)
             {
                ref var closerNode = ref writer.GetReference(closerNodeIdx);
@@ -240,18 +233,6 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
             break;
          }
       }
-   }
-   
-   private int GetPreviousNode(ref BufferWriter<MarkdownNode> writer, int parentIndex, int targetNodeIdx)
-   {
-      var curr = writer.GetReference(parentIndex).FirstChildIndex;
-      if (curr == targetNodeIdx) return -1;
-   
-      while (curr != -1 && writer.WrittenSpan[curr].NextSiblingIndex != targetNodeIdx)
-      {
-         curr = writer.WrittenSpan[curr].NextSiblingIndex;
-      }
-      return curr;
    }
    
    public void AddInlineNode(ref BufferWriter<MarkdownNode> writer, int parentIndex, 

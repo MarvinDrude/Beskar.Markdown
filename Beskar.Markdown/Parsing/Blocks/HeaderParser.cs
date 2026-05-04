@@ -38,11 +38,34 @@ public sealed class HeaderParser : IBlockParser
 
       var nodeIndex = writer.WrittenSpan.Length;
       var offset = (hasSpaceAfter ? 1 : 0);
-      
+
+      var contentStart = state.FirstNonSpaceIndex + level + offset;
+      var contentEnd = state.RawLine.Length;
+
+      while (contentEnd > contentStart && (state.RawLine[contentEnd - 1] == ' ' || state.RawLine[contentEnd - 1] == '\t'))
+         contentEnd--;
+
+      if (contentEnd > contentStart && state.RawLine[contentEnd - 1] == '#')
+      {
+         var hashEnd = contentEnd;
+         while (contentEnd > contentStart && state.RawLine[contentEnd - 1] == '#')
+            contentEnd--;
+
+         if (contentEnd == contentStart || state.RawLine[contentEnd - 1] == ' ' || state.RawLine[contentEnd - 1] == '\t')
+         {
+            while (contentEnd > contentStart && (state.RawLine[contentEnd - 1] == ' ' || state.RawLine[contentEnd - 1] == '\t'))
+               contentEnd--;
+         }
+         else
+         {
+            contentEnd = hashEnd;
+         }
+      }
+
       writer.Add(new MarkdownNode()
       {
          Type = NodeType.Header,
-         TextSpan = new TextSpan(state.GlobalOffset + level + offset, state.RawLine.Length - level - offset),
+         TextSpan = new TextSpan(state.GlobalOffset + contentStart, contentEnd - contentStart),
          FirstChildIndex = -1,
          NextSiblingIndex = -1,
          HeadingLevel = level
