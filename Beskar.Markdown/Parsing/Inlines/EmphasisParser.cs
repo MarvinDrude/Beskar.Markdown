@@ -32,8 +32,12 @@ public sealed class EmphasisParser : IInlineParser
       writer.Add(new MarkdownNode()
       {
          Type = NodeType.Text,
-         TextSpan = new TextSpan(state.GlobalOffset, length)
+         TextSpan = new TextSpan(state.GlobalOffset, length),
+         FirstChildIndex = -1,
+         NextSiblingIndex = -1
       });
+
+      parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
 
       parser.AddDelimiter(new Delimiter()
       {

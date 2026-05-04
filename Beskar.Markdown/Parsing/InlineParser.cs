@@ -141,8 +141,8 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
          for (int j = i - 1; j >= 0; j--)
          {
             ref var opener = ref _delimiters.GetReference(j);
-            
-            if (!opener.Active || !opener.CanOpen || opener.Marker != closer.Marker) 
+
+            if (!opener.Active || !opener.CanOpen || opener.Marker != closer.Marker)
                continue;
 
             if ((opener.CanOpen || opener.CanClose) && (closer.CanOpen || closer.CanClose))
@@ -159,56 +159,83 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
             var openerNodeIdx = opener.NodeIndex;
             var closerNodeIdx = closer.NodeIndex;
 
-            ref var openerNode = ref writer.GetReference(openerNodeIdx);
-            ref var closerNode = ref writer.GetReference(closerNodeIdx);
+            var emphType = consumed == 1 ? NodeType.Emphasis : NodeType.StrongEmphasis;
 
-            openerNode.Type = consumed == 1 ? NodeType.Emphasis : NodeType.StrongEmphasis;
-            
-            openerNode.FirstChildIndex = openerNode.NextSiblingIndex;
-            var currentChild = openerNode.FirstChildIndex;
-            
-            if (currentChild == closerNodeIdx)
+            // Gather values before any potential buffer reallocation
+            var firstChildIdx = writer.WrittenSpan[openerNodeIdx].NextSiblingIndex;
+            var afterCloser = writer.WrittenSpan[closerNodeIdx].NextSiblingIndex;
+
+            // Detach closer from children chain
+            if (firstChildIdx == closerNodeIdx)
             {
-               openerNode.FirstChildIndex = -1;
+               firstChildIdx = -1;
             }
             else
             {
-               while (currentChild != -1 && writer.WrittenSpan[currentChild].NextSiblingIndex != closerNodeIdx)
-               {
-                  currentChild = writer.WrittenSpan[currentChild].NextSiblingIndex;
-               }
-               
-               if (currentChild != -1)
-               {
-                  writer.GetReference(currentChild).NextSiblingIndex = -1;
-               }
+               var current = firstChildIdx;
+               while (current != -1 && writer.WrittenSpan[current].NextSiblingIndex != closerNodeIdx)
+                  current = writer.WrittenSpan[current].NextSiblingIndex;
+               if (current != -1)
+                  writer.GetReference(current).NextSiblingIndex = -1;
             }
 
-            openerNode.NextSiblingIndex = closerNode.NextSiblingIndex;
+            var openerFullyConsumed = opener.Length <= consumed;
+            var closerFullyConsumed = closer.Length <= consumed;
+
+            if (openerFullyConsumed)
+            {
+               // Reuse opener node as emphasis
+               ref var openerNode = ref writer.GetReference(openerNodeIdx);
+               openerNode.Type = emphType;
+               openerNode.FirstChildIndex = firstChildIdx;
+               openerNode.NextSiblingIndex = closerFullyConsumed ? afterCloser : closerNodeIdx;
+            }
+            else
+            {
+               // Opener partially consumed: keep it as Text, create new emphasis node
+               var openerSpan = writer.WrittenSpan[openerNodeIdx].TextSpan;
+
+               // Shrink opener to remaining delimiters (consume from end)
+               writer.GetReference(openerNodeIdx).TextSpan =
+                  new TextSpan(openerSpan.Start, opener.Length - consumed);
+
+               // Create new emphasis node (may reallocate buffer)
+               var emphIdx = writer.WrittenSpan.Length;
+               writer.Add(new MarkdownNode()
+               {
+                  Type = emphType,
+                  TextSpan = new TextSpan(openerSpan.Start + opener.Length - consumed, 0),
+                  FirstChildIndex = firstChildIdx,
+                  NextSiblingIndex = closerFullyConsumed ? afterCloser : closerNodeIdx
+               });
+
+               // Re-obtain ref after potential reallocation
+               writer.GetReference(openerNodeIdx).NextSiblingIndex = emphIdx;
+            }
+
+            // Update closer if partially consumed (consume from start)
+            if (!closerFullyConsumed)
+            {
+               ref var closerNode = ref writer.GetReference(closerNodeIdx);
+               closerNode.TextSpan = new TextSpan(
+                  closerNode.TextSpan.Start + consumed,
+                  closer.Length - consumed);
+               closerNode.NextSiblingIndex = afterCloser;
+            }
 
             opener.Length -= consumed;
             closer.Length -= consumed;
 
-            if (opener.Length == 0) 
+            if (opener.Length == 0)
                opener.Active = false;
-            else
-               openerNode.TextSpan = openerNode.TextSpan with { Length = opener.Length };
-            
+
             if (closer.Length == 0)
-            {
                closer.Active = false;
-               closerNode.TextSpan = new TextSpan(0, 0); 
-            }
             else
-            {
-               closerNode.TextSpan = new TextSpan(closerNode.TextSpan.Start + consumed, closer.Length);
-               i--; 
-            }
+               i--;
 
             for (var k = j + 1; k < i; k++)
-            {
                _delimiters.GetReference(k).Active = false;
-            }
 
             break;
          }
