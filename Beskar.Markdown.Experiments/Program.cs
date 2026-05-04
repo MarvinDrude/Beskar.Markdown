@@ -5,6 +5,13 @@ using Beskar.Markdown.Parsing.Models;
 const string example = 
    """
    Test 4 <b>***hallo***</b> s \*bold\*
+   
+   *(*foo*)*
+   
+   foo *\**
+   
+   __foo__ aa_adsa *aa
+   
    ## Heading 2
    Test
    

@@ -10,6 +10,7 @@ public sealed class StrikethroughParser : IInlineParser
    public int SupportedTypeValue => (int)NodeType.StrikeThrough;
    
    public char TriggerChar => '~';
+   public char TriggerAltChar => '~';
    
    public bool TryMatch(ref InlineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer, ref InlineParser parser)
    {

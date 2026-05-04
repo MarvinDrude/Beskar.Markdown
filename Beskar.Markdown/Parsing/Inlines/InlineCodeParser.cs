@@ -10,6 +10,7 @@ public sealed class InlineCodeParser : IInlineParser
    public int SupportedTypeValue => (int)NodeType.InlineCode;
    
    public char TriggerChar => '`';
+   public char TriggerAltChar => '`';
    
    public bool TryMatch(ref InlineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer, ref InlineParser parser)
    {

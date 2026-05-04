@@ -44,7 +44,7 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText)
             var oldNode = writer.WrittenSpan[nextNode];
             var span = _rawText.Slice(oldNode.TextSpan.Start, oldNode.TextSpan.Length);
             
-            var state = new InlineState(span, oldNode.TextSpan.Start);
+            var state = new InlineState(_rawText, span, oldNode.TextSpan.Start);
             ProcessState(ref state, parentIndex, ref writer, options);
 
             nextNode = oldNode.NextSiblingIndex;
@@ -64,7 +64,7 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText)
       {
          // header, for example, has its text inside itself
          var span = _rawText.Slice(parent.TextSpan.Start, parent.TextSpan.Length);
-         var state = new InlineState(span, parent.TextSpan.Start);
+         var state = new InlineState(_rawText, span, parent.TextSpan.Start);
          
          ProcessState(ref state, parentIndex, ref writer, options);
       }
@@ -86,7 +86,8 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText)
          for (var i = 0; i < options.InlineParsers.Length; i++)
          {
             var parser = options.InlineParsers[i];
-            if (state.RemainingText[0] == parser.TriggerChar)
+            if (state.RemainingText[0] == parser.TriggerChar 
+                || state.RemainingText[0] == parser.TriggerAltChar)
             {
                if (plainTextLength > 0)
                {
