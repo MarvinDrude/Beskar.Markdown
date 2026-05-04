@@ -14,6 +14,9 @@ const string example =
    
    - - - - -
    
+   Hardbreak spaces test  
+   Befpre those
+   
    ## Heading Trail ##
    ## Heading Trail 2 ###
    ## Heading Trail 3 \##

@@ -62,6 +62,21 @@ public sealed class InlineCodeParser : IInlineParser
       var contentStart = state.GlobalOffset + markerLength;
       var contentLength = closeIndex - markerLength;
 
+      if (contentLength >= 2 && text[markerLength] == ' ' && text[closeIndex - 1] == ' ')
+      {
+         var allSpaces = true;
+         for (var k = markerLength; k < closeIndex; k++)
+         {
+            if (text[k] != ' ') { allSpaces = false; break; }
+         }
+
+         if (!allSpaces)
+         {
+            contentStart++;
+            contentLength -= 2;
+         }
+      }
+
       var nodeIndex = writer.WrittenSpan.Length;
       writer.Add(new MarkdownNode()
       {

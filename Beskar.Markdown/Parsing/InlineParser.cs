@@ -46,13 +46,14 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
          while (nextNode != -1)
          {
             var oldNode = writer.WrittenSpan[nextNode];
+            var isLastLine = oldNode.NextSiblingIndex == -1;
             var span = _rawText.Slice(oldNode.TextSpan.Start, oldNode.TextSpan.Length);
-            
+
             var state = new InlineState(_rawText, span, oldNode.TextSpan.Start);
-            ProcessState(ref state, parentIndex, ref writer, options);
+            ProcessState(ref state, parentIndex, ref writer, options, isLastLine);
 
             nextNode = oldNode.NextSiblingIndex;
-            
+
             if (nextNode != -1)
             {
                var lastNodeIndex = writer.WrittenSpan.Length - 1;
@@ -69,18 +70,19 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
          // header, for example, has its text inside itself
          var span = _rawText.Slice(parent.TextSpan.Start, parent.TextSpan.Length);
          var state = new InlineState(_rawText, span, parent.TextSpan.Start);
-         
-         ProcessState(ref state, parentIndex, ref writer, options);
+
+         ProcessState(ref state, parentIndex, ref writer, options, isLastLine: true);
       }
 
       ProcessDelimiters(ref writer);
    }
    
    private void ProcessState(
-      ref InlineState state, 
-      int parentIndex, 
-      ref BufferWriter<MarkdownNode> writer, 
-      ParserOptions options)
+      ref InlineState state,
+      int parentIndex,
+      ref BufferWriter<MarkdownNode> writer,
+      ParserOptions options,
+      bool isLastLine)
    {
       var plainTextStart = state.GlobalOffset;
       var plainTextLength = 0;
@@ -92,7 +94,7 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
          for (var i = 0; i < options.InlineParsers.Length; i++)
          {
             var parser = options.InlineParsers[i];
-            if (state.RemainingText[0] == parser.TriggerChar 
+            if (state.RemainingText[0] == parser.TriggerChar
                 || state.RemainingText[0] == parser.TriggerAltChar)
             {
                if (plainTextLength > 0)
@@ -100,7 +102,7 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
                   // any plain text left over before?
                   AddInlineNode(ref writer, parentIndex, NodeType.Text, plainTextStart, plainTextLength);
                   plainTextLength = 0;
-                  
+
                   plainTextStart = state.GlobalOffset;
                }
 
@@ -124,6 +126,25 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
       // Flush any leftover text at the end of the line
       if (plainTextLength > 0)
       {
+         if (!isLastLine && plainTextLength >= 2)
+         {
+            var trailingSpaces = 0;
+            while (trailingSpaces < plainTextLength &&
+                   state.RawText[plainTextStart + plainTextLength - 1 - trailingSpaces] == ' ')
+            {
+               trailingSpaces++;
+            }
+
+            if (trailingSpaces >= 2)
+            {
+               var textLen = plainTextLength - trailingSpaces;
+               if (textLen > 0)
+                  AddInlineNode(ref writer, parentIndex, NodeType.Text, plainTextStart, textLen);
+               AddInlineNode(ref writer, parentIndex, NodeType.LineBreak, plainTextStart + textLen, trailingSpaces);
+               return;
+            }
+         }
+
          AddInlineNode(ref writer, parentIndex, NodeType.Text, plainTextStart, plainTextLength);
       }
    }
