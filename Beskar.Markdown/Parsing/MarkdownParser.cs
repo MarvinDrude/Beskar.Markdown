@@ -76,6 +76,13 @@ public ref struct MarkdownParser(
             var isParagraphOpen = _writer.WrittenSpan[currentParentIndex].Type is NodeType.Paragraph;
             var testParentIndex = isParagraphOpen ? openBlocks[openBlockCount - 2] : currentParentIndex;
             
+            if (isParagraphOpen && TryMatchSetextUnderline(ref state, currentParentIndex))
+            {
+               openBlockCount--; // close the converted heading
+               matchedNew = true;
+               break;
+            }
+            
             for (var index = 0; index < options.BlockParsers.Length; index++)
             {
                var parser = options.BlockParsers[index];
@@ -191,5 +198,35 @@ public ref struct MarkdownParser(
       
       ref var child = ref _writer.GetReference(current);
       child.NextSiblingIndex = childIndex;
+   }
+   
+   private bool TryMatchSetextUnderline(ref LineState state, int paragraphIndex)
+   {
+      if (state.IsBlank || state.LeadingSpaces >= 4) return false;
+
+      var marker = state.FirstChar;
+      if (marker != '=' && marker != '-') return false;
+
+      var line = state.RawLine;
+      var i = state.FirstNonSpaceIndex;
+
+      while (i < line.Length && line[i] == marker) 
+      {
+         i++;
+      }
+
+      while (i < line.Length && (line[i] == ' ' || line[i] == '\t')) 
+      {
+         i++;
+      }
+      
+      if (i < line.Length) return false;
+
+      ref var para = ref _writer.GetReference(paragraphIndex);
+      para.Type = NodeType.Header;
+      para.HeadingLevel = marker == '=' ? 1 : 2; 
+      
+      state.Slice(state.RawLine.Length);
+      return true;
    }
 }

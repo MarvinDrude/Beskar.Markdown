@@ -21,6 +21,12 @@ const string example =
    ## Heading Trail 2 ###
    ## Heading Trail 3 \##
    
+   setex
+   ===
+   
+   setex 2
+   ---
+   
    ## Heading 2
    Test
    
