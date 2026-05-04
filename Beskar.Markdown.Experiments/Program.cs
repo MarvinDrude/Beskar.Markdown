@@ -4,7 +4,7 @@ using Beskar.Markdown.Parsing.Models;
 
 const string example = 
    """
-   Test 4
+   Test 4 <b>***hallo***</b> s
    ## Heading 2
    Test
    

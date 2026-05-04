@@ -76,6 +76,7 @@ public sealed class ParserOptions
       new InlineCodeParser(),
       new LinkParser(),
       new ImageParser(),
-      new LineBreakParser()
+      new LineBreakParser(),
+      new InlineHtmlParser()
    ]);
 }
