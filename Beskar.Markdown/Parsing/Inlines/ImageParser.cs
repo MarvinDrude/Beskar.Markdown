@@ -52,8 +52,13 @@ public sealed class ImageParser : IInlineParser
       }
       else
       {
-         while (currentIndex < text.Length && !char.IsWhiteSpace(text[currentIndex]) && text[currentIndex] != ')') 
+         var parenDepth = 0;
+         while (currentIndex < text.Length)
          {
+            var c = text[currentIndex];
+            if (c == '(') parenDepth++;
+            else if (c == ')') { if (parenDepth == 0) break; parenDepth--; }
+            else if (char.IsWhiteSpace(c)) break;
             currentIndex++;
          }
       }

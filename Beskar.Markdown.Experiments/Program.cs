@@ -81,6 +81,12 @@ const string example =
    2. Second
       * adsa
    22. Third
+   
+   [link](\(foo\))
+   [link](foo(and(bar)))
+   [link](foo(and(bar))
+   [link](#fragment)
+   [link]("title")
    """;
 
 var options = ParserOptions.Default;

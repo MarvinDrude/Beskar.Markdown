@@ -28,7 +28,8 @@ public sealed class HtmlParser : IBlockParser
       var nextChar = line[startIndex + 1];
       var isTag = char.IsLetter(nextChar) || // <div>
          nextChar == '/' || // </div>
-         nextChar == '!'; // <!-- or <!DOCTYPE
+         nextChar == '!' || // <!-- or <!DOCTYPE
+         nextChar == '?';   // <?xml processing instruction
 
       if (!isTag)
       {

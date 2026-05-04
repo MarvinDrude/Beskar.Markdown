@@ -45,8 +45,10 @@ public sealed class EscapeCharParser : IInlineParser
    {
       return c switch
       {
-         '\\' or '`' or '*' or '_' or '{' or '}' or '[' or ']' or 
-            '(' or ')' or '#' or '+' or '-' or '.' or '!' or '>' => true,
+         '\\' or '`' or '*' or '_' or '{' or '}' or '[' or ']' or
+            '(' or ')' or '#' or '+' or '-' or '.' or '!' or '>' or
+            '"' or '\'' or '$' or '%' or '&' or ',' or '/' or ':' or
+            ';' or '<' or '=' or '?' or '@' or '^' or '|' or '~' => true,
          _ => false
       };
    }
