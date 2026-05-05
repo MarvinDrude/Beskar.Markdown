@@ -1,4 +1,5 @@
 ﻿using Beskar.Markdown.Rendering.Html.Blocks;
+using Beskar.Markdown.Rendering.Html.Inlines;
 using Beskar.Markdown.Rendering.Interfaces;
 
 namespace Beskar.Markdown.Rendering;
@@ -6,6 +7,8 @@ namespace Beskar.Markdown.Rendering;
 public sealed class RenderOptions
 {
    public ReadOnlySpan<INodeRenderer> NodeRenderers => _nodeRenderer;
+   
+   public bool PerserveSoftBreaks { get; set; } = false;
    
    private readonly INodeRenderer[] _nodeRenderer;
    private readonly Dictionary<int, INodeRenderer> _nodeRendererLookup = [];
@@ -28,6 +31,7 @@ public sealed class RenderOptions
       => _nodeRendererLookup.GetValueOrDefault(type);
 
    public static RenderOptions HtmlDefault => new([
+      // Default block renderers
       new HtmlDocumentRenderer(),
       new HtmlHeaderRenderer(),
       new HtmlBlockQuoteRenderer(),
@@ -37,6 +41,17 @@ public sealed class RenderOptions
       new HtmlListRenderer(),
       new HtmlListItemRenderer(),
       new HtmlParagraphRenderer(),
-      new HtmlThematicBreakRenderer()
+      new HtmlThematicBreakRenderer(),
+      // Default inline renderers
+      new HtmlTextRenderer(),
+      new HtmlAutolinkRenderer(),
+      new HtmlEmphasisRenderer(),
+      new HtmlImageRenderer(),
+      new HtmlInlineCodeRenderer(),
+      new HtmlInlineHtmlRenderer(),
+      new HtmlLineBreakRenderer(),
+      new HtmlSoftBreakRenderer(),
+      new HtmlStrikeThroughRenderer(),
+      new HtmlStrongEmphasisRenderer()
    ]);
 }

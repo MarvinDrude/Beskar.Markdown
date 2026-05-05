@@ -117,6 +117,8 @@ const string example =
    [link](foo(and(bar))
    [link](#fragment)
    [link]("title")
+   
+   ~~strikethrough~~
    """;
 
 var options = ParserOptions.Default;
