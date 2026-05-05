@@ -23,10 +23,10 @@ public sealed class ParserOptions
    } = 16;
    
    private readonly IBlockParser[] _blockParsers;
-   private readonly Dictionary<int, IBlockParser> _blockParserLookup = new();
+   private readonly Dictionary<int, IBlockParser> _blockParserLookup = [];
    
    private readonly IInlineParser[] _inlineParsers;
-   private readonly Dictionary<int, IInlineParser> _inlineParserLookup = new();
+   private readonly Dictionary<int, IInlineParser> _inlineParserLookup = [];
 
    public ParserOptions(
       IEnumerable<IBlockParser> blockParsers,

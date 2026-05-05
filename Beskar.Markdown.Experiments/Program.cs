@@ -1,6 +1,7 @@
 ﻿using Beskar.Markdown.Extensions;
 using Beskar.Markdown.Parsing;
 using Beskar.Markdown.Parsing.Models;
+using Beskar.Markdown.Rendering;
 
 const string example = 
    """
@@ -121,6 +122,9 @@ const string example =
 var options = ParserOptions.Default;
 var parser = new MarkdownParser(example, stackalloc MarkdownNode[100]);
 parser.Parse(options);
+
+var renderer = new MarkdownRenderer(example);
+var html = renderer.Render(parser.WrittenNodes, RenderOptions.HtmlDefault);
 
 var debugString = parser.WrittenNodes.ToArray().CreateDebugString(example);
 Console.WriteLine(debugString);
