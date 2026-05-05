@@ -5,9 +5,9 @@ using Me.Memory.Buffers;
 
 namespace Beskar.Markdown.Rendering.Html.Blocks;
 
-public sealed class HtmlHeaderRenderer : INodeRenderer
+public sealed class HtmlParagraphRenderer : INodeRenderer
 {
-   public int TargetTypeValue => (int)NodeType.Header;
+   public int TargetTypeValue => (int)NodeType.Paragraph;
 
    public void Render(
       ReadOnlySpan<char> rawText, 
@@ -16,8 +16,8 @@ public sealed class HtmlHeaderRenderer : INodeRenderer
       ReadOnlySpan<MarkdownNode> nodes,
       RenderOptions options)
    {
-      writer.WriteInterpolated($"<h{current.HeadingLevel}>");
+      writer.Write("<p>");
       current.RenderChildren(rawText, nodes, ref writer, options);
-      writer.WriteInterpolated($"</h{current.HeadingLevel}>");
+      writer.Write("</p>");
    }
 }

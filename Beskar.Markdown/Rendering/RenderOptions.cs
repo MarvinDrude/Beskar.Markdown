@@ -33,6 +33,10 @@ public sealed class RenderOptions
       new HtmlBlockQuoteRenderer(),
       new HtmlBlockRenderer(),
       new HtmlCodeBlockRenderer(),
-      new HtmlIndentedCodeBlockRenderer()
+      new HtmlIndentedCodeBlockRenderer(),
+      new HtmlListRenderer(),
+      new HtmlListItemRenderer(),
+      new HtmlParagraphRenderer(),
+      new HtmlThematicBreakRenderer()
    ]);
 }
