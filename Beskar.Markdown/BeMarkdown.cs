@@ -1,4 +1,5 @@
-﻿using Beskar.Markdown.Parsing;
+﻿using System.Diagnostics.CodeAnalysis;
+using Beskar.Markdown.Parsing;
 using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Rendering;
 
@@ -7,7 +8,7 @@ namespace Beskar.Markdown;
 public static class BeMarkdown
 {
    public static string ToHtml(
-      string markdown, 
+      [StringSyntax("Markdown")] string markdown, 
       ParserOptions? parserOptions = null, 
       RenderOptions? renderOptions = null)
    {
@@ -15,7 +16,7 @@ public static class BeMarkdown
    }
 
    public static string ToHtml(
-      ReadOnlySpan<char> markdown, 
+      [StringSyntax("Markdown")] ReadOnlySpan<char> markdown, 
       ParserOptions? parserOptions = null, 
       RenderOptions? renderOptions = null)
    {
