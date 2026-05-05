@@ -63,6 +63,7 @@ public sealed class ParserOptions
    public static ParserOptions Default => new([
       // Default block parsers
       new CodeBlockParser(),
+      new IndentedCodeBlockParser(),
       new HeaderParser(),
       new ThematicBreakParser(),
       new ListParser(),
@@ -78,6 +79,7 @@ public sealed class ParserOptions
       new LinkParser(),
       new EmphasisParser(),
       new LineBreakParser(),
+      new AutolinkParser(),
       new InlineHtmlParser()
    ]);
 }

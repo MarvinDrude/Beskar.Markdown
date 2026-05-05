@@ -6,7 +6,7 @@ namespace Beskar.Markdown.Parsing.Inlines;
 
 public sealed class LinkParser : IInlineParser
 {
-   public int Priority => 10_000;
+   public int Priority => 9_000;
    public int SupportedTypeValue => (int)NodeType.Link;
    
    public char TriggerChar => '[';

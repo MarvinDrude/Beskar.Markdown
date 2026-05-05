@@ -6,7 +6,7 @@ namespace Beskar.Markdown.Parsing.Inlines;
 
 public sealed class InlineCodeParser : IInlineParser
 {
-   public int Priority => 10_000;
+   public int Priority => 20_000;
    public int SupportedTypeValue => (int)NodeType.InlineCode;
    
    public char TriggerChar => '`';

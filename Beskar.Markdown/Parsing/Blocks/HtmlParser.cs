@@ -26,6 +26,7 @@ public sealed class HtmlParser : IBlockParser
       }
       
       var nextChar = line[startIndex + 1];
+      var isLetter = char.IsLetter(nextChar);
       var isTag = char.IsLetter(nextChar) || // <div>
          nextChar == '/' || // </div>
          nextChar == '!' || // <!-- or <!DOCTYPE
@@ -34,6 +35,31 @@ public sealed class HtmlParser : IBlockParser
       if (!isTag)
       {
          return -1;
+      }
+      
+      if (isLetter)
+      {
+         var isAutolink = false;
+         
+         for (var i = startIndex + 1; i < line.Length; i++)
+         {
+            var c = line[i];
+            if (char.IsWhiteSpace(c) || c == '>' || c == '/')
+            {
+               break;
+            }
+            
+            if (c == ':' || c == '@')
+            {
+               isAutolink = true;
+               break;
+            }
+         }
+
+         if (isAutolink)
+         {
+            return -1;
+         }
       }
 
       var nodeIndex = writer.WrittenSpan.Length;

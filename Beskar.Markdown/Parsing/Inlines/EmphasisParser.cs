@@ -6,7 +6,7 @@ namespace Beskar.Markdown.Parsing.Inlines;
 
 public sealed class EmphasisParser : IInlineParser
 {
-   public int Priority => 10_000;
+   public int Priority => 8_000;
    public int SupportedTypeValue => (int)NodeType.Emphasis;
    
    public char TriggerChar => '*';

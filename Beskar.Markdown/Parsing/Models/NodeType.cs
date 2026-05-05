@@ -8,6 +8,7 @@ public enum NodeType
    // Blocks
    BlockQuote,
    CodeBlock,
+   IndentedCodeBlock,
    Header,
    Paragraph,
    List,
@@ -26,6 +27,7 @@ public enum NodeType
    SoftBreak,
    LineBreak,
    StrikeThrough,
+   Autolink
    
    // Custom User Space
 }

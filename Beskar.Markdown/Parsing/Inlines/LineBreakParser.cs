@@ -6,7 +6,7 @@ namespace Beskar.Markdown.Parsing.Inlines;
 
 public sealed class LineBreakParser : IInlineParser
 {
-   public int Priority => 10_000;
+   public int Priority => 7_000;
    public int SupportedTypeValue => (int)NodeType.LineBreak;
 
    public char TriggerChar => '\\';

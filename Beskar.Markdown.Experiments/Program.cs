@@ -4,6 +4,14 @@ using Beskar.Markdown.Parsing.Models;
 
 const string example = 
    """
+   aa
+   dsads a <https://foo.bar.baz/test?q=hello&id=22&boolean>
+   dsadsa<http://foo.bar.baz>
+   ads       <MAILTO:FOO@BAR.BAZ>
+   
+   <https://foo.bar.baz/test?q=hello&id=22&boolean>
+   <MAILTO:FOO@BAR.BAZ>
+   
    Test 4 <b>***hallo***</b> s \*bold\*
    
    *(*foo*)*
@@ -13,6 +21,21 @@ const string example =
    __foo__ aa_adsa *aa
    
    - - - - -
+   
+       Code
+       Block
+       Spaces
+       
+       Hallo
+   dsad
+   
+         Hallo
+         a
+         d
+   
+   > foo
+   bar
+   ===
    
    Hardbreak spaces test  
    Befpre those
