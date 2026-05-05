@@ -1,13 +1,12 @@
-﻿using Beskar.Markdown.Extensions;
-using Beskar.Markdown.Parsing.Models;
+﻿using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Rendering.Interfaces;
 using Me.Memory.Buffers;
 
 namespace Beskar.Markdown.Rendering.Html.Blocks;
 
-public sealed class HtmlHeaderRenderer : INodeRenderer
+public sealed class HtmlIndentedCodeBlockRenderer : INodeRenderer
 {
-   public int TargetTypeValue => (int)NodeType.Header;
+   public int TargetTypeValue => (int)NodeType.IndentedCodeBlock;
 
    public void Render(
       ReadOnlySpan<char> rawText, 
@@ -16,7 +15,6 @@ public sealed class HtmlHeaderRenderer : INodeRenderer
       ReadOnlySpan<MarkdownNode> nodes,
       RenderOptions options)
    {
-      var span = current.TextSpan;
-      writer.WriteInterpolated($"<h{current.HeadingLevel}>{span.Slice(rawText)}</h{current.HeadingLevel}>");
+      
    }
 }

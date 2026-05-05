@@ -30,6 +30,9 @@ public sealed class RenderOptions
    public static RenderOptions HtmlDefault => new([
       new HtmlDocumentRenderer(),
       new HtmlHeaderRenderer(),
-      new HtmlBlockQuoteRenderer()
+      new HtmlBlockQuoteRenderer(),
+      new HtmlBlockRenderer(),
+      new HtmlCodeBlockRenderer(),
+      new HtmlIndentedCodeBlockRenderer()
    ]);
 }
