@@ -76,7 +76,7 @@ public sealed class HeaderParser : IBlockParser
       return nodeIndex;
    }
 
-   public bool CanContinue(ref MarkdownNode node, ref LineState state)
+   public bool CanContinue(ref MarkdownNode node, ref LineState state, ref BufferWriter<MarkdownNode> writer)
    {
       return false;
    }

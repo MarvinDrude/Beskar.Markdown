@@ -40,7 +40,7 @@ public sealed class ListParser : IBlockParser
       return nodeIndex;
    }
 
-   public bool CanContinue(ref MarkdownNode node, ref LineState state)
+   public bool CanContinue(ref MarkdownNode node, ref LineState state, ref BufferWriter<MarkdownNode> writer)
    {
       if (state.IsBlank || state.LeadingSpaces > 0)
       {

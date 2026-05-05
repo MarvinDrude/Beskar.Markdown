@@ -52,6 +52,7 @@ public sealed class RenderOptions
       new HtmlLineBreakRenderer(),
       new HtmlSoftBreakRenderer(),
       new HtmlStrikeThroughRenderer(),
-      new HtmlStrongEmphasisRenderer()
+      new HtmlStrongEmphasisRenderer(),
+      new HtmlLinkRenderer()
    ]);
 }

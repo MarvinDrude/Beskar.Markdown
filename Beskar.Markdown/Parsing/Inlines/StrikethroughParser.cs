@@ -6,7 +6,7 @@ namespace Beskar.Markdown.Parsing.Inlines;
 
 public sealed class StrikethroughParser : IInlineParser
 {
-   public int Priority => 10_000;
+   public int Priority => 6_500;
    public int SupportedTypeValue => (int)NodeType.StrikeThrough;
    
    public char TriggerChar => '~';

@@ -13,5 +13,5 @@ public interface IBlockParser : IParser
    /// <summary>
    /// Check if the current block can continue on the current line.
    /// </summary>
-   public bool CanContinue(ref MarkdownNode node, ref LineState state);
+   public bool CanContinue(ref MarkdownNode node, ref LineState state, ref BufferWriter<MarkdownNode> writer);
 }

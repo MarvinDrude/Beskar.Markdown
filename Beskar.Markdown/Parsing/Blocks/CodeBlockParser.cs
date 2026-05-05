@@ -87,7 +87,7 @@ public sealed class CodeBlockParser : IBlockParser
       return nodeIndex;
    }
 
-   public bool CanContinue(ref MarkdownNode node, ref LineState state)
+   public bool CanContinue(ref MarkdownNode node, ref LineState state, ref BufferWriter<MarkdownNode> writer)
    {
       var marker = node.CodeBlockMarker;
       var minCount = node.CodeBlockFenceCount;

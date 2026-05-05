@@ -57,7 +57,7 @@ public sealed class ThematicBreakParser : IBlockParser
       return nodeIndex;
    }
 
-   public bool CanContinue(ref MarkdownNode node, ref LineState state)
+   public bool CanContinue(ref MarkdownNode node, ref LineState state, ref BufferWriter<MarkdownNode> writer)
    {
       // only single lines
       return false;

@@ -4,6 +4,7 @@ public enum NodeType
 {
    // Meta
    Document,
+   IndentedCodeFragment,
    
    // Blocks
    BlockQuote,

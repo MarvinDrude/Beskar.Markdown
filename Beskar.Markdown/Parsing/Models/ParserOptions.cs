@@ -79,6 +79,7 @@ public sealed class ParserOptions
       new LinkParser(),
       new EmphasisParser(),
       new LineBreakParser(),
+      new StrikethroughParser(),
       new AutolinkParser(),
       new InlineHtmlParser()
    ]);

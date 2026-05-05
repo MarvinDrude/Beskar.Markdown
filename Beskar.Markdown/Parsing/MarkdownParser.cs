@@ -12,6 +12,7 @@ namespace Beskar.Markdown.Parsing;
 public ref struct MarkdownParser(
    ReadOnlySpan<char> rawText,
    Span<MarkdownNode> initialNodeBuffer)
+   : IDisposable
 {
    public ReadOnlySpan<MarkdownNode> WrittenNodes => _writer.WrittenSpan;
    
@@ -55,7 +56,7 @@ public ref struct MarkdownParser(
             }
             
             var parser = options.GetParserForType((int)node.Type);
-            if (parser == null || !parser.CanContinue(ref node, ref state))
+            if (parser == null || !parser.CanContinue(ref node, ref state, ref _writer))
             {
                break;
             }
@@ -228,5 +229,10 @@ public ref struct MarkdownParser(
       
       state.Slice(state.RawLine.Length);
       return true;
+   }
+
+   public void Dispose()
+   {
+      _writer.Dispose();
    }
 }
