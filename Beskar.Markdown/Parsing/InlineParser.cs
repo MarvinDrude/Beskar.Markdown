@@ -39,6 +39,7 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
       // clear the delimiters
       _delimiters.Position = 0;
       parent.FirstChildIndex = -1;
+      parent.LastChildIndex = -1;
       
       if (currentChildIndex != -1)
       {
@@ -90,34 +91,29 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
       while (state.RemainingText.Length > 0)
       {
          var matched = false;
+         var c = state.RemainingText[0];
 
-         for (var i = 0; i < options.InlineParsers.Length; i++)
+         var parser = options.GetInlineParser(c);
+         if (parser != null)
          {
-            var parser = options.InlineParsers[i];
-            if (state.RemainingText[0] == parser.TriggerChar
-                || state.RemainingText[0] == parser.TriggerAltChar)
+            if (plainTextLength > 0)
             {
-               if (plainTextLength > 0)
-               {
-                  // any plain text left over before?
-                  AddInlineNode(ref writer, parentIndex, NodeType.Text, plainTextStart, plainTextLength);
-                  plainTextLength = 0;
+               // any plain text left over before?
+               AddInlineNode(ref writer, parentIndex, NodeType.Text, plainTextStart, plainTextLength);
+               plainTextLength = 0;
 
-                  plainTextStart = state.GlobalOffset;
-               }
+               plainTextStart = state.GlobalOffset;
+            }
 
-               if (parser.TryMatch(ref state, parentIndex, ref writer, ref this))
-               {
-                  matched = true;
-                  plainTextStart = state.GlobalOffset; // Reset tracker
-                  break;
-               }
+            if (parser.TryMatch(ref state, parentIndex, ref writer, ref this))
+            {
+               matched = true;
+               plainTextStart = state.GlobalOffset; // Reset tracker
             }
          }
 
          if (!matched)
          {
-            // no match, treat as plain text
             plainTextLength++;
             state.Advance(1);
          }
@@ -265,6 +261,7 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
          Type = type,
          TextSpan = new TextSpan(start, length),
          FirstChildIndex = -1,
+         LastChildIndex = -1,
          NextSiblingIndex = -1
       });
 
@@ -278,16 +275,13 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
       if (parent.FirstChildIndex == -1)
       {
          parent.FirstChildIndex = childIndex;
+         parent.LastChildIndex = childIndex;
          return;
       }
 
-      var current = parent.FirstChildIndex;
-      while (writer.WrittenSpan[current].NextSiblingIndex != -1)
-      {
-         current = writer.WrittenSpan[current].NextSiblingIndex;
-      }
-      
-      writer.GetReference(current).NextSiblingIndex = childIndex;
+      ref var lastChild = ref writer.GetReference(parent.LastChildIndex);
+      lastChild.NextSiblingIndex = childIndex;
+      parent.LastChildIndex = childIndex;
    }
 
    public void AddDelimiter(scoped in Delimiter delimiter)

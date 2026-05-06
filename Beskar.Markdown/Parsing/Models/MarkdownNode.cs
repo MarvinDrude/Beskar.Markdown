@@ -2,7 +2,7 @@
 
 namespace Beskar.Markdown.Parsing.Models;
 
-[StructLayout(LayoutKind.Explicit, Size = 32)]
+[StructLayout(LayoutKind.Explicit, Size = 36)]
 public struct MarkdownNode
 {
    // --- General fields
@@ -15,33 +15,35 @@ public struct MarkdownNode
    [FieldOffset(12)]
    public int FirstChildIndex;
    [FieldOffset(16)]
+   public int LastChildIndex;
+   [FieldOffset(20)]
    public int NextSiblingIndex;
    
    // --- Union Metadata
-   [FieldOffset(20)] // NodeType.Header (1 - 6)
+   [FieldOffset(24)] // NodeType.Header (1 - 6)
    public int HeadingLevel;
-   [FieldOffset(20)] // NodeType.List ('-', '*', '1')
+   [FieldOffset(24)] // NodeType.List ('-', '*', '1')
    public char ListMarker;
-   [FieldOffset(20)] // NodeType.CodeBlock (start of lang string)
+   [FieldOffset(24)] // NodeType.CodeBlock (start of lang string)
    public int CodeLangSpanStart;
-   [FieldOffset(20)] // NodeType.ListItem
+   [FieldOffset(24)] // NodeType.ListItem
    public int ListIndent;
-   [FieldOffset(20)] // NodeType.Link
+   [FieldOffset(24)] // NodeType.Link
    public int LinkUrlStart;
    
    // --- Second offset Metadata
-   [FieldOffset(24)] // NodeType.List 
+   [FieldOffset(28)] // NodeType.List 
    public byte IsListOrdered;
-   [FieldOffset(24)] // NodeType.CodeBlock (length of lang string)
+   [FieldOffset(28)] // NodeType.CodeBlock (length of lang string)
    public int CodeLangSpanLength;
-   [FieldOffset(24)] // NodeType.Link
+   [FieldOffset(28)] // NodeType.Link
    public int LinkUrlLength;
    
    // --- Third offset Metadata
-   [FieldOffset(28)] // NodeType.CodeBlock
+   [FieldOffset(32)] // NodeType.CodeBlock
    public char CodeBlockMarker;
    
    // --- Fourth offset Metadata
-   [FieldOffset(30)]
+   [FieldOffset(34)]
    public ushort CodeBlockFenceCount; // NodeType.CodeBlock
 }

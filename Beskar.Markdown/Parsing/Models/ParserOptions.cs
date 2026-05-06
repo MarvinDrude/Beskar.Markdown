@@ -27,6 +27,9 @@ public sealed class ParserOptions
    
    private readonly IInlineParser[] _inlineParsers;
    private readonly Dictionary<int, IInlineParser> _inlineParserLookup = [];
+   
+   private readonly IInlineParser?[] _triggerMap = new IInlineParser?[256];
+   private readonly IInlineParser?[] _triggerAltMap = new IInlineParser?[256];
 
    public ParserOptions(
       IEnumerable<IBlockParser> blockParsers,
@@ -51,7 +54,25 @@ public sealed class ParserOptions
          {
             throw new InvalidOperationException($"Duplicate inline parser for type {parser.SupportedTypeValue}");
          }
+
+         if (parser.TriggerChar != '\0' && parser.TriggerChar < 256)
+         {
+            _triggerMap[parser.TriggerChar] ??= parser;
+         }
+         if (parser.TriggerAltChar != '\0' && parser.TriggerAltChar < 256)
+         {
+            _triggerAltMap[parser.TriggerAltChar] ??= parser;
+         }
       }
+   }
+   
+   public IInlineParser? GetInlineParser(char c)
+   {
+      if (c < 256)
+      {
+         return _triggerMap[c] ?? _triggerAltMap[c];
+      }
+      return null;
    }
    
    public IBlockParser? GetParserForType(int type)
@@ -60,7 +81,7 @@ public sealed class ParserOptions
    public bool IsParserType(int type)
       => _blockParserLookup.ContainsKey(type);
    
-   public static ParserOptions Default => new([
+   public static ParserOptions Default { get; } = new([
       // Default block parsers
       new CodeBlockParser(),
       new IndentedCodeBlockParser(),

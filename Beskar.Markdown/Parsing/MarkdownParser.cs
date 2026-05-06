@@ -29,6 +29,7 @@ public ref struct MarkdownParser(
       {
          Type = NodeType.Document, 
          FirstChildIndex = -1, 
+         LastChildIndex = -1,
          NextSiblingIndex = -1
       });
 
@@ -150,6 +151,7 @@ public ref struct MarkdownParser(
                      Type = NodeType.Text,
                      TextSpan = new TextSpan(state.GlobalOffset + state.FirstNonSpaceIndex, state.RawLine.Length),
                      FirstChildIndex = -1,
+                     LastChildIndex = -1,
                      NextSiblingIndex = -1
                   });
                   
@@ -186,19 +188,13 @@ public ref struct MarkdownParser(
       if (parent.FirstChildIndex == -1)
       {
          parent.FirstChildIndex = childIndex;
+         parent.LastChildIndex = childIndex;
          return;
       }
 
-      var nodes = _writer.WrittenSpan;
-      var current = parent.FirstChildIndex;
-      
-      while (nodes[current].NextSiblingIndex != -1)
-      {
-         current = nodes[current].NextSiblingIndex;
-      }
-      
-      ref var child = ref _writer.GetReference(current);
-      child.NextSiblingIndex = childIndex;
+      ref var lastChild = ref _writer.GetReference(parent.LastChildIndex);
+      lastChild.NextSiblingIndex = childIndex;
+      parent.LastChildIndex = childIndex;
    }
    
    private bool TryMatchSetextUnderline(ref LineState state, int paragraphIndex)

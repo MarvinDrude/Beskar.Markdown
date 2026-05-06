@@ -30,7 +30,7 @@ public sealed class RenderOptions
    public INodeRenderer? GetRenderer(int type)
       => _nodeRendererLookup.GetValueOrDefault(type);
 
-   public static RenderOptions HtmlDefault => new([
+   public static RenderOptions HtmlDefault { get; } = new([
       // Default block renderers
       new HtmlDocumentRenderer(),
       new HtmlHeaderRenderer(),
