@@ -16,4 +16,10 @@
      <ProjectReference Include="..\Beskar.Markdown\Beskar.Markdown.csproj" />
    </ItemGroup>
 
+   <ItemGroup>
+     <None Update="spec.md">
+       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+     </None>
+   </ItemGroup>
+
 </Project>

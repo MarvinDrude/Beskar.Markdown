@@ -81,7 +81,7 @@ public sealed class ParserOptions
    public bool IsParserType(int type)
       => _blockParserLookup.ContainsKey(type);
    
-   public static ParserOptions Default { get; } = new([
+   public static ParserOptions Default => new([
       // Default block parsers
       new CodeBlockParser(),
       new IndentedCodeBlockParser(),

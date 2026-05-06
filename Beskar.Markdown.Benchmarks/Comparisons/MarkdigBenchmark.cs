@@ -6,6 +6,26 @@ namespace Beskar.Markdown.Benchmarks.Comparisons;
 [Config(typeof(WarmupDetailedConfig))]
 public class MarkdigBenchmark
 {
+   private string _markdown = string.Empty;
+   
+   [GlobalSetup]
+   public void Setup()
+   {
+      _markdown = File.ReadAllText("spec.md");
+   }
+   
+   [Benchmark]
+   public string FullSpecMarkdig()
+   {
+      return Markdig.Markdown.ToHtml(_markdown);
+   }
+
+   [Benchmark]
+   public string FullSpecBeMarkdown()
+   {
+      return BeMarkdown.ToHtml(_markdown);
+   }
+   
    [Benchmark]
    public string SimpleMarkdig()
    {

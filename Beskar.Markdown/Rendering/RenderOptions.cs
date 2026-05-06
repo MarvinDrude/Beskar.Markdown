@@ -8,7 +8,7 @@ public sealed class RenderOptions
 {
    public ReadOnlySpan<INodeRenderer> NodeRenderers => _nodeRenderer;
    
-   public bool PerserveSoftBreaks { get; set; } = false;
+   public bool PerserveSoftBreaks { get; set; } = true;
    
    private readonly INodeRenderer[] _nodeRenderer;
    private readonly Dictionary<int, INodeRenderer> _nodeRendererLookup = [];
@@ -30,7 +30,7 @@ public sealed class RenderOptions
    public INodeRenderer? GetRenderer(int type)
       => _nodeRendererLookup.GetValueOrDefault(type);
 
-   public static RenderOptions HtmlDefault { get; } = new([
+   public static RenderOptions HtmlDefault => new([
       // Default block renderers
       new HtmlDocumentRenderer(),
       new HtmlHeaderRenderer(),
