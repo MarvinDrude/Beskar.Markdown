@@ -83,7 +83,7 @@ public sealed class CodeBlockParser : IBlockParser
          CodeLangSpanLength = langLength
       });
 
-      state.Slice(state.RawLine.Length);
+      state.ConsumeRest();
       return nodeIndex;
    }
 
@@ -121,7 +121,7 @@ public sealed class CodeBlockParser : IBlockParser
 
       if (isClosingFence)
       {
-         state.Slice(state.RawLine.Length);
+         state.ConsumeRest();
          if (node.TextSpan.Start == -1)
          {
             node.TextSpan = new TextSpan(state.GlobalOffset, 0);
@@ -140,7 +140,7 @@ public sealed class CodeBlockParser : IBlockParser
          node.TextSpan = node.TextSpan with { Length = newLength };
       }
       
-      state.Slice(state.RawLine.Length);
+      state.ConsumeRest();
       return !isClosingFence;
    }
 }

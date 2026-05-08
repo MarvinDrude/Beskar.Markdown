@@ -40,7 +40,7 @@ public sealed class ParagraphParser : IBlockParser
       para.FirstChildIndex = textIndex;
       para.LastChildIndex = textIndex; 
 
-      state.Slice(state.RawLine.Length);
+      state.ConsumeRest();
       return paraIndex;
    }
 

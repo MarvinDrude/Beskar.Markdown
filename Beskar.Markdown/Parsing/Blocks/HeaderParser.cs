@@ -71,7 +71,7 @@ public sealed class HeaderParser : IBlockParser
          HeadingLevel = level
       });
 
-      state.Slice(state.RawLine.Length);
+      state.ConsumeRest();
       
       return nodeIndex;
    }

@@ -9,6 +9,8 @@ public sealed class ParserOptions
    public ReadOnlySpan<IBlockParser> BlockParsers => _blockParsers;
    public ReadOnlySpan<IInlineParser> InlineParsers => _inlineParsers;
 
+   private const int _builtInNodeTypeCount = (int)NodeType.Autolink + 1;
+
    public int MaxBlockDepth
    {
       get;
@@ -23,10 +25,12 @@ public sealed class ParserOptions
    } = 16;
    
    private readonly IBlockParser[] _blockParsers;
-   private readonly Dictionary<int, IBlockParser> _blockParserLookup = [];
-   
+   private readonly IBlockParser?[] _blockParserLookup = new IBlockParser?[_builtInNodeTypeCount];
+   private readonly Dictionary<int, IBlockParser> _customBlockParserLookup = [];
+    
    private readonly IInlineParser[] _inlineParsers;
-   private readonly Dictionary<int, IInlineParser> _inlineParserLookup = [];
+   private readonly IInlineParser?[] _inlineParserLookup = new IInlineParser?[_builtInNodeTypeCount];
+   private readonly Dictionary<int, IInlineParser> _customInlineParserLookup = [];
    
    private readonly IInlineParser?[] _triggerMap = new IInlineParser?[256];
    private readonly IInlineParser?[] _triggerAltMap = new IInlineParser?[256];
@@ -41,18 +45,38 @@ public sealed class ParserOptions
       for (var i = 0; i < _blockParsers.Length; i++)
       {
          var parser = _blockParsers[i];
-         if (!_blockParserLookup.TryAdd(parser.SupportedTypeValue, parser))
+         var parserType = parser.SupportedTypeValue;
+         if ((uint)parserType < _blockParserLookup.Length)
          {
-            throw new InvalidOperationException($"Duplicate block parser for type {parser.SupportedTypeValue}");
+            if (_blockParserLookup[parserType] != null)
+            {
+               throw new InvalidOperationException($"Duplicate block parser for type {parserType}");
+            }
+
+            _blockParserLookup[parserType] = parser;
+         }
+         else if (!_customBlockParserLookup.TryAdd(parserType, parser))
+         {
+            throw new InvalidOperationException($"Duplicate block parser for type {parserType}");
          }
       }
       
       for (var i = 0; i < _inlineParsers.Length; i++)
       {
          var parser = _inlineParsers[i];
-         if (!_inlineParserLookup.TryAdd(parser.SupportedTypeValue, parser))
+         var parserType = parser.SupportedTypeValue;
+         if ((uint)parserType < _inlineParserLookup.Length)
          {
-            throw new InvalidOperationException($"Duplicate inline parser for type {parser.SupportedTypeValue}");
+            if (_inlineParserLookup[parserType] != null)
+            {
+               throw new InvalidOperationException($"Duplicate inline parser for type {parserType}");
+            }
+
+            _inlineParserLookup[parserType] = parser;
+         }
+         else if (!_customInlineParserLookup.TryAdd(parserType, parser))
+         {
+            throw new InvalidOperationException($"Duplicate inline parser for type {parserType}");
          }
 
          if (parser.TriggerChar != '\0' && parser.TriggerChar < 256)
@@ -76,10 +100,24 @@ public sealed class ParserOptions
    }
    
    public IBlockParser? GetParserForType(int type)
-      => _blockParserLookup.GetValueOrDefault(type);
-   
+   {
+      if ((uint)type < _blockParserLookup.Length)
+      {
+         return _blockParserLookup[type];
+      }
+
+      return _customBlockParserLookup.GetValueOrDefault(type);
+   }
+    
    public bool IsParserType(int type)
-      => _blockParserLookup.ContainsKey(type);
+   {
+      if ((uint)type < _blockParserLookup.Length)
+      {
+         return _blockParserLookup[type] != null;
+      }
+
+      return _customBlockParserLookup.ContainsKey(type);
+   }
    
    public static ParserOptions Default => new([
       // Default block parsers

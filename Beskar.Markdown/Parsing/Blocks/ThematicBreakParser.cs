@@ -53,7 +53,7 @@ public sealed class ThematicBreakParser : IBlockParser
          NextSiblingIndex = -1
       });
 
-      state.Slice(state.RawLine.Length);
+      state.ConsumeRest();
       return nodeIndex;
    }
 

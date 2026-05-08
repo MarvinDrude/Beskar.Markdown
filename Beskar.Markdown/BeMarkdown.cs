@@ -26,13 +26,17 @@ public static class BeMarkdown
    {
       parserOptions ??= _defaultParserOptions;
       renderOptions ??= _defaultRenderOptions;
-      
-      using var parser = new MarkdownParser(markdown, stackalloc MarkdownNode[16]);
+       
+      using var parser = new MarkdownParser(markdown, stackalloc MarkdownNode[GetInitialNodeBufferLength(markdown.Length)]);
       parser.Parse(parserOptions);
-
-      var debug = parser.WrittenNodes.ToArray().CreateDebugString(markdown);
 
       var renderer = new MarkdownRenderer(markdown);
       return renderer.Render(parser.WrittenNodes, renderOptions);
+   }
+
+   private static int GetInitialNodeBufferLength(int markdownLength)
+   {
+      var estimatedNodeCount = markdownLength / 32;
+      return Math.Clamp(estimatedNodeCount, 16, 256);
    }
 }

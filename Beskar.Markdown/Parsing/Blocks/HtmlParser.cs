@@ -71,7 +71,7 @@ public sealed class HtmlParser : IBlockParser
          NextSiblingIndex = -1
       });
 
-      state.Slice(state.RawLine.Length);
+      state.ConsumeRest();
       return nodeIndex;
    }
 
@@ -85,7 +85,7 @@ public sealed class HtmlParser : IBlockParser
       var newLength = (state.GlobalOffset - node.TextSpan.Start) + state.RawLine.Length;
       
       node.TextSpan = node.TextSpan with { Length = newLength };
-      state.Slice(state.RawLine.Length);
+      state.ConsumeRest();
 
       return true;
    }

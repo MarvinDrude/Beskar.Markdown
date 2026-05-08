@@ -25,8 +25,8 @@ public readonly ref struct MarkdownRenderer(ReadOnlySpan<char> rawText)
 
          var renderer = options.GetRenderer((int)NodeType.Document)
             ?? throw new InvalidOperationException("No renderer found for document node.");
-         
          renderer.Render(_rawText, ref writer, in documentNode, nodes, options);
+
          return writer.ToString();
       }
       finally

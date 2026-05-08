@@ -32,6 +32,18 @@ public ref struct LineState
       Recalculate();
    }
 
+   public void ConsumeRest()
+   {
+      if (RawLine.IsEmpty) return;
+
+      GlobalOffset += RawLine.Length;
+      RawLine = default;
+      LeadingSpaces = 0;
+      FirstNonSpaceIndex = -1;
+      FirstChar = '\0';
+      IsBlank = true;
+   }
+
    [MethodImpl(MethodImplOptions.AggressiveInlining)]
    private void Recalculate()
    {

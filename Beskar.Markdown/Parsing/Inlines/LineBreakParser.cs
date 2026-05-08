@@ -12,7 +12,7 @@ public sealed class LineBreakParser : IInlineParser
    public char TriggerChar => '\\';
    public char TriggerAltChar => '\\';
    
-   public bool TryMatch(ref InlineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer, ref InlineParser parser)
+   public bool TryMatch(ref InlineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser parser)
    {
       if (state.RemainingText.Length != 1) return false;
       

@@ -8,6 +8,7 @@ public struct Delimiter
    public char Marker;
 
    public int NodeIndex;
+   public int PreviousNodeIndex;
    public int Length;
 
    public bool CanOpen;

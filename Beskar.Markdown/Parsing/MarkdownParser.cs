@@ -93,7 +93,12 @@ public ref struct MarkdownParser(
                {
                   continue;
                }
-               
+
+               if (!ShouldTryBlockParser(parser.SupportedTypeValue, ref state))
+               {
+                  continue;
+               }
+                
                var tempState = state;
                foundNewNodeIndex = parser.TryMatch(ref tempState, testParentIndex, ref _writer);
                
@@ -156,7 +161,7 @@ public ref struct MarkdownParser(
                   });
                   
                   LinkNodes(currentParentIndex, textIndex);
-                  state.Slice(state.RawLine.Length);
+                  state.ConsumeRest();
                }
                else
                {
@@ -223,8 +228,40 @@ public ref struct MarkdownParser(
       para.Type = NodeType.Header;
       para.HeadingLevel = marker == '=' ? 1 : 2; 
       
-      state.Slice(state.RawLine.Length);
+      state.ConsumeRest();
       return true;
+   }
+
+   private static bool ShouldTryBlockParser(int parserType, ref LineState state)
+   {
+      if (parserType is > ParserConstants.MaxInbuiltParseValue or < 0)
+      {
+         return true;
+      }
+
+      if (state.IsBlank)
+      {
+         return false;
+      }
+
+      var firstChar = state.FirstChar;
+      return (NodeType)parserType switch
+      {
+         NodeType.CodeBlock => state.LeadingSpaces < 4 && firstChar is '`' or '~',
+         NodeType.IndentedCodeBlock => state.LeadingSpaces >= 4,
+         NodeType.Header => state.LeadingSpaces < 4 && firstChar == '#',
+         NodeType.ThematicBreak => state.LeadingSpaces < 4 && firstChar is '*' or '-' or '_',
+         NodeType.List => state.LeadingSpaces < 4 && IsPossibleListMarkerStart(firstChar),
+         NodeType.ListItem => IsPossibleListMarkerStart(firstChar),
+         NodeType.BlockQuote => firstChar == '>',
+         NodeType.HtmlBlock => state.LeadingSpaces < 4 && firstChar == '<',
+         _ => true
+      };
+   }
+
+   private static bool IsPossibleListMarkerStart(char c)
+   {
+      return c is '-' or '*' or '+' || char.IsAsciiDigit(c);
    }
 
    public void Dispose()

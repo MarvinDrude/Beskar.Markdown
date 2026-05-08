@@ -1,34 +1,55 @@
 ﻿using Beskar.Markdown.Rendering.Html.Blocks;
 using Beskar.Markdown.Rendering.Html.Inlines;
+using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Rendering.Interfaces;
 
 namespace Beskar.Markdown.Rendering;
 
 public sealed class RenderOptions
 {
-   public ReadOnlySpan<INodeRenderer> NodeRenderers => _nodeRenderer;
+   private const int _builtInNodeTypeCount = (int)NodeType.Autolink + 1;
    
+   public ReadOnlySpan<INodeRenderer> NodeRenderers => _nodeRenderer;
+    
    public bool PerserveSoftBreaks { get; set; } = true;
    
    private readonly INodeRenderer[] _nodeRenderer;
-   private readonly Dictionary<int, INodeRenderer> _nodeRendererLookup = [];
-   
-   public RenderOptions(IEnumerable<INodeRenderer> nodeRenderers)
+   private readonly INodeRenderer?[] _nodeRendererLookup = new INodeRenderer?[_builtInNodeTypeCount];
+   private readonly Dictionary<int, INodeRenderer> _customNodeRendererLookup = [];
+
+   private RenderOptions(IEnumerable<INodeRenderer> nodeRenderers)
    {
       _nodeRenderer = nodeRenderers.ToArray();
       
       for (var i = 0; i < _nodeRenderer.Length; i++)
       {
-         var parser = _nodeRenderer[i];
-         if (!_nodeRendererLookup.TryAdd(parser.TargetTypeValue, parser))
+         var renderer = _nodeRenderer[i];
+         var targetType = renderer.TargetTypeValue;
+         if ((uint)targetType < _nodeRendererLookup.Length)
          {
-            throw new InvalidOperationException($"Duplicate block parser for type {parser.TargetTypeValue}");
+            if (_nodeRendererLookup[targetType] != null)
+            {
+               throw new InvalidOperationException($"Duplicate renderer for type {targetType}");
+            }
+
+            _nodeRendererLookup[targetType] = renderer;
+         }
+         else if (!_customNodeRendererLookup.TryAdd(targetType, renderer))
+         {
+            throw new InvalidOperationException($"Duplicate renderer for type {targetType}");
          }
       }
    }
-   
+    
    public INodeRenderer? GetRenderer(int type)
-      => _nodeRendererLookup.GetValueOrDefault(type);
+   {
+      if ((uint)type < _nodeRendererLookup.Length)
+      {
+         return _nodeRendererLookup[type];
+      }
+
+      return _customNodeRendererLookup.GetValueOrDefault(type);
+   }
 
    public static RenderOptions HtmlDefault => new([
       // Default block renderers

@@ -12,7 +12,7 @@ public sealed class ImageParser : IInlineParser
    public char TriggerChar => '!';
    public char TriggerAltChar => '!';
    
-   public bool TryMatch(ref InlineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer, ref InlineParser parser)
+   public bool TryMatch(ref InlineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser parser)
    {
       var text = state.RemainingText;
       if (text.Length < 2 || text[1] != '[')

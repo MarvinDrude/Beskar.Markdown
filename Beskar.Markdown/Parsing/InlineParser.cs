@@ -9,7 +9,9 @@ namespace Beskar.Markdown.Parsing;
 public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
 {
    private readonly ReadOnlySpan<char> _rawText = rawText;
-   private BufferWriter<Delimiter> _delimiters = new(16);
+   private BufferWriter<Delimiter> _delimiters;
+   
+   private bool _hasDelimiterBuffer;
 
    public void Parse(ref BufferWriter<MarkdownNode> writer, ParserOptions options)
    {
@@ -37,7 +39,11 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
       var currentChildIndex = parent.FirstChildIndex;
 
       // clear the delimiters
-      _delimiters.Position = 0;
+      if (_hasDelimiterBuffer)
+      {
+         _delimiters.Position = 0;
+      }
+
       parent.FirstChildIndex = -1;
       parent.LastChildIndex = -1;
       
@@ -147,6 +153,8 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
    
    private void ProcessDelimiters(ref BufferWriter<MarkdownNode> writer)
    {
+      if (!_hasDelimiterBuffer) return;
+
       var delimiters = _delimiters.WrittenSpan;
       if (delimiters.Length == 0) return;
 
@@ -184,6 +192,11 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
             if (firstChildIdx == closerNodeIdx)
             {
                firstChildIdx = -1;
+            }
+            else if (closer.PreviousNodeIndex != -1 &&
+                     writer.WrittenSpan[closer.PreviousNodeIndex].NextSiblingIndex == closerNodeIdx)
+            {
+               writer.GetReference(closer.PreviousNodeIndex).NextSiblingIndex = -1;
             }
             else
             {
@@ -286,11 +299,20 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
 
    public void AddDelimiter(scoped in Delimiter delimiter)
    {
+      if (!_hasDelimiterBuffer)
+      {
+         _delimiters = new BufferWriter<Delimiter>(16);
+         _hasDelimiterBuffer = true;
+      }
+
       _delimiters.Add(delimiter);
    }
 
    public void Dispose()
    {
-      _delimiters.Dispose();
+      if (_hasDelimiterBuffer)
+      {
+         _delimiters.Dispose();
+      }
    }
 }

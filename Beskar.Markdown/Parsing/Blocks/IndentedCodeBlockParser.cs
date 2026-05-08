@@ -23,6 +23,7 @@ public sealed class IndentedCodeBlockParser : IBlockParser
          Type = NodeType.IndentedCodeBlock,
          TextSpan = new TextSpan(state.GlobalOffset, state.RawLine.Length),
          FirstChildIndex = nodeIndex + 1,
+         LastChildIndex = nodeIndex + 1,
          NextSiblingIndex = -1,
          CodeBlockMarker = '\0',
          CodeBlockFenceCount = 0,
@@ -39,7 +40,7 @@ public sealed class IndentedCodeBlockParser : IBlockParser
          NextSiblingIndex = -1
       });
 
-      state.Slice(state.RawLine.Length);
+      state.ConsumeRest();
       return nodeIndex;
    }
 
@@ -52,15 +53,9 @@ public sealed class IndentedCodeBlockParser : IBlockParser
       node.TextSpan = node.TextSpan with { Length = newLength };
       var skipAmount = state.LeadingSpaces;
       
-      var lastChildIndex = node.FirstChildIndex;
-      while (writer.WrittenSpan[lastChildIndex].NextSiblingIndex != -1)
-      {
-         lastChildIndex = writer.WrittenSpan[lastChildIndex].NextSiblingIndex;
-      }
-      
       var newLineIndex = writer.WrittenSpan.Length;
-      
-      writer.GetReference(lastChildIndex).NextSiblingIndex = newLineIndex;
+       
+      writer.GetReference(node.LastChildIndex).NextSiblingIndex = newLineIndex;
       writer.Add(new MarkdownNode()
       {
          Type = NodeType.IndentedCodeFragment,
@@ -68,8 +63,9 @@ public sealed class IndentedCodeBlockParser : IBlockParser
          FirstChildIndex = -1,
          NextSiblingIndex = -1
       });
-      
-      state.Slice(state.RawLine.Length);
+      node.LastChildIndex = newLineIndex;
+       
+      state.ConsumeRest();
       return true;
 
    }

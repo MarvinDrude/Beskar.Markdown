@@ -13,7 +13,7 @@ public sealed class EmphasisParser : IInlineParser
    public char TriggerAltChar => '_';
 
    public bool TryMatch(ref InlineState state, int parentIndex, 
-      ref BufferWriter<MarkdownNode> writer, ref InlineParser parser)
+      ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser parser)
    {
       var text = state.RemainingText;
       var marker = text[0];
@@ -28,6 +28,8 @@ public sealed class EmphasisParser : IInlineParser
 
       if (!canOpen && !canClose) return false;
       
+      var parent = writer.WrittenSpan[parentIndex];
+      var previousNodeIndex = parent.FirstChildIndex == -1 ? -1 : parent.LastChildIndex;
       var nodeIndex = writer.WrittenSpan.Length;
       writer.Add(new MarkdownNode()
       {
@@ -43,6 +45,7 @@ public sealed class EmphasisParser : IInlineParser
       {
          Marker = marker,
          NodeIndex = nodeIndex,
+         PreviousNodeIndex = previousNodeIndex,
          Length = length,
          CanOpen = canOpen,
          CanClose = canClose,

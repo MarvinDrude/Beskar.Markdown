@@ -11,7 +11,7 @@ public class MarkdigBenchmark
    [GlobalSetup]
    public void Setup()
    {
-      _markdown = File.ReadAllText("spec.md");
+      _markdown = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "spec.md"));
    }
    
    [Benchmark]
