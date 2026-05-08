@@ -128,8 +128,8 @@ parser.Parse(options);
 var renderer = new MarkdownRenderer(example);
 var html = renderer.Render(parser.WrittenNodes, RenderOptions.HtmlDefault);
 
-//var debugString = parser.WrittenNodes.ToArray().CreateDebugString(example);
-//Console.WriteLine(debugString);
+var debugString = parser.WrittenNodes.ToArray().CreateDebugString(example);
+Console.WriteLine(debugString);
 
 Console.WriteLine(html);
 

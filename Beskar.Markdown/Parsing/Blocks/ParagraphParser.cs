@@ -22,19 +22,23 @@ public sealed class ParagraphParser : IBlockParser
       {
          Type = NodeType.Paragraph,
          FirstChildIndex = -1,
-         NextSiblingIndex = -1
+         NextSiblingIndex = -1,
+         LastChildIndex = -1,
       });
 
       var textIndex = writer.WrittenSpan.Length;
       writer.Add(new MarkdownNode()
       {
          Type = NodeType.Text,
-         TextSpan = new TextSpan(state.GlobalOffset + state.FirstNonSpaceIndex, state.RawLine.Length),
+         TextSpan = new TextSpan(state.GlobalOffset + state.FirstNonSpaceIndex, state.RawLine.Length - state.FirstNonSpaceIndex),
          FirstChildIndex = -1,
-         NextSiblingIndex = -1
+         NextSiblingIndex = -1,
+         LastChildIndex = -1,
       });
 
-      writer.GetReference(paraIndex).FirstChildIndex = textIndex;
+      ref var para = ref writer.GetReference(paraIndex);
+      para.FirstChildIndex = textIndex;
+      para.LastChildIndex = textIndex; 
 
       state.Slice(state.RawLine.Length);
       return paraIndex;

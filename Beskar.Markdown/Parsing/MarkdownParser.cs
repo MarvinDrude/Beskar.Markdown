@@ -149,7 +149,7 @@ public ref struct MarkdownParser(
                   _writer.Add(new MarkdownNode()
                   {
                      Type = NodeType.Text,
-                     TextSpan = new TextSpan(state.GlobalOffset + state.FirstNonSpaceIndex, state.RawLine.Length),
+                     TextSpan = new TextSpan(state.GlobalOffset + state.FirstNonSpaceIndex, state.RawLine.Length - state.FirstNonSpaceIndex),
                      FirstChildIndex = -1,
                      LastChildIndex = -1,
                      NextSiblingIndex = -1
