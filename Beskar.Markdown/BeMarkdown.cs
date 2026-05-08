@@ -37,6 +37,6 @@ public static class BeMarkdown
    private static int GetInitialNodeBufferLength(int markdownLength)
    {
       var estimatedNodeCount = markdownLength / 32;
-      return Math.Clamp(estimatedNodeCount, 16, 256);
+      return Math.Clamp(estimatedNodeCount, 16, 24);
    }
 }

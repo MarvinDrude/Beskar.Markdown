@@ -90,6 +90,7 @@ public sealed class ImageParser : IInlineParser
          TextSpan = new TextSpan(state.GlobalOffset, currentIndex + 1),
          FirstChildIndex = -1,
          NextSiblingIndex = -1,
+         LastChildIndex = -1,
          LinkUrlStart = state.GlobalOffset + actualUrlStart,
          LinkUrlLength = actualUrlLength
       });

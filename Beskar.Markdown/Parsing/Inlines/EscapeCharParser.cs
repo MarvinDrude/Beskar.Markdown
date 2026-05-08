@@ -12,12 +12,14 @@ public sealed class EscapeCharParser : IInlineParser
    public char TriggerChar => '\\';
    public char TriggerAltChar => '\\';
    
+   private LineBreakParser _lineBreakParser = new();
+   
    public bool TryMatch(ref InlineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser parser)
    {
       var text = state.RemainingText;
       if (text.Length < 2)
       {
-         return false;
+         return _lineBreakParser.TryMatch(ref state, parentIndex, ref writer, ref parser);
       }
 
       var nextChar = text[1];

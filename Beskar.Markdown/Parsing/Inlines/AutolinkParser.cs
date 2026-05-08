@@ -37,16 +37,18 @@ public sealed class AutolinkParser : IInlineParser
       if (closeIdx == -1) return false;
 
       var content = text[1..closeIdx];
+      var isEmail = IsEmailAutolink(content);
       
-      if (IsUriAutolink(content) || IsEmailAutolink(content))
+      if (isEmail || IsUriAutolink(content))
       {
          var nodeIndex = writer.WrittenSpan.Length;
          writer.Add(new MarkdownNode()
          {
             Type = NodeType.Autolink, 
-            TextSpan = new TextSpan(state.GlobalOffset, closeIdx + 1),
+            TextSpan = new TextSpan(state.GlobalOffset + 1, closeIdx - 1),
             FirstChildIndex = -1,
-            NextSiblingIndex = -1
+            NextSiblingIndex = -1,
+            IsEmail = (byte)(isEmail ? 1 : 0)
          });
 
          parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
@@ -62,7 +64,7 @@ public sealed class AutolinkParser : IInlineParser
    {
       var colonIdx = content.IndexOf(':');
       
-      if (colonIdx < 2 || colonIdx > 32) return false;
+      if (colonIdx is < 2 or > 32) return false;
       if (!char.IsAsciiLetter(content[0])) return false;
       
       for (var i = 1; i < colonIdx; i++)
@@ -78,7 +80,7 @@ public sealed class AutolinkParser : IInlineParser
       return content.Length > colonIdx + 1;
    }
 
-   private bool IsEmailAutolink(ReadOnlySpan<char> content)
+   private static bool IsEmailAutolink(ReadOnlySpan<char> content)
    {
       var atIdx = content.IndexOf('@');
       return atIdx > 0 && atIdx < content.Length - 1;

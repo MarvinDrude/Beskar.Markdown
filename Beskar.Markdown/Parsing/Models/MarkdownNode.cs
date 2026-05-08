@@ -30,6 +30,8 @@ public struct MarkdownNode
    public int ListIndent;
    [FieldOffset(24)] // NodeType.Link
    public int LinkUrlStart;
+   [FieldOffset(24)] // NodeType.AutoLink
+   public byte IsEmail;
    
    // --- Second offset Metadata
    [FieldOffset(28)] // NodeType.List 

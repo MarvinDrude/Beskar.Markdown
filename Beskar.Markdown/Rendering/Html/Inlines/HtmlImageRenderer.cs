@@ -1,4 +1,5 @@
-﻿using Beskar.Markdown.Parsing.Models;
+﻿using Beskar.Markdown.Extensions;
+using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Rendering.Interfaces;
 using Me.Memory.Buffers;
 
@@ -15,6 +16,15 @@ public sealed class HtmlImageRenderer : INodeRenderer
       ReadOnlySpan<MarkdownNode> nodes,
       RenderOptions options)
    {
+      var url = rawText.Slice(current.LinkUrlStart, current.LinkUrlLength);
+      ReadOnlySpan<char> title = [];
       
+      if (current.FirstChildIndex != -1)
+      {
+         var child = nodes[current.FirstChildIndex];
+         title = child.TextSpan.Slice(rawText);
+      }
+      
+      writer.WriteInterpolated($"<img src=\"{url}\" alt=\"{title}\" />");
    }
 }
