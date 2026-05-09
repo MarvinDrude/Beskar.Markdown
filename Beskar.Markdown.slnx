@@ -12,6 +12,7 @@
   </Folder>
   <Project Path="Beskar.Markdown.Benchmarks/Beskar.Markdown.Benchmarks.csproj" />
   <Project Path="Beskar.Markdown.Experiments/Beskar.Markdown.Experiments.csproj" />
+  <Project Path="Beskar.Markdown.Fuzzing/Beskar.Markdown.Fuzzing.csproj" />
   <Project Path="Beskar.Markdown.Tests/Beskar.Markdown.Tests.csproj" />
   <Project Path="Beskar.Markdown/Beskar.Markdown.csproj" />
 </Solution>

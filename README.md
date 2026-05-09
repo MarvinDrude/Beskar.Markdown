@@ -66,6 +66,13 @@ Console.WriteLine(html);
 If you are processing Markdown input from untrusted users, you **MUST** sanitize
 the resulting HTML to prevent Cross-Site Scripting (XSS) attacks.
 
+Example:
+```csharp
+var rawHtml = BeMarkdown.ToHtml(userContent);
+var sanitizer = new HtmlSanitizer();
+var safeHtml = sanitizer.Sanitize(rawHtml);
+```
+
 ## Benchmark Results
 
 Beskar.Markdown is designed to be fast and leaner than existing solutions. 
@@ -88,9 +95,3 @@ Here is a comparison with some other libraries (especially when it comes to memo
 | CommonMark.Net  | Small      |       1.768 us |    1 |         - |         - |         - |    11488 B |
 | MarkdownSharp   | Small      |       5.056 us |    3 |         - |         - |         - |     2752 B |
 
-Example:
-```csharp
-var rawHtml = BeMarkdown.ToHtml(userContent);
-var sanitizer = new HtmlSanitizer();
-var safeHtml = sanitizer.Sanitize(rawHtml);
-```
