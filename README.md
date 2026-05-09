@@ -57,8 +57,11 @@ Console.WriteLine(html);
 ### Future Plans
 - [ ] Tables
 - [ ] Task Lists
+- [ ] Nice dev facing extension system
 - [ ] Footnotes
 - [ ] Full CommonMark Compliance suite validation
+- [ ] Context based rendering functions
+- [ ] In memory assembly baking
 
 ## ⚠️ Security Warning
 
