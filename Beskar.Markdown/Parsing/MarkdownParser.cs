@@ -339,8 +339,6 @@ public ref struct MarkdownParser(
          currentChild = writer.WrittenSpan[currentChild].NextSiblingIndex;
       }
 
-      var headerRowTextIndex = para.LastChildIndex;
-
       if (prevChildIndex != -1)
       {
          writer.GetReference(prevChildIndex).NextSiblingIndex = -1;
