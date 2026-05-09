@@ -111,7 +111,7 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
                plainTextStart = state.GlobalOffset;
             }
 
-            if (parser.TryMatch(ref state, parentIndex, ref writer, ref this))
+            if (parser.TryMatch(ref state, parentIndex, ref writer, ref this, options))
             {
                matched = true;
                plainTextStart = state.GlobalOffset; // Reset tracker
@@ -297,6 +297,16 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
       parent.LastChildIndex = childIndex;
    }
 
+   public void ParseInnerContent(ref BufferWriter<MarkdownNode> writer, int parentIndex, int start, int length, ParserOptions options)
+   {
+      if (length <= 0) return;
+      
+      var span = _rawText.Slice(start, length);
+      var state = new InlineState(_rawText, span, start);
+      
+      ProcessState(ref state, parentIndex, ref writer, options, isLastLine: true);
+   }
+   
    public void AddDelimiter(scoped in Delimiter delimiter)
    {
       if (!_hasDelimiterBuffer)

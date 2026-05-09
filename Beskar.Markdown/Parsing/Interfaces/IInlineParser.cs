@@ -13,5 +13,6 @@ public interface IInlineParser : IParser
       ref InlineState state, 
       int parentIndex, 
       ref BufferWriter<MarkdownNode> writer, 
-      scoped ref InlineParser parser);
+      scoped ref InlineParser parser,
+      ParserOptions options);
 }

@@ -26,7 +26,6 @@ public sealed class HtmlParser : IBlockParser
       }
       
       var nextChar = line[startIndex + 1];
-      var isLetter = char.IsLetter(nextChar);
       var isTag = char.IsLetter(nextChar) || // <div>
          nextChar == '/' || // </div>
          nextChar == '!' || // <!-- or <!DOCTYPE
@@ -37,28 +36,72 @@ public sealed class HtmlParser : IBlockParser
          return -1;
       }
       
-      if (isLetter)
+      var nameStart = startIndex + 1;
+      var isClosing = false;
+
+      if (nextChar == '/')
       {
-         var isAutolink = false;
-         
-         for (var i = startIndex + 1; i < line.Length; i++)
+         isClosing = true;
+         nameStart++;
+      }
+      
+      if (nameStart < line.Length && char.IsLetter(line[nameStart]))
+      {
+         var nameEnd = nameStart;
+         while (nameEnd < line.Length && char.IsLetterOrDigit(line[nameEnd]))
          {
-            var c = line[i];
-            if (char.IsWhiteSpace(c) || c == '>' || c == '/')
+            nameEnd++;
+         }
+
+         var tagName = line.Slice(nameStart, nameEnd - nameStart);
+         var isBlockTag = IsBlockTag(tagName);
+
+         if (!isClosing)
+         {
+            var isAutolink = false;
+            for (var i = startIndex + 1; i < line.Length; i++)
             {
-               break;
-            }
-            
-            if (c == ':' || c == '@')
-            {
+               var c = line[i];
+               if (char.IsWhiteSpace(c) || c == '>' || c == '/')
+               {
+                  break;
+               }
+
+               if (c != ':' && c != '@') continue;
+               
                isAutolink = true;
                break;
             }
+
+            if (isAutolink)
+            {
+               return -1;
+            }
          }
 
-         if (isAutolink)
+         if (!isBlockTag)
          {
-            return -1;
+            var closeBracket = -1;
+            for (var i = nameEnd; i < line.Length; i++)
+            {
+               if (line[i] != '>') continue;
+               
+               closeBracket = i;
+               break;
+            }
+
+            if (closeBracket == -1)
+            {
+               return -1;
+            }
+
+            for (var i = closeBracket + 1; i < line.Length; i++)
+            {
+               if (!char.IsWhiteSpace(line[i]))
+               {
+                  return -1;
+               }
+            }
          }
       }
 
@@ -88,5 +131,28 @@ public sealed class HtmlParser : IBlockParser
       state.ConsumeRest();
 
       return true;
+   }
+   
+   private static bool IsBlockTag(ReadOnlySpan<char> tagName)
+   {
+      if (tagName.Length > 20) return false;
+
+      Span<char> lower = stackalloc char[tagName.Length];
+      tagName.ToLowerInvariant(lower);
+
+      return lower switch
+      {
+         "address" or "article" or "aside" or "base" or "basefont" or "blockquote" or
+            "body" or "caption" or "center" or "col" or "colgroup" or "dd" or "details" or
+            "dialog" or "dir" or "div" or "dl" or "dt" or "fieldset" or "figcaption" or
+            "figure" or "footer" or "form" or "frame" or "frameset" or "h1" or "h2" or
+            "h3" or "h4" or "h5" or "h6" or "head" or "header" or "hr" or "html" or
+            "iframe" or "legend" or "li" or "link" or "main" or "menu" or "menuitem" or
+            "nav" or "noframes" or "ol" or "optgroup" or "option" or "p" or "param" or
+            "section" or "source" or "summary" or "table" or "tbody" or "td" or "tfoot" or
+            "th" or "thead" or "title" or "tr" or "track" or "ul" or
+            "script" or "pre" or "style" => true,
+         _ => false
+      };
    }
 }

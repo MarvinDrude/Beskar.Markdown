@@ -12,7 +12,9 @@ public sealed class StrikethroughParser : IInlineParser
    public char TriggerChar => '~';
    public char TriggerAltChar => '~';
    
-   public bool TryMatch(ref InlineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser parser)
+   public bool TryMatch(ref InlineState state, int parentIndex, 
+      ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser parser,
+      ParserOptions options)
    {
       var text = state.RemainingText;
       if (text.Length < 5 || text[0] != '~' || text[1] != '~')

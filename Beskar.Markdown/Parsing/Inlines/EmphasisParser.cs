@@ -13,7 +13,8 @@ public sealed class EmphasisParser : IInlineParser
    public char TriggerAltChar => '_';
 
    public bool TryMatch(ref InlineState state, int parentIndex, 
-      ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser parser)
+      ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser parser,
+      ParserOptions options)
    {
       var text = state.RemainingText;
       var marker = text[0];

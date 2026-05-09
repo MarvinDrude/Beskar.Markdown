@@ -17,19 +17,9 @@ public sealed class HtmlLinkRenderer : INodeRenderer
       RenderOptions options)
    {
       var url = rawText.Slice(current.LinkUrlStart, current.LinkUrlLength);
-      ReadOnlySpan<char> title = [];
-      
-      if (current.FirstChildIndex != -1)
-      {
-         var child = nodes[current.FirstChildIndex];
-         title = child.TextSpan.Slice(rawText);
-      }
       
       writer.WriteInterpolated($"<a href=\"{url}\">");
-      if (title.Length > 0)
-      {
-         writer.Write(title);
-      }
+      current.RenderChildren(rawText, nodes, ref writer, options);
       writer.Write("</a>");
    }
 }

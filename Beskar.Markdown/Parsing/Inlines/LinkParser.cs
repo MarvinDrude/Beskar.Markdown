@@ -12,7 +12,9 @@ public sealed class LinkParser : IInlineParser
    public char TriggerChar => '[';
    public char TriggerAltChar => '[';
    
-   public bool TryMatch(ref InlineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser parser)
+   public bool TryMatch(ref InlineState state, int parentIndex, 
+      ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser parser,
+      ParserOptions options)
    {
       var text = state.RemainingText;
 
@@ -54,9 +56,11 @@ public sealed class LinkParser : IInlineParser
          while (currentIndex < text.Length)
          {
             var c = text[currentIndex];
+            
             if (c == '(') parenDepth++;
             else if (c == ')') { if (parenDepth == 0) break; parenDepth--; }
             else if (char.IsWhiteSpace(c)) break;
+            
             currentIndex++;
          }
       }
@@ -69,7 +73,7 @@ public sealed class LinkParser : IInlineParser
          currentIndex++;
       }
       
-      // add title parsing here
+      // try get the optional title
       if (currentIndex < text.Length && (text[currentIndex] == '"' || text[currentIndex] == '\''))
       {
          var quote = text[currentIndex++];
@@ -99,7 +103,9 @@ public sealed class LinkParser : IInlineParser
       });
 
       parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
-      parser.AddInlineNode(ref writer, nodeIndex, NodeType.Text, contentStart, contentLength);
+      
+      // name of link can have inline formatting itself
+      parser.ParseInnerContent(ref writer, nodeIndex, contentStart, contentLength, options);
 
       state.Advance(currentIndex + 1);
       return true;
@@ -110,20 +116,20 @@ public sealed class LinkParser : IInlineParser
       var depth = 0;
       for (var i = 0; i < text.Length; i++)
       {
-         if (text[i] == '\\') 
+         switch (text[i])
          {
-            i++; // Skip escaped character
-            continue;
-         }
-         
-         if (text[i] == '[') 
-         {
-            depth++;
-         }
-         else if (text[i] == ']')
-         {
-            depth--;
-            if (depth == 0) return i;
+            case '\\':
+               i++; // Skip escaped character
+               continue;
+            case '[':
+               depth++;
+               break;
+            case ']':
+            {
+               depth--;
+               if (depth == 0) return i;
+               break;
+            }
          }
       }
       

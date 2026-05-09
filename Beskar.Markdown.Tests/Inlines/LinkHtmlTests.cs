@@ -17,10 +17,8 @@ public sealed class LinkHtmlTests
    public Task LinkWithTitle()
    {
       const string markdown = """[link](https://example.com "title")""";
-      // Assuming title is rendered if supported, but let's check standard behavior
       const string expectedHtml = """<p><a href="https://example.com" title="title">link</a></p>""";
 
-      // If title is not supported yet, this might fail, but let's see.
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 

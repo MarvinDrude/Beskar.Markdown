@@ -14,12 +14,15 @@ public sealed class EscapeCharParser : IInlineParser
    
    private LineBreakParser _lineBreakParser = new();
    
-   public bool TryMatch(ref InlineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser parser)
+   public bool TryMatch(ref InlineState state, int parentIndex, 
+      ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser parser,
+      ParserOptions options)
    {
       var text = state.RemainingText;
       if (text.Length < 2)
       {
-         return _lineBreakParser.TryMatch(ref state, parentIndex, ref writer, ref parser);
+         return _lineBreakParser.TryMatch(ref state, parentIndex, 
+            ref writer, ref parser, options);
       }
 
       var nextChar = text[1];
