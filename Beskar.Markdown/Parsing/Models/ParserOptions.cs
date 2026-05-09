@@ -32,8 +32,7 @@ public sealed class ParserOptions
    private readonly IInlineParser?[] _inlineParserLookup = new IInlineParser?[_builtInNodeTypeCount];
    private readonly Dictionary<int, IInlineParser> _customInlineParserLookup = [];
    
-   private readonly IInlineParser?[] _triggerMap = new IInlineParser?[256];
-   private readonly IInlineParser?[] _triggerAltMap = new IInlineParser?[256];
+   private readonly IInlineParser[]?[] _triggerMap = new IInlineParser[]?[256];
 
    public ParserOptions(
       IEnumerable<IBlockParser> blockParsers,
@@ -61,6 +60,8 @@ public sealed class ParserOptions
          }
       }
       
+      var tempTriggers = new List<IInlineParser>?[256];
+      
       for (var i = 0; i < _inlineParsers.Length; i++)
       {
          var parser = _inlineParsers[i];
@@ -79,13 +80,27 @@ public sealed class ParserOptions
             throw new InvalidOperationException($"Duplicate inline parser for type {parserType}");
          }
 
-         if (parser.TriggerChar != '\0' && parser.TriggerChar < 256)
+         RegisterTrigger(parser.TriggerChar);
+         RegisterTrigger(parser.TriggerAltChar);
+         continue;
+
+         void RegisterTrigger(char c)
          {
-            _triggerMap[parser.TriggerChar] ??= parser;
+            if (c == '\0' || c >= 256) return;
+            
+            var trigs = tempTriggers[c] ??= [];
+            if (!trigs.Contains(parser))
+            {
+               trigs.Add(parser);
+            }
          }
-         if (parser.TriggerAltChar != '\0' && parser.TriggerAltChar < 256)
+      }
+      
+      for (var i = 0; i < 256; i++)
+      {
+         if (tempTriggers[i] is { } list)
          {
-            _triggerAltMap[parser.TriggerAltChar] ??= parser;
+            _triggerMap[i] = list.OrderByDescending(x => x.Priority).ToArray();
          }
       }
    }
@@ -94,9 +109,20 @@ public sealed class ParserOptions
    {
       if (c < 256)
       {
-         return _triggerMap[c] ?? _triggerAltMap[c];
+         return _triggerMap[c]?[0];
       }
       return null;
+   }
+   
+   public ReadOnlySpan<IInlineParser> GetInlineParsers(char c)
+   {
+      if (c < 256)
+      {
+         var parsers = _triggerMap[c];
+         return parsers != null ? new ReadOnlySpan<IInlineParser>(parsers) : [];
+      }
+      
+      return default;
    }
    
    public IBlockParser? GetParserForType(int type)

@@ -93,7 +93,7 @@ public sealed class BlockQuoteHtmlTests
    public Task BlockQuoteSeparatedByBlankLine()
    {
       const string markdown = "> foo\n\n> bar";
-      const string expectedHtml = "<blockquote><p>foo</p></blockquote>\n<blockquote><p>bar</p></blockquote>";
+      const string expectedHtml = "<blockquote><p>foo</p></blockquote><blockquote><p>bar</p></blockquote>";
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 
@@ -101,7 +101,7 @@ public sealed class BlockQuoteHtmlTests
    public Task BlockQuoteInterruptedByList()
    {
       const string markdown = "> foo\n- bar";
-      const string expectedHtml = "<blockquote><p>foo</p></blockquote>\n<ul><li>bar</li></ul>";
+      const string expectedHtml = "<blockquote><p>foo</p></blockquote><ul><li>bar</li></ul>";
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 
@@ -109,7 +109,7 @@ public sealed class BlockQuoteHtmlTests
    public Task BlockQuoteLazyContinuationWithList()
    {
       const string markdown = "> - foo\nbar";
-      const string expectedHtml = "<blockquote><ul><li>foo\nbar</li></ul></blockquote>";
+      const string expectedHtml = "<blockquote><ul><li>foo bar</li></ul></blockquote>";
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 

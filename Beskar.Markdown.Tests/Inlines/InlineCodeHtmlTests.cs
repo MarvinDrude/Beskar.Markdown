@@ -44,7 +44,7 @@ public sealed class InlineCodeHtmlTests
    public Task InlineCodeWithHtmlInside()
    {
       const string markdown = "`<div>`";
-      const string expectedHtml = "<p><code><div></code></p>";
+      const string expectedHtml = "<p><code>&lt;div&gt;</code></p>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }

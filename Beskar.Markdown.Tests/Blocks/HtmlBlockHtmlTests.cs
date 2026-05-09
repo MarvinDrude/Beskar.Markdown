@@ -76,7 +76,7 @@ public sealed class HtmlBlockHtmlTests
    public Task HtmlBlockInterruptedByBlankLine()
    {
       const string markdown = "<table>\n  <tr>\n    <td>\n      hi\n    </td>\n  </tr>\n</table>\n\nokay.";
-      const string expectedHtml = "<table>\n  <tr>\n    <td>\n      hi\n    </td>\n  </tr>\n</table>\n<p>okay.</p>";
+      const string expectedHtml = "<table>\n  <tr>\n    <td>\n      hi\n    </td>\n  </tr>\n</table><p>okay.</p>";
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 }

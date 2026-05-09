@@ -99,22 +99,27 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
          var matched = false;
          var c = state.RemainingText[0];
 
-         var parser = options.GetInlineParser(c);
-         if (parser != null)
+         var parsers = options.GetInlineParsers(c);
+         if (!parsers.IsEmpty)
          {
-            if (plainTextLength > 0)
+            foreach (var parser in parsers)
             {
-               // any plain text left over before?
-               AddInlineNode(ref writer, parentIndex, NodeType.Text, plainTextStart, plainTextLength);
-               plainTextLength = 0;
+               if (plainTextLength > 0)
+               {
+                  // any plain text left over before?
+                  AddInlineNode(ref writer, parentIndex, NodeType.Text, plainTextStart, plainTextLength);
+                  plainTextLength = 0;
 
-               plainTextStart = state.GlobalOffset;
-            }
+                  plainTextStart = state.GlobalOffset;
+               }
 
-            if (parser.TryMatch(ref state, parentIndex, ref writer, ref this, options))
-            {
-               matched = true;
-               plainTextStart = state.GlobalOffset; // Reset tracker
+               if (parser.TryMatch(ref state, parentIndex, ref writer, ref this, options))
+               {
+                  matched = true;
+                  plainTextStart = state.GlobalOffset; // Reset tracker
+
+                  break;
+               }
             }
          }
 

@@ -62,7 +62,7 @@ public sealed class ThematicBreakHtmlTests
    public Task ThematicBreakNotInterruptedBySpaces()
    {
       const string markdown = " _ _ _ _ a";
-      const string expectedHtml = "<p> _ _ _ _ a</p>";
+      const string expectedHtml = "<p>_ _ _ _ a</p>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }

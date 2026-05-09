@@ -95,8 +95,8 @@ public sealed class EmphasisHtmlTests
    [Test]
    public Task EmphasisSpaceAfterOpeningNotAllowed()
    {
-      const string markdown = "* foo*";
-      const string expectedHtml = "<p>* foo*</p>";
+      const string markdown = "aa * foo*";
+      const string expectedHtml = "<p>aa * foo*</p>";
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 
@@ -111,8 +111,8 @@ public sealed class EmphasisHtmlTests
    [Test]
    public Task EmphasisWithPunctuation()
    {
-      const string markdown = "foo*(bar)*";
-      const string expectedHtml = "<p>foo<em>(bar)</em></p>";
+      const string markdown = "*(*foo)";
+      const string expectedHtml = "<p>*(*foo)</p>";
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 
@@ -121,6 +121,14 @@ public sealed class EmphasisHtmlTests
    {
       const string markdown = "(_foo_)";
       const string expectedHtml = "<p>(<em>foo</em>)</p>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+   
+   [Test]
+   public Task EmphasisInnerOuter()
+   {
+      const string markdown = "*(*foo*)*";
+      const string expectedHtml = "<p><em>(<em>foo</em>)</em></p>";
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 }

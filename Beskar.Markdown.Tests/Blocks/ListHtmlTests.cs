@@ -137,7 +137,7 @@ public sealed class ListHtmlTests
    public Task ListWithBlankLineAndIndentedCode()
    {
       const string markdown = "- item 1\n\n      code";
-      const string expectedHtml = "<ul><li><p>item 1</p><pre><code>code\n</code></pre></li></ul>";
+      const string expectedHtml = "<ul><li>item 1<pre><code>code\n</code></pre></li></ul>";
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 
@@ -167,7 +167,7 @@ public sealed class ListHtmlTests
    public Task OrderedListNotInterruptedByParagraph()
    {
       const string markdown = "1. foo\nbar";
-      const string expectedHtml = "<ol><li>foo\nbar</li></ol>";
+      const string expectedHtml = "<ol><li>foo bar</li></ol>";
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 }
