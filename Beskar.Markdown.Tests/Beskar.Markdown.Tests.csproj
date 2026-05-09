@@ -11,10 +11,6 @@
    </ItemGroup>
 
    <ItemGroup>
-     <Folder Include="Inlines\" />
-   </ItemGroup>
-
-   <ItemGroup>
      <ProjectReference Include="..\Beskar.Markdown\Beskar.Markdown.csproj" />
    </ItemGroup>
 
