@@ -15,7 +15,7 @@ internal static class MarkdownAssert
       var html = BeMarkdown.ToHtml(markdown);
       parser.Dispose();
       
-      await Assert.That(html)
+      await Assert.That(NormalizeLineEndings(html))
          .IsEqualTo(NormalizeLineEndings(expectedHtml));
    }
 
