@@ -81,4 +81,31 @@ public sealed class TaskListHtmlTests
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
+
+   [Test]
+   public Task TaskListOnlyFirstMarkerIsExtracted()
+   {
+      const string markdown = 
+         """
+         - [ ]
+           [x] bar
+         """;
+      const string expectedHtml = "<ul><li><input disabled=\"\" type=\"checkbox\"> [x] bar</li></ul>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task TaskListInLooseList()
+   {
+      const string markdown = 
+         """
+         - [ ]
+         
+           foo
+         """;
+      const string expectedHtml = "<ul><li><input disabled=\"\" type=\"checkbox\"> foo</li></ul>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
 }

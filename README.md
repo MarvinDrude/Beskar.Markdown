@@ -44,6 +44,7 @@ Console.WriteLine(html);
     - Paragraphs
     - Blockquotes
     - Lists (Ordered & Unordered)
+    - Task list items (like GitHub)
     - Fenced Code Blocks
     - Indented Code Blocks
     - Thematic Breaks (Horizontal Rules)
@@ -60,7 +61,6 @@ Console.WriteLine(html);
     - Images
 
 ### Future Plans
-- [ ] Task Lists
 - [ ] Nice dev facing extension system
 - [ ] Footnotes
 - [ ] Full CommonMark Compliance suite validation

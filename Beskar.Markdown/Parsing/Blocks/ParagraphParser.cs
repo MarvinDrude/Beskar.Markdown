@@ -37,11 +37,6 @@ public sealed class ParagraphParser : IBlockParser
                   ref var parentNode = ref writer.GetReference(parentIndex);
                   parentNode.TaskListStatus = (byte)(markerChar == ' ' ? 1 : 2);
                   state.Slice(state.FirstNonSpaceIndex + (line.Length > 3 ? 4 : 3));
-
-                  if (state.IsBlank)
-                  {
-                     return -1;
-                  }
                }
             }
          }
@@ -57,19 +52,22 @@ public sealed class ParagraphParser : IBlockParser
          IsInsideListItem = (byte)(parent.Type is NodeType.ListItem ? 1 : 0),
       });
 
-      var textIndex = writer.WrittenSpan.Length;
-      writer.Add(new MarkdownNode()
+      if (!state.IsBlank)
       {
-         Type = NodeType.Text,
-         TextSpan = new TextSpan(state.GlobalOffset + state.FirstNonSpaceIndex, state.RawLine.Length - state.FirstNonSpaceIndex),
-         FirstChildIndex = -1,
-         NextSiblingIndex = -1,
-         LastChildIndex = -1,
-      });
+         var textIndex = writer.WrittenSpan.Length;
+         writer.Add(new MarkdownNode()
+         {
+            Type = NodeType.Text,
+            TextSpan = new TextSpan(state.GlobalOffset + state.FirstNonSpaceIndex, state.RawLine.Length - state.FirstNonSpaceIndex),
+            FirstChildIndex = -1,
+            NextSiblingIndex = -1,
+            LastChildIndex = -1,
+         });
 
-      ref var para = ref writer.GetReference(paraIndex);
-      para.FirstChildIndex = textIndex;
-      para.LastChildIndex = textIndex; 
+         ref var para = ref writer.GetReference(paraIndex);
+         para.FirstChildIndex = textIndex;
+         para.LastChildIndex = textIndex; 
+      }
 
       state.ConsumeRest();
       return paraIndex;
