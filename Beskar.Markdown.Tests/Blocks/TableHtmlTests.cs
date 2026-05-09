@@ -86,11 +86,29 @@ public sealed class TableHtmlTests
    [Test]
    public Task TableMissingBody()
    {
-      const string markdown = """
-                              | abc | def |
-                              | --- | --- |
-                              """;
+      const string markdown = 
+         """
+         | abc | def |
+         | --- | --- |
+         """;
       const string html = """<table><thead><tr><th>abc</th><th>def</th></tr></thead></table>""";
+
+      return MarkdownAssert.RendersHtml(markdown, html);
+   }
+   
+   [Test]
+   public Task TableInterruptedByParagraph()
+   {
+      const string markdown =
+         """
+         | abc | def |
+         | --- | --- |
+         | bar | baz |
+         
+         bar
+         """;
+      const string html =
+         """<table><thead><tr><th>abc</th><th>def</th></tr></thead><tbody><tr><td>bar</td><td>baz</td></tr></tbody></table><p>bar</p>""";
 
       return MarkdownAssert.RendersHtml(markdown, html);
    }
