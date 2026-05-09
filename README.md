@@ -80,6 +80,14 @@ var sanitizer = new HtmlSanitizer();
 var safeHtml = sanitizer.Sanitize(rawHtml);
 ```
 
+If you're sanitizer supports spans, you can use the following to prevent double allocation like above:
+```csharp
+var options = RenderOptions.HtmlDefault;
+options.SanitizerFunc = (span) => HtmlSanizer.Sanitize(span);
+
+var safeHtml = BeMarkdown.ToHtml(userContent, renderOptions: options);
+```
+
 ## Benchmark Results
 
 Beskar.Markdown is designed to be fast and leaner than existing solutions. 

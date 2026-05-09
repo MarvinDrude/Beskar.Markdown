@@ -13,6 +13,8 @@ public sealed class RenderOptions
     
    public bool PerserveSoftBreaks { get; set; } = true;
    
+   public Func<ReadOnlySpan<char>, string>? SanitizerFunc { get; set; }
+   
    private readonly INodeRenderer[] _nodeRenderer;
    private readonly INodeRenderer?[] _nodeRendererLookup = new INodeRenderer?[_builtInNodeTypeCount];
    private readonly Dictionary<int, INodeRenderer> _customNodeRendererLookup = [];
