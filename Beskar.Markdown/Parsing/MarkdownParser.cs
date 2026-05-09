@@ -39,6 +39,8 @@ public ref struct MarkdownParser(
       var openBlockCount = 1;
       
       var iterator = new LineIterator(_rawText);
+      var lastLineWasBlank = false;
+      
       while (iterator.TryMoveNext(out var state))
       {
          var matchedLevels = 1; // ignore the document node
@@ -65,6 +67,7 @@ public ref struct MarkdownParser(
             matchedLevels++;
          }
          
+         var originalOpenBlockCount = openBlockCount;
          openBlockCount = matchedLevels;
          var matchedNew = false;
          
@@ -112,6 +115,7 @@ public ref struct MarkdownParser(
             if (foundNewNodeIndex != -1)
             {
                matchedNew = true;
+               lastLineWasBlank = false;
                
                if (isParagraphOpen)
                {
@@ -135,6 +139,20 @@ public ref struct MarkdownParser(
             break; // no more block parsers matched
          }
 
+         if (!matchedNew && !state.IsBlank && openBlockCount < originalOpenBlockCount)
+         {
+            var lastIdx = openBlocks[originalOpenBlockCount - 1];
+            if (_writer.WrittenSpan[lastIdx].Type is NodeType.Paragraph)
+            {
+               var parentIdx = openBlocks[originalOpenBlockCount - 2];
+               if (_writer.WrittenSpan[parentIdx].Type != NodeType.BlockQuote)
+               {
+                  openBlockCount = originalOpenBlockCount;
+               }
+            }
+         }
+
+         var isBlankLine = state.IsBlank;
          if (!matchedNew || !state.IsBlank)
          {
             var currentParentIndex = openBlocks[openBlockCount - 1];
@@ -172,6 +190,19 @@ public ref struct MarkdownParser(
                      var pIndex = pParser.TryMatch(ref state, currentParentIndex, ref _writer);
                      if (pIndex != -1)
                      {
+                        ref var pNode = ref _writer.GetReference(pIndex);
+                        ref var parentNodeRef = ref _writer.GetReference(currentParentIndex);
+                        
+                        var isFirstChild = parentNodeRef.FirstChildIndex == -1;
+                        var prevSiblingIsParagraph = !isFirstChild && _writer.WrittenSpan[parentNodeRef.LastChildIndex].Type == NodeType.Paragraph;
+
+                        if (parentNodeRef.Type != NodeType.ListItem 
+                            || (isFirstChild && lastLineWasBlank) 
+                            || (!isFirstChild && !prevSiblingIsParagraph))
+                        {
+                           pNode.ParagraphIsWrapped = 1;
+                        }
+
                         LinkNodes(currentParentIndex, pIndex);
                         openBlocks[openBlockCount++] = pIndex;
                      }
@@ -179,6 +210,8 @@ public ref struct MarkdownParser(
                }
             }
          }
+
+         lastLineWasBlank = isBlankLine;
       }
       
       // process inlines

@@ -167,7 +167,7 @@ public sealed class ListHtmlTests
    public Task OrderedListNotInterruptedByParagraph()
    {
       const string markdown = "1. foo\nbar";
-      const string expectedHtml = "<ol><li>foo bar</li></ol>";
+      const string expectedHtml = "<ol><li>foo\nbar</li></ol>";
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 }

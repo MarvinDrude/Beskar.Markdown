@@ -109,7 +109,7 @@ public sealed class BlockQuoteHtmlTests
    public Task BlockQuoteLazyContinuationWithList()
    {
       const string markdown = "> - foo\nbar";
-      const string expectedHtml = "<blockquote><ul><li>foo bar</li></ul></blockquote>";
+      const string expectedHtml = "<blockquote><ul><li>foo\nbar</li></ul></blockquote>";
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 

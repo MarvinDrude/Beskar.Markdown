@@ -24,6 +24,8 @@ public struct MarkdownNode
    public int HeadingLevel;
    [FieldOffset(24)] // NodeType.List ('-', '*', '1')
    public char ListMarker;
+   [FieldOffset(26)] // NodeType.List
+   public byte IsLoose;
    [FieldOffset(24)] // NodeType.CodeBlock (start of lang string)
    public int CodeLangSpanStart;
    [FieldOffset(24)] // NodeType.ListItem
@@ -34,6 +36,12 @@ public struct MarkdownNode
    public byte IsEmail;
    [FieldOffset(24)] // NodeType.Paragraph
    public byte IsInsideListItem;
+   [FieldOffset(25)] // NodeType.Paragraph
+   public byte ParagraphIsWrapped;
+   [FieldOffset(24)] // NodeType.HtmlBlock
+   public byte HtmlBlockType;
+   [FieldOffset(25)] // NodeType.HtmlBlock
+   public byte HtmlBlockIsClosed;
    
    // --- Second offset Metadata
    [FieldOffset(28)] // NodeType.List 

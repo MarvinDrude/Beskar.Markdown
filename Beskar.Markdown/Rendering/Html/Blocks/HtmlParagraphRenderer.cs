@@ -16,14 +16,14 @@ public sealed class HtmlParagraphRenderer : INodeRenderer
       ReadOnlySpan<MarkdownNode> nodes,
       RenderOptions options)
    {
-      if (current.IsInsideListItem != 1)
+      if (current.IsInsideListItem != 1 || current.ParagraphIsWrapped == 1)
       {
          writer.Write("<p>");
       }
       
       current.RenderChildren(rawText, nodes, ref writer, options);
       
-      if (current.IsInsideListItem != 1)
+      if (current.IsInsideListItem != 1 || current.ParagraphIsWrapped == 1)
       {
          writer.Write("</p>");
       }
