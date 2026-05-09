@@ -24,8 +24,11 @@ public sealed class HtmlIndentedCodeBlockRenderer : INodeRenderer
       {
          var child = nodes[currentChildIndex];
          if (child.Type is not NodeType.IndentedCodeFragment) continue;
-         
-         writer.WriteHtmlEncoded(child.TextSpan.Slice(rawText));
+
+         if (child.TextSpan is { Start: >= 0, Length: > 0 })
+         {
+            writer.WriteHtmlEncoded(child.TextSpan.Slice(rawText));
+         }
          writer.WriteLine();
          
          currentChildIndex = child.NextSiblingIndex;

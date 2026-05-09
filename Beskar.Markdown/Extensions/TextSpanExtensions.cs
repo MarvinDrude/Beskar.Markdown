@@ -10,6 +10,11 @@ public static class TextSpanExtensions
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       public ReadOnlySpan<char> Slice(ReadOnlySpan<char> rawText)
       {
+         if (span.Start < 0 || span.Length < 0)
+         {
+            return [];
+         }
+         
          return rawText.Slice(span.Start, span.Length);
       }
    }

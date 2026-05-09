@@ -25,8 +25,9 @@ public static class ArrayExtensions
       {
          if (nodeIndex == -1 || nodeIndex >= nodes.Length) return;
          var node = nodes[nodeIndex];
-   
-         var textSnippet = rawText.Slice(node.TextSpan.Start, node.TextSpan.Length).ToString()
+         
+         
+         var textSnippet = node.TextSpan.Slice(rawText).ToString()
             .Replace("\r\n", "\\n").Replace("\n", "\\n");
 
          writer.WriteLineInterpolated($"└─ [{nodeIndex}] {node.Type} (\"{textSnippet}\")");

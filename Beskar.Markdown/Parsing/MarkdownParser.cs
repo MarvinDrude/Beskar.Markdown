@@ -204,7 +204,10 @@ public ref struct MarkdownParser(
                         }
 
                         LinkNodes(currentParentIndex, pIndex);
-                        openBlocks[openBlockCount++] = pIndex;
+                        if (openBlockCount < options.MaxBlockDepth)
+                        {
+                           openBlocks[openBlockCount++] = pIndex;
+                        }
                      }
                   }
                }
