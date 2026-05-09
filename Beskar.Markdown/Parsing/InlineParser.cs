@@ -23,7 +23,7 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
          var type = writer.WrittenSpan[i].Type;
 
          // We only process inlines inside leaf blocks
-         if (type is NodeType.Paragraph or NodeType.Header)
+         if (type is NodeType.Paragraph or NodeType.Header or NodeType.TableCell)
          {
             RunLeafContainer(i, ref writer, options);
          }

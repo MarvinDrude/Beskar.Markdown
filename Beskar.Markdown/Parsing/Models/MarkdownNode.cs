@@ -42,13 +42,19 @@ public struct MarkdownNode
    public byte HtmlBlockType;
    [FieldOffset(25)] // NodeType.HtmlBlock
    public byte HtmlBlockIsClosed;
+   [FieldOffset(24)] // NodeType.TableCell
+   public byte TableCellAlignment; // 0: none, 1: left, 2: center, 3: right
+   [FieldOffset(25)] // NodeType.TableCell
+   public byte IsHeaderCell;
+   [FieldOffset(24)] // NodeType.InlineCode
+   public byte InlineCodeIsInsideTable;
    
    // --- Second offset Metadata
    [FieldOffset(28)] // NodeType.List 
    public int ListStartNumber;
    [FieldOffset(28)] // NodeType.CodeBlock (length of lang string)
    public int CodeLangSpanLength;
-   [FieldOffset(28)] // NodeType.Link  / NodeType.Image
+   [FieldOffset(28)] // NodeType.Link / NodeType.Image
    public int LinkUrlLength;
    
    // --- Third offset Metadata

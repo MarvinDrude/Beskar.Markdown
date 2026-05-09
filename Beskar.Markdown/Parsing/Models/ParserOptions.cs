@@ -155,6 +155,7 @@ public sealed class ParserOptions
       new ListItemParser(),
       new BlockQuoteParser(),
       new HtmlParser(),
+      new TableParser(),
       new ParagraphParser()
    ], [
       // Default inline parsers

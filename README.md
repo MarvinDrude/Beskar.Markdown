@@ -48,6 +48,7 @@ Console.WriteLine(html);
     - Indented Code Blocks
     - Thematic Breaks (Horizontal Rules)
     - HTML Blocks
+    - GitHub like Tables
 - **Inlines**:
     - Emphasis (Bold, Italic)
     - Links
@@ -59,7 +60,6 @@ Console.WriteLine(html);
     - Images
 
 ### Future Plans
-- [ ] Tables
 - [ ] Task Lists
 - [ ] Nice dev facing extension system
 - [ ] Footnotes
@@ -78,6 +78,14 @@ Example:
 var rawHtml = BeMarkdown.ToHtml(userContent);
 var sanitizer = new HtmlSanitizer();
 var safeHtml = sanitizer.Sanitize(rawHtml);
+```
+
+If your sanitizer supports spans, you can use the following to prevent double allocation like above:
+```csharp
+var options = RenderOptions.HtmlDefault;
+options.SanitizerFunc = (span) => HtmlSanitizer.Sanitize(span);
+
+var safeHtml = BeMarkdown.ToHtml(userContent, renderOptions: options);
 ```
 
 ## Benchmark Results

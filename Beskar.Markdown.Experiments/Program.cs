@@ -119,6 +119,14 @@ const string example =
    [link]("title")
    
    ~~strikethrough~~
+   
+   | foo | bar |
+   | --- | --- |
+   | `baz` | bim |
+   
+   | abc | defghi |
+   :-: | -----------:
+   bar | baz
    """;
 
 var options = ParserOptions.Default;

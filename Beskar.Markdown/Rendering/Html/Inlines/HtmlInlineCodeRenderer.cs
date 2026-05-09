@@ -17,7 +17,39 @@ public sealed class HtmlInlineCodeRenderer : INodeRenderer
       RenderOptions options)
    {
       writer.Write("<code>");
-      writer.WriteHtmlEncoded(current.TextSpan.Slice(rawText));
+      var span = current.TextSpan.Slice(rawText);
+      
+      if (current.InlineCodeIsInsideTable == 1)
+      {
+          var i = 0;
+          while (i < span.Length)
+          {
+              var backslashIndex = span[i..].IndexOf('\\');
+              if (backslashIndex == -1 || i + backslashIndex + 1 >= span.Length)
+              {
+                  writer.WriteHtmlEncoded(span[i..]);
+                  break;
+              }
+              
+              var absoluteBackslash = i + backslashIndex;
+              if (span[absoluteBackslash + 1] == '|')
+              {
+                  writer.WriteHtmlEncoded(span[i..absoluteBackslash]);
+                  writer.Write("|");
+                  i = absoluteBackslash + 2;
+              }
+              else
+              {
+                  writer.WriteHtmlEncoded(span[i..(absoluteBackslash + 1)]);
+                  i = absoluteBackslash + 1;
+              }
+          }
+      }
+      else
+      {
+          writer.WriteHtmlEncoded(span);
+      }
+      
       writer.Write("</code>");
    }
 }

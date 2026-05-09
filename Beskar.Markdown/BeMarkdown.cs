@@ -3,6 +3,7 @@ using Beskar.Markdown.Extensions;
 using Beskar.Markdown.Parsing;
 using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Rendering;
+using Me.Memory.Buffers;
 
 namespace Beskar.Markdown;
 
@@ -31,7 +32,21 @@ public static class BeMarkdown
       parser.Parse(parserOptions);
 
       var renderer = new MarkdownRenderer(markdown);
-      return renderer.Render(parser.WrittenNodes, renderOptions);
+      var writer = new TextWriterIndentSlim(
+         stackalloc char[512], stackalloc char[64]);
+      
+      try
+      {
+         renderer.Render(parser.WrittenNodes, renderOptions, ref writer);
+
+         return renderOptions.SanitizerFunc is not null 
+            ? renderOptions.SanitizerFunc(writer.WrittenSpan) 
+            : writer.ToString();
+      }
+      finally
+      {
+         writer.Dispose();
+      }
    }
 
    private static int GetInitialNodeBufferLength(int markdownLength)

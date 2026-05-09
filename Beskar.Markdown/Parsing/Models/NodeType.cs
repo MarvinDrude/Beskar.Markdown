@@ -16,6 +16,11 @@ public enum NodeType
    ListItem,
    ThematicBreak,
    HtmlBlock,
+   Table,
+   TableHeader,
+   TableBody,
+   TableRow,
+   TableCell,
    
    // Inline
    Text,
