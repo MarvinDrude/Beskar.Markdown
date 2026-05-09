@@ -24,10 +24,14 @@ public sealed class HtmlAutolinkRenderer : INodeRenderer
          preamble = "mailto:";
       }
       
-      writer.WriteInterpolated($"<a href=\"{preamble}{url}\">");
+      writer.Write("<a href=\"");
+      writer.WriteHtmlEncoded(preamble);
+      writer.WriteHtmlEncoded(url);
+      writer.Write("\">");
+      
       if (url.Length > 0)
       {
-         writer.Write(url);
+         writer.WriteHtmlEncoded(url);
       }
       writer.Write("</a>");
    }

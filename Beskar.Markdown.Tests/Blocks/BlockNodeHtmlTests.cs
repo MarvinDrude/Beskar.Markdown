@@ -66,7 +66,7 @@ public sealed class BlockNodeHtmlTests
          ```
          """;
 
-      const string expectedHtml = """<pre><code>Console.WriteLine("hello");</code></pre>""";
+      const string expectedHtml = """<pre><code>Console.WriteLine(&quot;hello&quot;);</code></pre>""";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }

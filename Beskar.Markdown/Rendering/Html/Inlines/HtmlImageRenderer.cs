@@ -25,12 +25,18 @@ public sealed class HtmlImageRenderer : INodeRenderer
          title = child.TextSpan.Slice(rawText);
       }
       
-      writer.WriteInterpolated($"<img src=\"{url}\" alt=\"{title}\" ");
+      writer.WriteInterpolated($"<img src=\"");
+      writer.WriteHtmlEncoded(url);
+      writer.Write("\" alt=\"");
+      writer.WriteHtmlEncoded(title);
+      writer.Write("\" ");
 
       if (current.LinkTitleOffset > 0)
       {
          var startIndex = current.LinkUrlStart + current.LinkUrlLength + current.LinkTitleOffset;
-         writer.WriteInterpolated($"title=\"{rawText.Slice(startIndex, current.LinkTitleLength)}\" ");
+         writer.Write(" title=\"");
+         writer.WriteHtmlEncoded(rawText.Slice(startIndex, current.LinkTitleLength));
+         writer.Write("\"");
       }
       
       writer.Write("/>");

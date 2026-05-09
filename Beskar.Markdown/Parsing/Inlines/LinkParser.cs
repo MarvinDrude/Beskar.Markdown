@@ -44,8 +44,19 @@ public sealed class LinkParser : IInlineParser
          actualUrlStart++;
          currentIndex++;
          
-         while (currentIndex < text.Length && text[currentIndex] != '>') 
+         while (currentIndex < text.Length)
+         {
+            if (text[currentIndex] == '\\' && currentIndex + 1 < text.Length && IsAsciiPunctuation(text[currentIndex + 1]))
+            {
+               currentIndex += 2;
+               continue;
+            }
+            
+            if (text[currentIndex] == '>') 
+               break;
+               
             currentIndex++;
+         }
          
          if (currentIndex >= text.Length) return false;
          currentIndex++;
@@ -56,6 +67,12 @@ public sealed class LinkParser : IInlineParser
          while (currentIndex < text.Length)
          {
             var c = text[currentIndex];
+            
+            if (c == '\\' && currentIndex + 1 < text.Length && IsAsciiPunctuation(text[currentIndex + 1]))
+            {
+               currentIndex += 2;
+               continue;
+            }
             
             if (c == '(') parenDepth++;
             else if (c == ')') { if (parenDepth == 0) break; parenDepth--; }
@@ -82,8 +99,19 @@ public sealed class LinkParser : IInlineParser
          var quote = text[currentIndex++];
          var titleStartIndex = currentIndex;
          
-         while (currentIndex < text.Length && text[currentIndex] != quote) 
+         while (currentIndex < text.Length)
+         {
+            if (text[currentIndex] == '\\' && currentIndex + 1 < text.Length && IsAsciiPunctuation(text[currentIndex + 1]))
+            {
+               currentIndex += 2;
+               continue;
+            }
+            
+            if (text[currentIndex] == quote) 
+               break;
+               
             currentIndex++;
+         }
          
          if (currentIndex < text.Length) 
          {
@@ -136,7 +164,7 @@ public sealed class LinkParser : IInlineParser
          switch (text[i])
          {
             case '\\':
-               i++; // Skip escaped character
+               if (i + 1 < text.Length && IsAsciiPunctuation(text[i + 1])) i++;
                continue;
             case '[':
                depth++;
@@ -151,5 +179,13 @@ public sealed class LinkParser : IInlineParser
       }
       
       return -1;
+   }
+   
+   private static bool IsAsciiPunctuation(char c)
+   {
+      return c is >= '!' and <= '/' 
+         or >= ':' and <= '@' 
+         or >= '[' and <= '`' 
+         or >= '{' and <= '~';
    }
 }

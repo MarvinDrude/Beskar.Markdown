@@ -18,16 +18,59 @@ public sealed class HtmlLinkRenderer : INodeRenderer
    {
       var url = rawText.Slice(current.LinkUrlStart, current.LinkUrlLength);
       
-      writer.WriteInterpolated($"<a href=\"{url}\"");
+      writer.Write("<a href=\"");
+      WriteUnescapedHtmlEncoded(ref writer, url);
+      writer.Write("\"");
 
       if (current.LinkTitleOffset > -1)
       {
          var startIndex = current.LinkUrlStart + current.LinkUrlLength + current.LinkTitleOffset;
-         writer.WriteInterpolated($" title=\"{rawText.Slice(startIndex, current.LinkTitleLength)}\"");
+         writer.Write(" title=\"");
+         WriteUnescapedHtmlEncoded(ref writer, rawText.Slice(startIndex, current.LinkTitleLength));
+         writer.Write("\"");
       }
       
       writer.Write(">");
       current.RenderChildren(rawText, nodes, ref writer, options);
       writer.Write("</a>");
+   }
+   
+   private static void WriteUnescapedHtmlEncoded(ref TextWriterIndentSlim writer, ReadOnlySpan<char> text)
+   {
+      var currentIndex = 0;
+      var chunkStart = 0;
+
+      while (currentIndex < text.Length)
+      {
+         if (text[currentIndex] == '\\' && currentIndex + 1 < text.Length && IsAsciiPunctuation(text[currentIndex + 1]))
+         {
+            if (currentIndex > chunkStart)
+            {
+               writer.WriteHtmlEncoded(text.Slice(chunkStart, currentIndex - chunkStart));
+            }
+            
+            writer.WriteHtmlEncoded(text.Slice(currentIndex + 1, 1));
+            
+            currentIndex += 2;
+            chunkStart = currentIndex;
+         }
+         else
+         {
+            currentIndex++;
+         }
+      }
+
+      if (chunkStart < text.Length)
+      {
+         writer.WriteHtmlEncoded(text[chunkStart..]);
+      }
+   }
+
+   private static bool IsAsciiPunctuation(char c)
+   {
+      return c is >= '!' and <= '/' 
+         or >= ':' and <= '@' 
+         or >= '[' and <= '`' 
+         or >= '{' and <= '~';
    }
 }

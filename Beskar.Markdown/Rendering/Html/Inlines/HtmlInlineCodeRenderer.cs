@@ -16,6 +16,8 @@ public sealed class HtmlInlineCodeRenderer : INodeRenderer
       ReadOnlySpan<MarkdownNode> nodes,
       RenderOptions options)
    {
-      writer.WriteInterpolated($"<code>{current.TextSpan.Slice(rawText)}</code>");
+      writer.Write("<code>");
+      writer.WriteHtmlEncoded(current.TextSpan.Slice(rawText));
+      writer.Write("</code>");
    }
 }

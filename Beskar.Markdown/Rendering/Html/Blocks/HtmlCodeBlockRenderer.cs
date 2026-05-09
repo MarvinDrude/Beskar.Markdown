@@ -17,6 +17,9 @@ public sealed class HtmlCodeBlockRenderer : INodeRenderer
       RenderOptions options)
    {
       var span = current.TextSpan;
-      writer.WriteInterpolated($"<pre><code>{span.Slice(rawText)}</code></pre>");
+      
+      writer.Write("<pre><code>");
+      writer.WriteHtmlEncoded(span.Slice(rawText));
+      writer.Write("</code></pre>");
    }
 }
