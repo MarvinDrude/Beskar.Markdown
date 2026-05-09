@@ -48,6 +48,7 @@ Console.WriteLine(html);
     - Indented Code Blocks
     - Thematic Breaks (Horizontal Rules)
     - HTML Blocks
+    - GitHub like Tables
 - **Inlines**:
     - Emphasis (Bold, Italic)
     - Links
@@ -59,7 +60,6 @@ Console.WriteLine(html);
     - Images
 
 ### Future Plans
-- [ ] Tables
 - [ ] Task Lists
 - [ ] Nice dev facing extension system
 - [ ] Footnotes
