@@ -14,7 +14,7 @@ var ben = new ComparisonBenchmark();
 ben.Setup();
 
 //var ma1 = ben.SimpleMarkdig();
-//var ma2 = ben.FullSpecMarkdig();
+var ma2 = ben.FullSpecMarkdig();
 //var ma3 = ben.BigMarkdig();
 
 //var be1 = ben.SimpleBeMarkdown();

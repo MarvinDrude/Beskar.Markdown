@@ -34,7 +34,7 @@ while (true)
 {
     totalIterations++;
     
-    var maxLength = totalIterations % 100 == 0 ? 10000 : 1000;
+    var maxLength = totalIterations % 100 == 0 ? 1000000 : 10000;
     var length = Random.Shared.Next(0, maxLength);
     var sb = new StringBuilder(length);
     
