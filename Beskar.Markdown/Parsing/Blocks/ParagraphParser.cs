@@ -18,6 +18,35 @@ public sealed class ParagraphParser : IBlockParser
       }
       
       var parent = writer.WrittenSpan[parentIndex];
+
+      if (parent is { Type: NodeType.ListItem, FirstChildIndex: -1 })
+      {
+         // ugly nesting for now, maybe extract method later and early exists
+         var line = state.RawLine[state.FirstNonSpaceIndex..];
+         
+         if (line.Length >= 3 && line[0] == '[' && line[2] == ']')
+         {
+            var markerChar = line[1];
+            
+            if (markerChar is ' ' or 'x' or 'X')
+            {
+               var isTask = line.Length == 3 || line[3] is ' ' or '\t';
+               
+               if (isTask)
+               {
+                  ref var parentNode = ref writer.GetReference(parentIndex);
+                  parentNode.TaskListStatus = (byte)(markerChar == ' ' ? 1 : 2);
+                  state.Slice(state.FirstNonSpaceIndex + (line.Length > 3 ? 4 : 3));
+
+                  if (state.IsBlank)
+                  {
+                     return -1;
+                  }
+               }
+            }
+         }
+      }
+      
       var paraIndex = writer.WrittenSpan.Length;
       writer.Add(new MarkdownNode()
       {
