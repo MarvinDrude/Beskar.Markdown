@@ -4,6 +4,10 @@ Beskar.Markdown is a high-performance, low-allocation Markdown parser and HTML r
 for .NET. It is built from the ground up to leverage modern C# features like `Span<T>`, 
 `ReadOnlySequence<T>`, and efficient memory management to provide a blazing-fast experience.
 
+> Disclaimer: This is just my fun project i do on the side. I do not want to replace any of the major
+> markdown solutions for csharp, neither could I do that even if i wanted. It's just for me internally
+> to use.
+
 ## Why use this library?
 
 - **Performance First**: Designed for scenarios where every microsecond and every byte counts.
@@ -57,8 +61,11 @@ Console.WriteLine(html);
 ### Future Plans
 - [ ] Tables
 - [ ] Task Lists
+- [ ] Nice dev facing extension system
 - [ ] Footnotes
 - [ ] Full CommonMark Compliance suite validation
+- [ ] Context based rendering functions
+- [ ] In memory assembly baking
 
 ## ⚠️ Security Warning
 
