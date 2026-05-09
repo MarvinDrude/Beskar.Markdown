@@ -2,8 +2,9 @@
 
 public static class ListUtils
 {
-   public static bool IsListMarker(ref LineState state, out char listChar, out int length)
+   public static bool IsListMarker(ref LineState state, out char listChar, out int length, out int orderedNumber)
    {
+      orderedNumber = -1;
       listChar = '\0';
       length = 0;
 
@@ -27,10 +28,13 @@ public static class ListUtils
 
       // check ordered
       if (!char.IsDigit(c)) return false;
+      orderedNumber = 0;
       
       var i = 0;
-      while (i < raw.Length && char.IsDigit(raw[i]))
+      while (i < raw.Length && char.IsDigit(raw[i])
+             && byte.TryParse(raw.Slice(i, 1), out var digit))
       {
+         orderedNumber = orderedNumber * 10 + digit;
          i++;
       }
 

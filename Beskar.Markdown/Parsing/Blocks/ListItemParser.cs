@@ -17,7 +17,7 @@ public sealed class ListItemParser : IBlockParser
       var parent = writer.WrittenSpan[parentIndex];
       if (parent.Type is not NodeType.List) return -1;
 
-      if (!ListUtils.IsListMarker(ref state, out _, out var markerLength))
+      if (!ListUtils.IsListMarker(ref state, out _, out var markerLength, out _))
       {
          return -1;
       }
@@ -55,7 +55,8 @@ public sealed class ListItemParser : IBlockParser
          TextSpan = new TextSpan(markerStartOffset, visibleMarkerLength),
          ListIndent = contentIndent,
          FirstChildIndex = -1,
-         NextSiblingIndex = -1
+         NextSiblingIndex = -1,
+         LastChildIndex = -1,
       });
 
       return nodeIndex;

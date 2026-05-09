@@ -1,4 +1,5 @@
-﻿using Beskar.Markdown.Parsing.Models;
+﻿using Beskar.Markdown.Extensions;
+using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Rendering.Interfaces;
 using Me.Memory.Buffers;
 
@@ -15,6 +16,18 @@ public sealed class HtmlListRenderer : INodeRenderer
       ReadOnlySpan<MarkdownNode> nodes,
       RenderOptions options)
    {
+      var type = current.ListMarker is '.' or ')' ? "ol" : "ul";
       
+      writer.WriteInterpolated($"<{type}");
+
+      if (current.ListStartNumber > 1)
+      {
+         writer.WriteInterpolated($" start=\"{current.ListStartNumber}\"");
+      }
+      writer.Write(">");
+      
+      current.RenderChildren(rawText, nodes, ref writer, options);
+      
+      writer.WriteInterpolated($"</{type}>");
    }
 }

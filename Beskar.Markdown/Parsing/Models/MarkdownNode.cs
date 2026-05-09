@@ -32,10 +32,12 @@ public struct MarkdownNode
    public int LinkUrlStart;
    [FieldOffset(24)] // NodeType.AutoLink
    public byte IsEmail;
+   [FieldOffset(24)] // NodeType.Paragraph
+   public byte IsInsideListItem;
    
    // --- Second offset Metadata
    [FieldOffset(28)] // NodeType.List 
-   public byte IsListOrdered;
+   public int ListStartNumber;
    [FieldOffset(28)] // NodeType.CodeBlock (length of lang string)
    public int CodeLangSpanLength;
    [FieldOffset(28)] // NodeType.Link

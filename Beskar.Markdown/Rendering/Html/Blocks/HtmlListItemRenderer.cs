@@ -1,4 +1,5 @@
-﻿using Beskar.Markdown.Parsing.Models;
+﻿using Beskar.Markdown.Extensions;
+using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Rendering.Interfaces;
 using Me.Memory.Buffers;
 
@@ -15,6 +16,8 @@ public sealed class HtmlListItemRenderer : INodeRenderer
       ReadOnlySpan<MarkdownNode> nodes,
       RenderOptions options)
    {
-      
+      writer.Write("<li>");
+      current.RenderChildren(rawText, nodes, ref writer, options);
+      writer.Write("</li>");
    }
 }

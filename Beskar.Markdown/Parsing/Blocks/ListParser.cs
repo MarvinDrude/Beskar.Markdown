@@ -14,7 +14,7 @@ public sealed class ListParser : IBlockParser
    {
       if (state.LeadingSpaces >= 4) return -1;
 
-      if (!ListUtils.IsListMarker(ref state, out var listChar, out _))
+      if (!ListUtils.IsListMarker(ref state, out var listChar, out var len, out var orderedNumber))
       {
          return -1;
       }
@@ -33,8 +33,10 @@ public sealed class ListParser : IBlockParser
       {
          Type = NodeType.List,
          ListMarker = listChar,
+         ListStartNumber = orderedNumber,
          FirstChildIndex = -1,
-         NextSiblingIndex = -1
+         NextSiblingIndex = -1,
+         LastChildIndex = -1
       });
 
       return nodeIndex;
@@ -47,7 +49,7 @@ public sealed class ListParser : IBlockParser
          return true;
       }
 
-      if (ListUtils.IsListMarker(ref state, out var listChar, out _))
+      if (ListUtils.IsListMarker(ref state, out var listChar, out _, out _))
       {
          return node.ListMarker == listChar;
       }

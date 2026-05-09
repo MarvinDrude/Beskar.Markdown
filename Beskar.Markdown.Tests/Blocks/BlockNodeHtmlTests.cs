@@ -171,4 +171,19 @@ public sealed class BlockNodeHtmlTests
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
+   
+   [Test]
+   public Task OrderedListRendersListCorrectItems()
+   {
+      const string markdown =
+         """
+         1. parse
+         2. render
+         3) baz
+         """;
+
+      const string expectedHtml = "<ol><li>parse</li><li>render</li></ol><ol start=\"3\"><li>baz</li></ol>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
 }

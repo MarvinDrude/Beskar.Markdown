@@ -17,6 +17,7 @@ public sealed class ParagraphParser : IBlockParser
          return -1;
       }
       
+      var parent = writer.WrittenSpan[parentIndex];
       var paraIndex = writer.WrittenSpan.Length;
       writer.Add(new MarkdownNode()
       {
@@ -24,6 +25,7 @@ public sealed class ParagraphParser : IBlockParser
          FirstChildIndex = -1,
          NextSiblingIndex = -1,
          LastChildIndex = -1,
+         IsInsideListItem = (byte)(parent.Type is NodeType.ListItem ? 1 : 0),
       });
 
       var textIndex = writer.WrittenSpan.Length;
