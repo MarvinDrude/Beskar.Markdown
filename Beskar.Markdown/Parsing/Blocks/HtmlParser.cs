@@ -102,38 +102,37 @@ public sealed class HtmlParser : IBlockParser
 
       var nameStart = i;
       while (i < line.Length && char.IsAsciiLetterOrDigit(line[i])) i++;
-      
-      if (i > nameStart)
-      {
-         var tagName = line.Slice(nameStart, i - nameStart);
-         var isBlockTag = IsBlockTag(tagName);
-         
-         if (isBlockTag)
-         {
-            if (i == line.Length || char.IsWhiteSpace(line[i]) || line[i] == '>' || (line[i] == '/' && i + 1 < line.Length && line[i + 1] == '>'))
-            {
-               return 6;
-            }
-         }
-         else
-         {
-            // Type 7: not a block tag, but must be a complete tag followed only by whitespace
-            var closeBracket = -1;
-            for (var j = i; j < line.Length; j++)
-            {
-               if (line[j] != '>') continue;
-               closeBracket = j;
-               break;
-            }
 
-            if (closeBracket != -1)
+      if (i <= nameStart) return -1;
+      
+      var tagName = line.Slice(nameStart, i - nameStart);
+      var isBlockTag = IsBlockTag(tagName);
+         
+      if (isBlockTag)
+      {
+         if (i == line.Length || char.IsWhiteSpace(line[i]) || line[i] == '>' || (line[i] == '/' && i + 1 < line.Length && line[i + 1] == '>'))
+         {
+            return 6;
+         }
+      }
+      else
+      {
+         // Type 7: not a block tag, but must be a complete tag followed only by whitespace
+         var closeBracket = -1;
+         for (var j = i; j < line.Length; j++)
+         {
+            if (line[j] != '>') continue;
+            closeBracket = j;
+            break;
+         }
+
+         if (closeBracket != -1)
+         {
+            for (var j = closeBracket + 1; j < line.Length; j++)
             {
-               for (var j = closeBracket + 1; j < line.Length; j++)
-               {
-                  if (!char.IsWhiteSpace(line[j])) return -1;
-               }
-               return 7;
+               if (!char.IsWhiteSpace(line[j])) return -1;
             }
+            return 7;
          }
       }
 

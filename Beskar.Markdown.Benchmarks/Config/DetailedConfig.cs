@@ -15,9 +15,16 @@ public class DetailedConfig : ManualConfig
    {
       AddLogger(ConsoleLogger.Default);
 
-      AddColumn(StatisticColumn.AllStatistics); 
+      AddColumn(CategoriesColumn.Default); 
+      AddColumn(TargetMethodColumn.Method);
+
+      AddColumn(StatisticColumn.Mean);
+      
       AddColumn(RankColumn.Arabic);
       AddColumn(BaselineRatioColumn.RatioMean);
+
+      HideColumns(Column.Error, Column.StdDev, Column.Median, 
+         Column.CompletedWorkItems, Column.LockContentions);
 
       AddDiagnoser(MemoryDiagnoser.Default);
       AddDiagnoser(ThreadingDiagnoser.Default);
