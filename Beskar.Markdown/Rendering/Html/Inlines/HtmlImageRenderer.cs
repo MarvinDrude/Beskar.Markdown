@@ -25,6 +25,14 @@ public sealed class HtmlImageRenderer : INodeRenderer
          title = child.TextSpan.Slice(rawText);
       }
       
-      writer.WriteInterpolated($"<img src=\"{url}\" alt=\"{title}\" />");
+      writer.WriteInterpolated($"<img src=\"{url}\" alt=\"{title}\" ");
+
+      if (current.LinkTitleOffset > 0)
+      {
+         var startIndex = current.LinkUrlStart + current.LinkUrlLength + current.LinkTitleOffset;
+         writer.WriteInterpolated($"title=\"{rawText.Slice(startIndex, current.LinkTitleLength)}\" ");
+      }
+      
+      writer.Write("/>");
    }
 }

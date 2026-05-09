@@ -69,12 +69,29 @@ public sealed class ImageParser : IInlineParser
       while (currentIndex < text.Length && char.IsWhiteSpace(text[currentIndex])) 
          currentIndex++;
       
+      short titleOffset = -1;
+      ushort titleLength = 0;
+      
       if (currentIndex < text.Length && (text[currentIndex] == '"' || text[currentIndex] == '\''))
       {
          var quote = text[currentIndex++];
-         while (currentIndex < text.Length && text[currentIndex] != quote) currentIndex++;
-         if (currentIndex < text.Length) currentIndex++;
-         while (currentIndex < text.Length && char.IsWhiteSpace(text[currentIndex])) currentIndex++;
+         var titleStartIndex = currentIndex;
+         
+         while (currentIndex < text.Length && text[currentIndex] != quote) 
+            currentIndex++;
+         
+         if (currentIndex < text.Length) 
+         {
+            titleLength = (ushort)(currentIndex - titleStartIndex);
+            var urlEndIndex = actualUrlStart + actualUrlLength;
+            titleOffset = (short)(titleStartIndex - urlEndIndex);
+            
+            currentIndex++; // Skip the closing quote
+         }
+         
+         while (currentIndex < text.Length 
+            && char.IsWhiteSpace(text[currentIndex])) 
+            currentIndex++;
       }
       
       if (currentIndex >= text.Length || text[currentIndex] != ')') 
@@ -92,7 +109,9 @@ public sealed class ImageParser : IInlineParser
          NextSiblingIndex = -1,
          LastChildIndex = -1,
          LinkUrlStart = state.GlobalOffset + actualUrlStart,
-         LinkUrlLength = actualUrlLength
+         LinkUrlLength = actualUrlLength,
+         LinkTitleOffset = titleOffset,
+         LinkTitleLength = titleLength
       });
 
       parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);

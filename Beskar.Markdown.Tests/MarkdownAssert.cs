@@ -19,7 +19,7 @@ internal static class MarkdownAssert
          .IsEqualTo(NormalizeLineEndings(expectedHtml));
    }
 
-   public static string NormalizeLineEndings(string text)
+   private static string NormalizeLineEndings(string text)
    {
       return text.Replace("\r\n", "\n");
    }
