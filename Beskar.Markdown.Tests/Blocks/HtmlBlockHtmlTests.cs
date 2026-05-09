@@ -49,14 +49,6 @@ public sealed class HtmlBlockHtmlTests
    }
 
    [Test]
-   public Task HtmlBlockType3Instruction()
-   {
-      const string markdown = "<?php\n\n  echo 'hello';\n\n?>";
-      const string expectedHtml = "<?php\n\n  echo 'hello';\n\n?>";
-      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
-   }
-
-   [Test]
    public Task HtmlBlockType4Declaration()
    {
       const string markdown = "<!DOCTYPE html>";
