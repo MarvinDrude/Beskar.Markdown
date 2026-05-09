@@ -44,4 +44,80 @@ public sealed class BlockQuoteHtmlTests
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
+
+   [Test]
+   public Task BlockQuoteWithLazyContinuation()
+   {
+      const string markdown = 
+         """
+         > first line
+         continuation line
+         """;
+      const string expectedHtml = "<blockquote><p>first line</p></blockquote><p>continuation line</p>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task BlockQuoteWithMultipleParagraphs()
+   {
+      const string markdown = 
+         """
+         > para 1
+         >
+         > para 2
+         """;
+      const string expectedHtml = "<blockquote><p>para 1</p><p>para 2</p></blockquote>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task BlockQuoteIndented()
+   {
+      const string markdown = "  > indented quote";
+      const string expectedHtml = "<blockquote><p>indented quote</p></blockquote>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task BlockQuoteConsecutiveQuotes()
+   {
+      const string markdown = "> foo\n> bar";
+      const string expectedHtml = "<blockquote><p>foo\nbar</p></blockquote>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task BlockQuoteSeparatedByBlankLine()
+   {
+      const string markdown = "> foo\n\n> bar";
+      const string expectedHtml = "<blockquote><p>foo</p></blockquote>\n<blockquote><p>bar</p></blockquote>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task BlockQuoteInterruptedByList()
+   {
+      const string markdown = "> foo\n- bar";
+      const string expectedHtml = "<blockquote><p>foo</p></blockquote>\n<ul><li>bar</li></ul>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task BlockQuoteLazyContinuationWithList()
+   {
+      const string markdown = "> - foo\nbar";
+      const string expectedHtml = "<blockquote><ul><li>foo\nbar</li></ul></blockquote>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task BlockQuoteIndentedFourSpaces()
+   {
+      const string markdown = "    > not a quote";
+      const string expectedHtml = "<pre><code>&gt; not a quote\n</code></pre>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
 }

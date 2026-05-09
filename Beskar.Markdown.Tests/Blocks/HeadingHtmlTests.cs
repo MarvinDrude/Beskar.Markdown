@@ -48,4 +48,49 @@ public sealed class HeadingHtmlTests
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
+
+   [Test]
+   public Task AtxHeadingWithClosingHashes()
+   {
+      const string markdown = "## Heading ##";
+      const string expectedHtml = "<h2>Heading</h2>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task AtxHeadingNotAHeading()
+   {
+      const string markdown = "####### Heading 7";
+      const string expectedHtml = "<p>####### Heading 7</p>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task AtxHeadingRequiresSpace()
+   {
+      const string markdown = "#Heading";
+      const string expectedHtml = "<p>#Heading</p>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task SetextHeadingWithLeadingSpaces()
+   {
+      const string markdown = "  Heading\n  =";
+      const string expectedHtml = "<h1>Heading</h1>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task SetextHeadingWithInternalNewlines()
+   {
+      const string markdown = "Heading\nLine 2\n=";
+      const string expectedHtml = "<h1>Heading\nLine 2</h1>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
 }

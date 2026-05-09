@@ -30,4 +30,31 @@ public sealed class StrongEmphasisHtmlTests
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
+
+   [Test]
+   public Task EmphasisNestedInStrong()
+   {
+      const string markdown = "**outer _inner_ outer**";
+      const string expectedHtml = "<p><strong>outer <em>inner</em> outer</strong></p>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task StrongNestedInStrong()
+   {
+      const string markdown = "****strong****";
+      const string expectedHtml = "<p><strong><strong>strong</strong></strong></p>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task StrongWithInlines()
+   {
+      const string markdown = "**strong `code` [link](url)**";
+      const string expectedHtml = """<p><strong>strong <code>code</code> <a href="url">link</a></strong></p>""";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
 }

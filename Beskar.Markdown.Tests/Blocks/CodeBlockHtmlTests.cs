@@ -46,4 +46,59 @@ public sealed class CodeBlockHtmlTests
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
+
+   [Test]
+   public Task FencedCodeBlockWithInternalBackticks()
+   {
+      const string markdown = 
+         """
+         ```
+         `backtick`
+         ```
+         """;
+      const string expectedHtml = "<pre><code>`backtick`</code></pre>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task FencedCodeBlockClosingWithMoreBackticks()
+   {
+      const string markdown = 
+         """
+         ```
+         code
+         ````
+         """;
+      const string expectedHtml = "<pre><code>code</code></pre>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task FencedCodeBlockNotClosed()
+   {
+      const string markdown = 
+         """
+         ```
+         code
+         """;
+      const string expectedHtml = "<pre><code>code</code></pre>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task FencedCodeBlockIndented()
+   {
+      const string markdown = 
+         """
+           ```
+           code
+           ```
+         """;
+      const string expectedHtml = "<pre><code>  code</code></pre>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
 }

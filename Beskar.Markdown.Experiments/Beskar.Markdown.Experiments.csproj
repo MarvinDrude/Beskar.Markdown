@@ -8,7 +8,7 @@
    </PropertyGroup>
 
    <ItemGroup>
-     <PackageReference Include="Me.Memory" Version="1.4.0" />
+     <PackageReference Include="Me.Memory" />
    </ItemGroup>
 
    <ItemGroup>

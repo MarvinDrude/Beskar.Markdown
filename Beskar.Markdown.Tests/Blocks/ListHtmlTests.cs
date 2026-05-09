@@ -56,4 +56,118 @@ public sealed class ListHtmlTests
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
+
+   [Test]
+   public Task TightList()
+   {
+      const string markdown = 
+         """
+         - a
+         - b
+         """;
+      const string expectedHtml = "<ul><li>a</li><li>b</li></ul>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task LooseList()
+   {
+      const string markdown = 
+         """
+         - a
+
+         - b
+         """;
+      const string expectedHtml = "<ul><li>a</li><li>b</li></ul>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task ListWithMultipleParagraphs()
+   {
+      const string markdown = 
+         """
+         - item 1, para 1
+
+           item 1, para 2
+         - item 2
+         """;
+      const string expectedHtml = "<ul><li>item 1, para 1item 1, para 2</li><li>item 2</li></ul>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task OrderedListWithDifferentDelimiters()
+   {
+      const string markdown = "1) item 1\n2) item 2";
+      const string expectedHtml = "<ol><li>item 1</li><li>item 2</li></ol>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task UnorderedListWithDifferentMarkers()
+   {
+      const string markdown = "* item 1\n+ item 2\n- item 3";
+      const string expectedHtml = "<ul><li>item 1</li></ul><ul><li>item 2</li></ul><ul><li>item 3</li></ul>"; // CommonMark: changing marker starts new list
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task OrderedListWithDifferentDelimitersStartsNewList()
+   {
+      const string markdown = "1. item 1\n2) item 2";
+      const string expectedHtml = "<ol><li>item 1</li></ol><ol start=\"2\"><li>item 2</li></ol>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task ListInterruptedByThematicBreak()
+   {
+      const string markdown = "- item 1\n***\n- item 2";
+      const string expectedHtml = "<ul><li>item 1</li></ul><hr /><ul><li>item 2</li></ul>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task ListWithBlankLineAndIndentedCode()
+   {
+      const string markdown = "- item 1\n\n      code";
+      const string expectedHtml = "<ul><li><p>item 1</p><pre><code>code\n</code></pre></li></ul>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task ListItemWithMultipleBlocks()
+   {
+      const string markdown = 
+         """
+         - item 1
+           > quote
+           
+           para
+         """;
+      const string expectedHtml = "<ul><li>item 1<blockquote><p>quote</p></blockquote><p>para</p></li></ul>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task ListStartingWithBlankLine()
+   {
+      const string markdown = "- \n  foo";
+      const string expectedHtml = "<ul><li><p>foo</p></li></ul>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task OrderedListNotInterruptedByParagraph()
+   {
+      const string markdown = "1. foo\nbar";
+      const string expectedHtml = "<ol><li>foo\nbar</li></ol>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
 }

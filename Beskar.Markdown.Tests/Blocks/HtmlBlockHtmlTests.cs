@@ -31,4 +31,52 @@ public sealed class HtmlBlockHtmlTests
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
+
+   [Test]
+   public Task HtmlBlockType1Script()
+   {
+      const string markdown = "<script type=\"text/javascript\">\n// <![CDATA[\nfunction some_func() { return 1; }\n// ]]>\n</script>";
+      const string expectedHtml = "<script type=\"text/javascript\">\n// <![CDATA[\nfunction some_func() { return 1; }\n// ]]>\n</script>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task HtmlBlockType2Comment()
+   {
+      const string markdown = "<!-- foo\n\nbar\n -->";
+      const string expectedHtml = "<!-- foo\n\nbar\n -->";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task HtmlBlockType3Instruction()
+   {
+      const string markdown = "<?php\n\n  echo 'hello';\n\n?>";
+      const string expectedHtml = "<?php\n\n  echo 'hello';\n\n?>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task HtmlBlockType4Declaration()
+   {
+      const string markdown = "<!DOCTYPE html>";
+      const string expectedHtml = "<!DOCTYPE html>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task HtmlBlockType5CData()
+   {
+      const string markdown = "<![CDATA[\nfunction f(x) {\n  return x < 0;\n}\n]]>";
+      const string expectedHtml = "<![CDATA[\nfunction f(x) {\n  return x < 0;\n}\n]]>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task HtmlBlockInterruptedByBlankLine()
+   {
+      const string markdown = "<table>\n  <tr>\n    <td>\n      hi\n    </td>\n  </tr>\n</table>\n\nokay.";
+      const string expectedHtml = "<table>\n  <tr>\n    <td>\n      hi\n    </td>\n  </tr>\n</table>\n<p>okay.</p>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
 }
