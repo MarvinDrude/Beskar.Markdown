@@ -21,7 +21,7 @@ public sealed class ParagraphParser : IBlockParser
 
       if (parent is { Type: NodeType.ListItem, FirstChildIndex: -1 })
       {
-         // ugly nesting for now, maybe extract method later and early exists
+         // ugly nesting for now, maybe extract method later and early exit
          var line = state.RawLine[state.FirstNonSpaceIndex..];
          
          if (line.Length >= 3 && line[0] == '[' && line[2] == ']')
