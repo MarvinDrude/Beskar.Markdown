@@ -15,4 +15,16 @@ public sealed class SanitizeHtmlTests
 
       return MarkdownAssert.RendersHtml(markdown, html, renderOptions: options);
    }
+   
+   [Test]
+   public Task SanitizeInjectionHtmlWorking()
+   {
+      var options = RenderOptions.HtmlDefault;
+      options.SanitizerFunc = (span) => $"{span[0]}";
+
+      const string markdown = "Hallo";
+      const string html = "<";
+
+      return MarkdownAssert.RendersHtml(markdown, html, renderOptions: options);
+   }
 }
