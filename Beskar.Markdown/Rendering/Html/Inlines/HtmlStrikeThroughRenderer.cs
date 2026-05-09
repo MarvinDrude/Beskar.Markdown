@@ -16,6 +16,10 @@ public sealed class HtmlStrikeThroughRenderer : INodeRenderer
       ReadOnlySpan<MarkdownNode> nodes,
       RenderOptions options)
    {
-      writer.WriteInterpolated($"<del>{current.TextSpan.Slice(rawText)}</del>");
+      writer.Write("<del>");
+      
+      current.RenderChildren(rawText, nodes, ref writer, options);
+      
+      writer.Write("</del>");
    }
 }

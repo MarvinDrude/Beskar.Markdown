@@ -5,12 +5,12 @@ using Beskar.Markdown.Rendering;
 
 #if !DEBUG 
 
-BenchmarkRunner.Run<MarkdigBenchmark>();
+BenchmarkRunner.Run<ComparisonBenchmark>();
 
 #else
 
 Console.WriteLine("Debug mode");
-var ben = new MarkdigBenchmark();
+var ben = new ComparisonBenchmark();
 ben.Setup();
 
 //var ma1 = ben.SimpleMarkdig();

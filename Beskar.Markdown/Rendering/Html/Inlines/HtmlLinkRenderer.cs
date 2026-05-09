@@ -18,7 +18,15 @@ public sealed class HtmlLinkRenderer : INodeRenderer
    {
       var url = rawText.Slice(current.LinkUrlStart, current.LinkUrlLength);
       
-      writer.WriteInterpolated($"<a href=\"{url}\">");
+      writer.WriteInterpolated($"<a href=\"{url}\"");
+
+      if (current.LinkTitleOffset > -1)
+      {
+         var startIndex = current.LinkUrlStart + current.LinkUrlLength + current.LinkTitleOffset;
+         writer.WriteInterpolated($" title=\"{rawText.Slice(startIndex, current.LinkTitleLength)}\"");
+      }
+      
+      writer.Write(">");
       current.RenderChildren(rawText, nodes, ref writer, options);
       writer.Write("</a>");
    }

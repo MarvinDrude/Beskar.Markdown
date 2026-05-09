@@ -73,14 +73,29 @@ public sealed class LinkParser : IInlineParser
          currentIndex++;
       }
       
+      short titleOffset = -1;
+      ushort titleLength = 0;
+      
       // try get the optional title
       if (currentIndex < text.Length && (text[currentIndex] == '"' || text[currentIndex] == '\''))
       {
          var quote = text[currentIndex++];
-         while (currentIndex < text.Length && text[currentIndex] != quote) currentIndex++;
-         if (currentIndex < text.Length) currentIndex++;
+         var titleStartIndex = currentIndex;
          
-         while (currentIndex < text.Length && char.IsWhiteSpace(text[currentIndex])) currentIndex++;
+         while (currentIndex < text.Length && text[currentIndex] != quote) 
+            currentIndex++;
+         
+         if (currentIndex < text.Length) 
+         {
+            titleLength = (ushort)(currentIndex - titleStartIndex);
+            var urlEndIndex = actualUrlStart + actualUrlLength;
+            titleOffset = (short)(titleStartIndex - urlEndIndex);
+            
+            currentIndex++; // Skip the closing quote
+         }
+         
+         while (currentIndex < text.Length && char.IsWhiteSpace(text[currentIndex])) 
+            currentIndex++;
       }
       
       if (currentIndex >= text.Length || text[currentIndex] != ')')
@@ -99,7 +114,9 @@ public sealed class LinkParser : IInlineParser
          FirstChildIndex = -1,
          NextSiblingIndex = -1,
          LinkUrlStart = state.GlobalOffset + actualUrlStart,
-         LinkUrlLength = actualUrlLength
+         LinkUrlLength = actualUrlLength,
+         LinkTitleOffset = titleOffset,
+         LinkTitleLength = titleLength
       });
 
       parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
