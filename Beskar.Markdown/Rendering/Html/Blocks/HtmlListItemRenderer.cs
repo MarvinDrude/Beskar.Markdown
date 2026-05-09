@@ -17,6 +17,19 @@ public sealed class HtmlListItemRenderer : INodeRenderer
       RenderOptions options)
    {
       writer.Write("<li>");
+
+      if (current.TaskListStatus != 0)
+      {
+         if (current.TaskListStatus == 1) // unchecked
+         {
+            writer.Write("<input disabled=\"\" type=\"checkbox\"> ");
+         }
+         else // checked
+         {
+            writer.Write("<input checked=\"\" disabled=\"\" type=\"checkbox\"> ");
+         }
+      }
+      
       current.RenderChildren(rawText, nodes, ref writer, options);
       writer.Write("</li>");
    }

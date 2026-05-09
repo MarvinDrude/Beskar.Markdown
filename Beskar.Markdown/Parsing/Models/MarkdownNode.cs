@@ -52,6 +52,8 @@ public struct MarkdownNode
    // --- Second offset Metadata
    [FieldOffset(28)] // NodeType.List 
    public int ListStartNumber;
+   [FieldOffset(28)] // NodeType.ListItem
+   public byte TaskListStatus; // 0: none, 1: unchecked, 2: checked
    [FieldOffset(28)] // NodeType.CodeBlock (length of lang string)
    public int CodeLangSpanLength;
    [FieldOffset(28)] // NodeType.Link / NodeType.Image
