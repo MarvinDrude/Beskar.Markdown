@@ -84,6 +84,7 @@ public sealed class InlineCodeParser : IInlineParser
       {
          Type = NodeType.InlineCode,
          TextSpan = new TextSpan(contentStart, contentLength),
+         InlineCodeIsInsideTable = (byte)(writer.WrittenSpan[parentIndex].Type == NodeType.TableCell ? 1 : 0),
          FirstChildIndex = -1,
          NextSiblingIndex = -1
       });

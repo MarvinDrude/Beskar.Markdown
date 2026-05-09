@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Beskar.Markdown.Extensions;
 using Beskar.Markdown.Parsing.Models;
+using Beskar.Markdown.Parsing.Utils;
 using Me.Memory.Buffers;
 
 namespace Beskar.Markdown.Parsing;
@@ -81,17 +82,27 @@ public ref struct MarkdownParser(
             var isParagraphOpen = _writer.WrittenSpan[currentParentIndex].Type is NodeType.Paragraph;
             var testParentIndex = isParagraphOpen ? openBlocks[openBlockCount - 2] : currentParentIndex;
             
-            if (isParagraphOpen && TryMatchSetextUnderline(ref state, currentParentIndex))
+            if (isParagraphOpen)
             {
-               openBlockCount--; // close the converted heading
-               matchedNew = true;
-               break;
+               if (TryMatchSetextUnderline(ref state, currentParentIndex))
+               {
+                  openBlockCount--; // close the converted heading
+                  matchedNew = true;
+                  break;
+               }
+
+               if (TryMatchTableDelimiter(ref state, currentParentIndex, testParentIndex, ref _writer, out var tableIndex))
+               {
+                  openBlocks[openBlockCount - 1] = tableIndex;
+                  matchedNew = true;
+                  break;
+               }
             }
             
             for (var index = 0; index < options.BlockParsers.Length; index++)
             {
                var parser = options.BlockParsers[index];
-               // Skip the paragraph fallback here, we handle it explicitly in Phase three
+               
                if (parser.SupportedTypeValue == (int)NodeType.Paragraph)
                {
                   continue;
@@ -119,7 +130,6 @@ public ref struct MarkdownParser(
                
                if (isParagraphOpen)
                {
-                  // The new block interrupted the paragraph
                   openBlockCount--;
                   currentParentIndex = testParentIndex;
                }
@@ -130,10 +140,10 @@ public ref struct MarkdownParser(
                if (options.IsParserType(newType))
                {
                   openBlocks[openBlockCount++] = foundNewNodeIndex;
-                  continue; // Line might contain more: e.g., "> - Item"
+                  continue;
                }
 
-               // It's a leaf (Heading, Code), no more nesting possible
+               // Its a leaf (Heading, Code), no more nesting possible
             }
 
             break; // no more block parsers matched
@@ -298,6 +308,99 @@ public ref struct MarkdownParser(
    private static bool IsPossibleListMarkerStart(char c)
    {
       return c is '-' or '*' or '+' || char.IsAsciiDigit(c);
+   }
+
+   private bool TryMatchTableDelimiter(ref LineState state, int paragraphIndex, int parentIndex, ref BufferWriter<MarkdownNode> writer, out int tableIndex)
+   {
+      tableIndex = -1;
+      if (state.IsBlank || state.LeadingSpaces >= 4) return false;
+
+      if (!TableUtils.IsDelimiterRow(state.RawLine[state.FirstNonSpaceIndex..], out var columnCount)) return false;
+
+      ref var para = ref writer.GetReference(paragraphIndex);
+      if (para.LastChildIndex == -1) return false;
+
+      ref var lastChild = ref writer.GetReference(para.LastChildIndex);
+      if (lastChild.Type != NodeType.Text) return false;
+
+      var headerLine = _rawText.Slice(lastChild.TextSpan.Start, lastChild.TextSpan.Length);
+      var headerColumnCount = TableUtils.CountHeaderColumns(headerLine);
+
+      if (headerColumnCount != columnCount) return false;
+
+      var alignments = TableUtils.ParseAlignments(state.RawLine[state.FirstNonSpaceIndex..]);
+
+      var prevChildIndex = -1;
+      var currentChild = para.FirstChildIndex;
+      
+      while (currentChild != -1 && currentChild != para.LastChildIndex)
+      {
+         prevChildIndex = currentChild;
+         currentChild = writer.WrittenSpan[currentChild].NextSiblingIndex;
+      }
+
+      var headerRowTextIndex = para.LastChildIndex;
+
+      if (prevChildIndex != -1)
+      {
+         writer.GetReference(prevChildIndex).NextSiblingIndex = -1;
+         para.LastChildIndex = prevChildIndex;
+
+         tableIndex = writer.WrittenSpan.Length;
+         writer.Add(new MarkdownNode
+         {
+            Type = NodeType.Table, 
+            FirstChildIndex = -1, 
+            LastChildIndex = -1, 
+            NextSiblingIndex = -1
+         });
+         
+         LinkNodes(parentIndex, tableIndex);
+      }
+      else
+      {
+         para.Type = NodeType.Table;
+         para.FirstChildIndex = -1;
+         para.LastChildIndex = -1;
+         
+         tableIndex = paragraphIndex;
+      }
+
+      var headerNodeIndex = writer.WrittenSpan.Length;
+      writer.Add(new MarkdownNode
+      {
+         Type = NodeType.TableHeader, 
+         FirstChildIndex = -1, 
+         LastChildIndex = -1, 
+         NextSiblingIndex = -1
+      });
+      LinkNodes(tableIndex, headerNodeIndex);
+
+      var headerRowIndex = writer.WrittenSpan.Length;
+      writer.Add(new MarkdownNode
+      {
+         Type = NodeType.TableRow, 
+         FirstChildIndex = -1, 
+         LastChildIndex = -1, 
+         NextSiblingIndex = -1
+      });
+      LinkNodes(headerNodeIndex, headerRowIndex);
+
+      TableUtils.ParseRow(headerLine, columnCount, alignments, headerRowIndex, 
+         ref writer, lastChild.TextSpan.Start, isHeader: true);
+
+      var bodyNodeIndex = writer.WrittenSpan.Length;
+      writer.Add(new MarkdownNode
+      {
+         Type = NodeType.TableBody, 
+         FirstChildIndex = -1, 
+         LastChildIndex = -1, 
+         NextSiblingIndex = -1
+      });
+      LinkNodes(tableIndex, bodyNodeIndex);
+
+      state.ConsumeRest();
+      return true;
    }
 
    public void Dispose()

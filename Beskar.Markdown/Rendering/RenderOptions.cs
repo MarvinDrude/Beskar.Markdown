@@ -63,6 +63,11 @@ public sealed class RenderOptions
       new HtmlListItemRenderer(),
       new HtmlParagraphRenderer(),
       new HtmlThematicBreakRenderer(),
+      new HtmlTableRenderer(),
+      new HtmlTableHeaderRenderer(),
+      new HtmlTableBodyRenderer(),
+      new HtmlTableRowRenderer(),
+      new HtmlTableCellRenderer(),
       // Default inline renderers
       new HtmlTextRenderer(),
       new HtmlAutolinkRenderer(),
