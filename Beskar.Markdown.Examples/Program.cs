@@ -2,54 +2,17 @@
 using Beskar.Markdown;
 using Beskar.Markdown.Addons;
 using Beskar.Markdown.Builders;
+using Beskar.Markdown.Examples;
+using Beskar.Markdown.Extensions;
+using Beskar.Markdown.Parsing;
 using Beskar.Markdown.Parsing.Interfaces;
+using Beskar.Markdown.Parsing.Models;
+using Beskar.Markdown.Rendering;
 using Beskar.Markdown.Rendering.Interfaces;
+using Me.Memory.Buffers;
 
 Console.WriteLine("Hello, World!");
 
-var options = MarkdownOptionBuilder.Create()
-   .WithExtension(new EmojiInlineExtension())
-   .WithExtension(new RedBlockExtension())
-   .WithMaxBlockDepth(16)
-   .Build();
-
-const string markdown = 
-   """
-   Hello, World! .RandomEmoji.
-   
-   +red block+
-   inside of
-   red
-   
-   """;
-var result = BeMarkdown.ToHtml(markdown, options);
-Console.WriteLine(result);
+SimpleCustomExtensions.Run();
 
 return;
-
-public sealed class EmojiInlineExtension : BaseInlineExtension
-{
-   private readonly ImmutableArray<string> _emojis = ImmutableArray.CreateRange([
-      "😀", "🎉", "🚀", "🌟", "🔥", "🐱", "🍕", "💻", "☕"]);
-
-   public EmojiInlineExtension()
-   {
-      Parsers = [new EmojiInlineParser()];
-      Renderers = [new HtmlEmojiInlineRenderer()];
-   }
-
-   public sealed class HtmlEmojiInlineRenderer : INodeRenderer
-   {
-      
-   }
-   
-   public sealed class EmojiInlineParser : IInlineParser
-   {
-      
-   }
-}
-
-public sealed class RedBlockExtension : BaseBlockExtension
-{
-   
-}

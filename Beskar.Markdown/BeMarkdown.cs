@@ -11,6 +11,8 @@ namespace Beskar.Markdown;
 
 public static class BeMarkdown
 {
+   public const int BuiltInNodeTypeValueOffset = (int)NodeType.Autolink + 1;
+   
    private static readonly ParserOptions _defaultParserOptions = ParserOptions.Default;
    private static readonly RenderOptions _defaultRenderOptions = RenderOptions.HtmlDefault;
    
@@ -41,7 +43,7 @@ public static class BeMarkdown
        
       using var parser = new MarkdownParser(markdown, stackalloc MarkdownNode[GetInitialNodeBufferLength(markdown.Length)]);
       parser.Parse(parserOptions);
-
+      
       var renderer = new MarkdownRenderer(markdown);
       var writer = new TextWriterIndentSlim(
          stackalloc char[512], stackalloc char[64]);

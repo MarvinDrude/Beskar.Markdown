@@ -38,7 +38,13 @@ Console.WriteLine(html);
 
 ## Features
 
-### Currently Supported
+### Main Features
+- **Fast**: Beskar.Markdown is designed to be fast and leaner than existing solutions.
+- **Modern**: Built for modern .NET, taking advantage of the latest language and runtime optimizations.
+- **Easy to Use**: A clean, intuitive API that makes Markdown processing straightforward.
+- **Extensible**: Easily add support for new Markdown features or extensions.
+
+### Currently Supported Blocks & Inlines
 - **Blocks**:
     - Headers (ATX & Setext)
     - Paragraphs
@@ -61,7 +67,6 @@ Console.WriteLine(html);
     - Images
 
 ### Future Plans
-- [ ] Nice dev facing extension system
 - [ ] Footnotes
 - [ ] Full CommonMark Compliance suite validation
 - [ ] Context based rendering functions
@@ -86,6 +91,212 @@ var options = RenderOptions.HtmlDefault;
 options.SanitizerFunc = (span) => HtmlSanitizer.Sanitize(span);
 
 var safeHtml = BeMarkdown.ToHtml(userContent, renderOptions: options);
+```
+
+## Simple custom markdown extensions
+
+### Simple inline extension
+
+This example inline extension adds a random emoji if you use `.RandomEmoji.`:
+
+```csharp
+var options = MarkdownOptionBuilder.Create()
+   .WithExtension(new EmojiInlineExtension())
+   .Build();
+
+const string markdown = 
+   """
+   Hello, World! .RandomEmoji.
+   """;
+var result = BeMarkdown.ToHtml(markdown, options);
+Console.WriteLine(result); // <p>Hello, World! <span class="emoji">💻</span></p>
+```
+
+Implementation:
+```csharp
+public sealed class EmojiInlineExtension : BaseInlineExtension
+{
+   private const int _targetTypeValue = BeMarkdown.BuiltInNodeTypeValueOffset + 4;
+   private static readonly ImmutableArray<string> _emojis = ImmutableArray.CreateRange([
+      "😀", "🎉", "🚀", "🌟", "🔥", "🐱", "🍕", "💻", "☕"]);
+
+   public EmojiInlineExtension()
+   {
+      Parsers = [new EmojiInlineParser()];
+      Renderers = [new HtmlEmojiInlineRenderer()];
+   }
+
+   private sealed class HtmlEmojiInlineRenderer : INodeRenderer
+   {
+      public int TargetTypeValue => _targetTypeValue;
+
+      public void Render(
+         ReadOnlySpan<char> rawText, 
+         ref TextWriterIndentSlim writer, 
+         in MarkdownNode current, 
+         ReadOnlySpan<MarkdownNode> nodes,
+         RenderOptions options)
+      {
+         writer.Write("<span class=\"emoji\">");
+         writer.Write(_emojis[Random.Shared.Next(0, _emojis.Length)]);
+         writer.Write("</span>");
+      }
+   }
+   
+   private sealed class EmojiInlineParser : IInlineParser
+   {
+      private const string _identifier = ".RandomEmoji.";
+      
+      public int Priority => 8_000;
+      public int SupportedTypeValue => _targetTypeValue;
+
+      public char TriggerChar => '.';
+      public char TriggerAltChar => '.';
+
+      public bool TryMatch(
+         ref InlineState state, 
+         int parentIndex, 
+         ref BufferWriter<MarkdownNode> writer, 
+         scoped ref InlineParser parser,
+         ParserOptions options)
+      {
+         if (state.RemainingText.Length < _identifier.Length) 
+            return false;
+         
+         if (!state.RemainingText.StartsWith(_identifier))
+            return false;
+
+         var nodeIndex = writer.WrittenSpan.Length;
+         writer.Add(new MarkdownNode()
+         {
+            Type = (NodeType)SupportedTypeValue,
+            TextSpan = new TextSpan(state.GlobalOffset, _identifier.Length),
+            
+            NextSiblingIndex = -1,
+            FirstChildIndex = -1,
+            LastChildIndex = -1
+         });
+         
+         parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
+         state.Advance(_identifier.Length);
+         return true;
+      }
+   }
+}
+```
+
+### Simple block extension
+
+This example block extension adds a basic parsing for a div that is red:
+
+```csharp
+var options = MarkdownOptionBuilder.Create()
+   .WithExtension(new RedBlockExtension())
+   .WithMaxBlockDepth(16)
+   .Build();
+
+const string markdown = 
+   """
+   +red block+
+   inside of `code` inline
+   red
+   > blockquote
+
+   """;
+var result = BeMarkdown.ToHtml(markdown, options);
+Console.WriteLine(result); // <div class="red-block"><p>inside of <code>code</code> inline\nred</p><blockquote><p>blockquote</p></blockquote></div>
+```
+
+Implementation:
+```csharp
+public sealed class RedBlockExtension : BaseBlockExtension
+{
+   private const int _targetTypeValue = BeMarkdown.BuiltInNodeTypeValueOffset + 5;
+   
+   public RedBlockExtension()
+   {
+      Parsers = [new RedBlockParser()];
+      Renderers = [new HtmlRedBlockRenderer()];
+   }
+
+   private sealed class HtmlRedBlockRenderer : INodeRenderer
+   {
+      public int TargetTypeValue => _targetTypeValue;
+
+      public void Render(
+         ReadOnlySpan<char> rawText, 
+         ref TextWriterIndentSlim writer, 
+         in MarkdownNode current, 
+         ReadOnlySpan<MarkdownNode> nodes,
+         RenderOptions options)
+      {
+         writer.Write("<div class=\"red-block\">");
+         current.RenderChildren(rawText, nodes, ref writer, options);
+         writer.Write("</div>");
+      }
+   }
+
+   private sealed class RedBlockParser : IBlockParser
+   {
+      private const string _identifier = "+red block+";
+      
+      public int Priority => 10; // low priority
+      public int SupportedTypeValue => _targetTypeValue;
+      
+      public int TryMatch(ref LineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
+      {
+         if (state.IsBlank || state.LeadingSpaces > 0)
+         {
+            return -1;
+         }
+         
+         if (state.FirstChar != '+' && state.RawLine.Length < _identifier.Length)
+         {
+            return -1;
+         }
+         
+         if (!state.RawLine.StartsWith(_identifier))
+         {
+            return -1;
+         }
+         
+         var nodeIndex = writer.WrittenSpan.Length;
+         writer.Add(new MarkdownNode()
+         {
+            Type = (NodeType)SupportedTypeValue,
+            TextSpan = new TextSpan(-1, 0),
+            
+            FirstChildIndex = -1,
+            NextSiblingIndex = -1,
+            LastChildIndex = -1
+         });
+
+         state.ConsumeRest();
+         return nodeIndex;
+      }
+
+      public bool CanContinue(ref MarkdownNode node, ref LineState state, ref BufferWriter<MarkdownNode> writer)
+      {
+         // simple example only an empty line can stop the block
+         if (state.IsBlank)
+         {
+            return false;
+         }
+         
+         if (node.TextSpan.Start == -1)
+         {
+            node.TextSpan = new TextSpan(state.GlobalOffset, state.RawLine.Length);
+         }
+         else
+         {
+            var newLength = (state.GlobalOffset - node.TextSpan.Start) + state.RawLine.Length;
+            node.TextSpan = node.TextSpan with { Length = newLength };
+         }
+
+         return true;
+      }
+   }
+}
 ```
 
 ## Benchmark Results
