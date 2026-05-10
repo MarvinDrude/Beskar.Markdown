@@ -11,6 +11,7 @@
     <File Path="SECURITY.md" />
   </Folder>
   <Project Path="Beskar.Markdown.Benchmarks/Beskar.Markdown.Benchmarks.csproj" />
+  <Project Path="Beskar.Markdown.Examples/Beskar.Markdown.Examples.csproj" />
   <Project Path="Beskar.Markdown.Experiments/Beskar.Markdown.Experiments.csproj" />
   <Project Path="Beskar.Markdown.Fuzzing/Beskar.Markdown.Fuzzing.csproj" />
   <Project Path="Beskar.Markdown.Tests/Beskar.Markdown.Tests.csproj" />

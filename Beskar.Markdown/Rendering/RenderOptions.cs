@@ -19,7 +19,7 @@ public sealed class RenderOptions
    private readonly INodeRenderer?[] _nodeRendererLookup = new INodeRenderer?[_builtInNodeTypeCount];
    private readonly Dictionary<int, INodeRenderer> _customNodeRendererLookup = [];
 
-   private RenderOptions(IEnumerable<INodeRenderer> nodeRenderers)
+   public RenderOptions(IEnumerable<INodeRenderer> nodeRenderers)
    {
       _nodeRenderer = nodeRenderers.ToArray();
       
