@@ -13,7 +13,7 @@ for .NET. It is built from the ground up to leverage modern C# features like `Sp
   - [Main Features](#main-features)
   - [Currently Supported Blocks & Inlines](#currently-supported-blocks--inlines)
   - [Future Plans](#future-plans)
-- [⚠️ Security Warning](#️⚠️-security-warning)
+- [⚠️ Security Warning](#security-warning)
 - [Simple custom markdown extensions](#simple-custom-markdown-extensions)
   - [Simple inline extension](#simple-inline-extension)
   - [Simple block extension](#simple-block-extension)
