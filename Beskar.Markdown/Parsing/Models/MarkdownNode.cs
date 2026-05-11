@@ -48,6 +48,8 @@ public struct MarkdownNode
    public byte IsHeaderCell;
    [FieldOffset(24)] // NodeType.InlineCode
    public byte InlineCodeIsInsideTable;
+   [FieldOffset(24)] // NodeType.LinkReferenceDefinition
+   public int TitleSpanStart;
    
    // --- Second offset Metadata
    [FieldOffset(28)] // NodeType.List 
@@ -58,6 +60,8 @@ public struct MarkdownNode
    public int CodeLangSpanLength;
    [FieldOffset(28)] // NodeType.Link / NodeType.Image
    public int LinkUrlLength;
+   [FieldOffset(28)] // NodeType.LinkReferenceDefinition
+   public int TitleSpanLength;
    
    // --- Third offset Metadata
    [FieldOffset(32)] // NodeType.CodeBlock
