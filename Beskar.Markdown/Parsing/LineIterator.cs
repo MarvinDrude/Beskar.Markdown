@@ -7,7 +7,7 @@ public ref struct LineIterator(ReadOnlySpan<char> rawText)
    private ReadOnlySpan<char> _rawText = rawText;
    private int _consumedOffset = 0;
 
-   public bool TryMoveNext(MarkdownContext context, out LineState state)
+   public bool TryMoveNext<TData>(MarkdownContext<TData> context, out LineState<TData> state)
    {
       if (_rawText.IsEmpty)
       {
@@ -35,7 +35,7 @@ public ref struct LineIterator(ReadOnlySpan<char> rawText)
          lineLengthWithSeparator = _rawText.Length;
       }
 
-      state = new LineState(context, line, _consumedOffset);
+      state = new LineState<TData>(context, line, _consumedOffset);
       
       _rawText = _rawText[lineLengthWithSeparator..];
       _consumedOffset += lineLengthWithSeparator;

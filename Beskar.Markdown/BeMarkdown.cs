@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Beskar.Markdown.Builders;
-using Beskar.Markdown.Extensions;
 using Beskar.Markdown.Parsing;
 using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Rendering;
@@ -41,7 +40,7 @@ public static class BeMarkdown
       parserOptions ??= _defaultParserOptions;
       renderOptions ??= _defaultRenderOptions;
        
-      using var parser = new MarkdownParser(markdown, stackalloc MarkdownNode[GetInitialNodeBufferLength(markdown.Length)]);
+      using var parser = new MarkdownParser<object>(markdown, stackalloc MarkdownNode[GetInitialNodeBufferLength(markdown.Length)]);
       parser.Parse(parserOptions);
       
       var renderer = new MarkdownRenderer(markdown);

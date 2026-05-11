@@ -12,8 +12,8 @@ public sealed class EmphasisParser : IInlineParser
    public char TriggerChar => '*';
    public char TriggerAltChar => '_';
 
-   public bool TryMatch(ref InlineState state, int parentIndex, 
-      ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser parser,
+   public bool TryMatch<TData>(ref InlineState<TData> state, int parentIndex, 
+      ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser<TData> parser,
       ParserOptions options)
    {
       var text = state.RemainingText;
@@ -57,7 +57,7 @@ public sealed class EmphasisParser : IInlineParser
       return true;
    }
    
-   private static void GetFlankingInfo(char marker, in InlineState state, int length, 
+   private static void GetFlankingInfo<TData>(char marker, in InlineState<TData> state, int length, 
       out bool canOpen, out bool canClose)
    {
       var text = state.RemainingText;

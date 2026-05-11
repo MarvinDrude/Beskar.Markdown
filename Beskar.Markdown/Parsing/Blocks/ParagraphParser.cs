@@ -10,7 +10,7 @@ public sealed class ParagraphParser : IBlockParser
    public int Priority => 10;
    public int SupportedTypeValue => (int)NodeType.Paragraph;
    
-   public int TryMatch(ref LineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
+   public int TryMatch<TData>(ref LineState<TData> state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
    {
       if (state.IsBlank)
       {
@@ -73,7 +73,8 @@ public sealed class ParagraphParser : IBlockParser
       return paraIndex;
    }
 
-   public bool CanContinue(ref MarkdownNode node, ref LineState state, ref BufferWriter<MarkdownNode> writer)
+   public bool CanContinue<TData>(ref MarkdownNode node, ref LineState<TData> state, 
+      ref BufferWriter<MarkdownNode> writer)
    {
       return false;
    }

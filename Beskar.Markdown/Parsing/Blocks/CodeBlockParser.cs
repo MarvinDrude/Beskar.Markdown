@@ -9,7 +9,7 @@ public sealed class CodeBlockParser : IBlockParser
    public int Priority => 10_100;
    public int SupportedTypeValue => (int)NodeType.CodeBlock;
    
-   public int TryMatch(ref LineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
+   public int TryMatch<TData>(ref LineState<TData> state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
    {
       if (state.IsBlank || state.LeadingSpaces >= 4)
       {
@@ -87,7 +87,8 @@ public sealed class CodeBlockParser : IBlockParser
       return nodeIndex;
    }
 
-   public bool CanContinue(ref MarkdownNode node, ref LineState state, ref BufferWriter<MarkdownNode> writer)
+   public bool CanContinue<TData>(ref MarkdownNode node, ref LineState<TData> state, 
+      ref BufferWriter<MarkdownNode> writer)
    {
       var marker = node.CodeBlockMarker;
       var minCount = node.CodeBlockFenceCount;

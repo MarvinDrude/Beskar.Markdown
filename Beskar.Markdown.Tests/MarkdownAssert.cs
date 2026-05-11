@@ -10,7 +10,7 @@ internal static class MarkdownAssert
    public static async Task RendersHtml(string markdown, string expectedHtml, 
       ParserOptions? parserOptions = null, RenderOptions? renderOptions = null)
    {
-      var parser = new MarkdownParser(markdown, stackalloc MarkdownNode[32]);
+      var parser = new MarkdownParser<object>(markdown, stackalloc MarkdownNode[32]);
       parser.Parse(parserOptions ?? ParserOptions.Default);
       
       var debugString = parser.WrittenNodes.ToArray().CreateDebugString(markdown);

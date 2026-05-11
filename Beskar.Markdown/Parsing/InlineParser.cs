@@ -6,7 +6,8 @@ using Me.Memory.Buffers;
 namespace Beskar.Markdown.Parsing;
 
 [StructLayout(LayoutKind.Auto)]
-public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
+public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText) 
+   : IDisposable
 {
    private readonly ReadOnlySpan<char> _rawText = rawText;
    private BufferWriter<Delimiter> _delimiters;
@@ -14,7 +15,7 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
    private bool _hasDelimiterBuffer;
 
    public void Parse(ref BufferWriter<MarkdownNode> writer, 
-      MarkdownContext context, ParserOptions options)
+      MarkdownContext<TData> context, ParserOptions options)
    {
       // dont process new added nodes
       var originalBlockCount = writer.WrittenSpan.Length;
@@ -32,7 +33,7 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
    }
 
    private void RunLeafContainer(
-      MarkdownContext context,
+      MarkdownContext<TData> context,
       int parentIndex,
       ref BufferWriter<MarkdownNode> writer,
       ParserOptions options)
@@ -58,7 +59,7 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
             var isLastLine = oldNode.NextSiblingIndex == -1;
             var span = _rawText.Slice(oldNode.TextSpan.Start, oldNode.TextSpan.Length);
 
-            var state = new InlineState(context, _rawText, span, oldNode.TextSpan.Start);
+            var state = new InlineState<TData>(context, _rawText, span, oldNode.TextSpan.Start);
             ProcessState(ref state, parentIndex, ref writer, options, isLastLine);
 
             nextNode = oldNode.NextSiblingIndex;
@@ -78,7 +79,7 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
       {
          // header, for example, has its text inside itself
          var span = _rawText.Slice(parent.TextSpan.Start, parent.TextSpan.Length);
-         var state = new InlineState(context, _rawText, span, parent.TextSpan.Start);
+         var state = new InlineState<TData>(context, _rawText, span, parent.TextSpan.Start);
 
          ProcessState(ref state, parentIndex, ref writer, options, isLastLine: true);
       }
@@ -87,7 +88,7 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
    }
    
    private void ProcessState(
-      ref InlineState state,
+      ref InlineState<TData> state,
       int parentIndex,
       ref BufferWriter<MarkdownNode> writer,
       ParserOptions options,
@@ -304,14 +305,14 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
       parent.LastChildIndex = childIndex;
    }
 
-   public void ParseInnerContent(MarkdownContext context,
+   public void ParseInnerContent(MarkdownContext<TData> context,
       ref BufferWriter<MarkdownNode> writer, int parentIndex, 
       int start, int length, ParserOptions options)
    {
       if (length <= 0) return;
       
       var span = _rawText.Slice(start, length);
-      var state = new InlineState(context, _rawText, span, start);
+      var state = new InlineState<TData>(context, _rawText, span, start);
       
       ProcessState(ref state, parentIndex, ref writer, options, isLastLine: true);
    }

@@ -10,7 +10,7 @@ namespace Beskar.Markdown.Parsing;
 /// Main parser struct to run the raw text to AST conversion.
 /// </summary>
 [StructLayout(LayoutKind.Auto)]
-public ref struct MarkdownParser(
+public ref struct MarkdownParser<TData>(
    ReadOnlySpan<char> rawText,
    Span<MarkdownNode> initialNodeBuffer)
    : IDisposable
@@ -25,7 +25,7 @@ public ref struct MarkdownParser(
    /// </summary>
    public void Parse(ParserOptions options)
    {
-      var context = new MarkdownContext();
+      var context = new MarkdownContext<TData>();
       
       var documentIndex = _writer.WrittenSpan.Length;
       _writer.Add(new MarkdownNode()
@@ -230,7 +230,7 @@ public ref struct MarkdownParser(
       }
       
       // process inlines
-      var inlineParser = new InlineParser(_rawText);
+      var inlineParser = new InlineParser<TData>(_rawText);
       inlineParser.Parse(ref _writer, context, options);
    }
 
@@ -250,7 +250,7 @@ public ref struct MarkdownParser(
       parent.LastChildIndex = childIndex;
    }
    
-   private bool TryMatchSetextUnderline(ref LineState state, int paragraphIndex)
+   private bool TryMatchSetextUnderline(ref LineState<TData> state, int paragraphIndex)
    {
       if (state.IsBlank || state.LeadingSpaces >= 4) return false;
 
@@ -280,7 +280,7 @@ public ref struct MarkdownParser(
       return true;
    }
 
-   private static bool ShouldTryBlockParser(int parserType, ref LineState state)
+   private static bool ShouldTryBlockParser(int parserType, ref LineState<TData> state)
    {
       if (parserType is > ParserConstants.MaxInbuiltParseValue or < 0)
       {
@@ -312,7 +312,7 @@ public ref struct MarkdownParser(
       return c is '-' or '*' or '+' || char.IsAsciiDigit(c);
    }
 
-   private bool TryMatchTableDelimiter(ref LineState state, int paragraphIndex, int parentIndex, 
+   private bool TryMatchTableDelimiter(ref LineState<TData> state, int paragraphIndex, int parentIndex, 
       ref BufferWriter<MarkdownNode> writer, out int tableIndex)
    {
       tableIndex = -1;

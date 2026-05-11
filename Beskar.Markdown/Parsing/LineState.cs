@@ -3,9 +3,9 @@ using Beskar.Markdown.Parsing.Models;
 
 namespace Beskar.Markdown.Parsing;
 
-public ref struct LineState
+public ref struct LineState<TData>
 {
-   public MarkdownContext Context;
+   public MarkdownContext<TData> Context;
    public ReadOnlySpan<char> RawLine;
    
    public int GlobalOffset;
@@ -16,7 +16,7 @@ public ref struct LineState
    public bool IsBlank;
 
    public LineState(
-      MarkdownContext context,
+      MarkdownContext<TData> context,
       ReadOnlySpan<char> rawLine, 
       int globalOffset)
    {

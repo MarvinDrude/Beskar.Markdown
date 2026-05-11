@@ -11,13 +11,14 @@ public sealed class TableParser : IBlockParser
     public int Priority => 100;
     public int SupportedTypeValue => (int)NodeType.Table;
 
-    public int TryMatch(ref LineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
+    public int TryMatch<TData>(ref LineState<TData> state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
     {
         // tables are started via TryMatchTableDelimiter in MarkdownParser
         return -1;
     }
 
-    public bool CanContinue(ref MarkdownNode node, ref LineState state, ref BufferWriter<MarkdownNode> writer)
+    public bool CanContinue<TData>(ref MarkdownNode node, ref LineState<TData> state, 
+        ref BufferWriter<MarkdownNode> writer)
     {
         if (state.IsBlank) return false;
 

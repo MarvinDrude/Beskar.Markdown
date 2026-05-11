@@ -130,7 +130,7 @@ const string example =
    """;
 
 var options = ParserOptions.Default;
-var parser = new MarkdownParser(example, stackalloc MarkdownNode[100]);
+var parser = new MarkdownParser<object>(example, stackalloc MarkdownNode[100]);
 parser.Parse(options);
 
 var renderer = new MarkdownRenderer(example);
