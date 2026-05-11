@@ -32,11 +32,13 @@ public sealed class ImageParser : IInlineParser
       // Check for inline link: ](
       if (closeBracketIndex + 1 < text.Length && text[closeBracketIndex + 1] == '(')
       {
-         return ParseInlineImage(ref state, parentIndex, ref writer, ref parser, options, text, closeBracketIndex);
+         return ParseInlineImage(ref state, parentIndex, ref writer, 
+            ref parser, options, text, closeBracketIndex);
       }
       
       // Check for reference link
-      return ParseReferenceImage(ref state, parentIndex, ref writer, ref parser, options, text, closeBracketIndex);
+      return ParseReferenceImage(ref state, parentIndex, ref writer, 
+         ref parser, options, text, closeBracketIndex);
    }
 
    private bool ParseInlineImage<TData>(ref InlineState<TData> state, int parentIndex, 
@@ -141,61 +143,59 @@ public sealed class ImageParser : IInlineParser
       ReadOnlySpan<char> label;
       int nextIndex;
 
-      // Full or Collapsed: ![text][label] or ![text][]
       if (closeBracketIndex + 1 < text.Length && text[closeBracketIndex + 1] == '[')
       {
          var labelStart = closeBracketIndex + 1;
          var labelEnd = FindClosingBracket(text[labelStart..]);
+         
          if (labelEnd == -1) return false;
          
          labelEnd += labelStart;
-         var labelContent = text.Slice(labelStart + 1, labelEnd - labelStart - 1);
+         var labelContent = text.Slice(
+            labelStart + 1, labelEnd - labelStart - 1);
          
          if (labelContent.IsEmpty)
          {
-            // Collapsed: ![text][]
-            label = text.Slice(2, closeBracketIndex - 2);
+            label = text[2..closeBracketIndex];
          }
          else
          {
-            // Full: ![text][label]
             label = labelContent;
          }
          nextIndex = labelEnd + 1;
       }
       else
       {
-         // Shortcut: ![text]
-         label = text.Slice(2, closeBracketIndex - 2);
+         label = text[2..closeBracketIndex];
          nextIndex = closeBracketIndex + 1;
       }
 
-      if (LinkUtils.TryResolveReference(state.Context, label, out var lrdNodeIndex))
+      if (!LinkUtils.TryResolveReference(state.Context, label, out var lrdNodeIndex))
+         return false;
+      
+      var lrdNode = writer.WrittenSpan[lrdNodeIndex];
+      var nodeIndex = writer.WrittenSpan.Length;
+      
+      writer.Add(new MarkdownNode()
       {
-         var lrdNode = writer.WrittenSpan[lrdNodeIndex];
-         
-         var nodeIndex = writer.WrittenSpan.Length;
-         writer.Add(new MarkdownNode()
-         {
-            Type = NodeType.Image,
-            TextSpan = new TextSpan(state.GlobalOffset, nextIndex),
-            FirstChildIndex = -1,
-            NextSiblingIndex = -1,
-            LastChildIndex = -1,
-            LinkUrlStart = lrdNode.TextSpan.Start,
-            LinkUrlLength = lrdNode.TextSpan.Length,
-            LinkTitleOffset = lrdNode.TitleSpanStart != -1 ? (short)(lrdNode.TitleSpanStart - (lrdNode.TextSpan.Start + lrdNode.TextSpan.Length)) : (short)-1,
-            LinkTitleLength = (ushort)lrdNode.TitleSpanLength
-         });
+         Type = NodeType.Image,
+         TextSpan = new TextSpan(state.GlobalOffset, nextIndex),
+         FirstChildIndex = -1,
+         NextSiblingIndex = -1,
+         LastChildIndex = -1,
+         LinkUrlStart = lrdNode.TextSpan.Start,
+         LinkUrlLength = lrdNode.TextSpan.Length,
+         LinkTitleOffset = lrdNode.TitleSpanStart != -1 
+            ? (short)(lrdNode.TitleSpanStart - (lrdNode.TextSpan.Start + lrdNode.TextSpan.Length)) 
+            : (short)-1,
+         LinkTitleLength = (ushort)lrdNode.TitleSpanLength
+      });
 
-         parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
-         parser.AddInlineNode(ref writer, nodeIndex, NodeType.Text, state.GlobalOffset + 2, closeBracketIndex - 2);
+      parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
+      parser.AddInlineNode(ref writer, nodeIndex, NodeType.Text, state.GlobalOffset + 2, closeBracketIndex - 2);
 
-         state.Advance(nextIndex);
-         return true;
-      }
-
-      return false;
+      state.Advance(nextIndex);
+      return true;
    }
    
    private static int FindClosingBracket(ReadOnlySpan<char> text)
