@@ -8,7 +8,8 @@ public sealed class HtmlLineBreakRenderer : INodeRenderer
 {
    public int TargetTypeValue => (int)NodeType.LineBreak;
 
-   public void Render(
+   public void Render<TData>(
+      MarkdownContext<TData> context,
       ReadOnlySpan<char> rawText, 
       ref TextWriterIndentSlim writer, 
       in MarkdownNode current, 

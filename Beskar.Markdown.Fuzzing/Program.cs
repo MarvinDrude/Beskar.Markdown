@@ -9,13 +9,13 @@ using Beskar.Markdown.Rendering;
 #if DEBUG
 
 var md = File.ReadAllText("../../Release/net10.0/crash_repro.md");
-using var parser = new MarkdownParser(md, stackalloc MarkdownNode[32]);
-parser.Parse(ParserOptions.Default);
+using var parser = new MarkdownParser<object>(md, stackalloc MarkdownNode[32]);
+var context = parser.Parse(ParserOptions.Default);
 
 var debugString = parser.WrittenNodes.ToArray().CreateDebugString(md);
 
 var renderer = new MarkdownRenderer(md);
-var html = renderer.Render(parser.WrittenNodes, RenderOptions.HtmlDefault);
+var html = renderer.Render(context, parser.WrittenNodes, RenderOptions.HtmlDefault);
 
 Console.WriteLine(html);
 

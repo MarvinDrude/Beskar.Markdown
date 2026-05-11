@@ -9,7 +9,8 @@ public sealed class HtmlStrikeThroughRenderer : INodeRenderer
 {
    public int TargetTypeValue => (int)NodeType.StrikeThrough;
 
-   public void Render(
+   public void Render<TData>(
+      MarkdownContext<TData> context,
       ReadOnlySpan<char> rawText, 
       ref TextWriterIndentSlim writer, 
       in MarkdownNode current, 
@@ -18,7 +19,7 @@ public sealed class HtmlStrikeThroughRenderer : INodeRenderer
    {
       writer.Write("<del>");
       
-      current.RenderChildren(rawText, nodes, ref writer, options);
+      current.RenderChildren(context, rawText, nodes, ref writer, options);
       
       writer.Write("</del>");
    }

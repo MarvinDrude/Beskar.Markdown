@@ -9,7 +9,8 @@ public sealed class HtmlListRenderer : INodeRenderer
 {
    public int TargetTypeValue => (int)NodeType.List;
 
-   public void Render(
+   public void Render<TData>(
+      MarkdownContext<TData> context,
       ReadOnlySpan<char> rawText, 
       ref TextWriterIndentSlim writer, 
       in MarkdownNode current, 
@@ -26,7 +27,7 @@ public sealed class HtmlListRenderer : INodeRenderer
       }
       writer.Write(">");
       
-      current.RenderChildren(rawText, nodes, ref writer, options);
+      current.RenderChildren(context, rawText, nodes, ref writer, options);
       
       writer.WriteInterpolated($"</{type}>");
    }

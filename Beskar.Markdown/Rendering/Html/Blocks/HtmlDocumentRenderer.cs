@@ -8,7 +8,8 @@ public sealed class HtmlDocumentRenderer : INodeRenderer
 {
    public int TargetTypeValue => (int)NodeType.Document;
    
-   public void Render(
+   public void Render<TData>(
+      MarkdownContext<TData> context,
       ReadOnlySpan<char> rawText, 
       ref TextWriterIndentSlim writer, 
       in MarkdownNode current,
@@ -23,7 +24,7 @@ public sealed class HtmlDocumentRenderer : INodeRenderer
          var renderer = options.GetRenderer((int)child.Type)
             ?? throw new InvalidOperationException($"No renderer found for node type {child.Type}");
          
-         renderer.Render(rawText, ref writer, child, nodes, options);
+         renderer.Render(context, rawText, ref writer, child, nodes, options);
          currentChildIndex = child.NextSiblingIndex;
       }
    }

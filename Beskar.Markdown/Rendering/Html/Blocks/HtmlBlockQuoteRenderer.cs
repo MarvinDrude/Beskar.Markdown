@@ -18,7 +18,7 @@ public sealed class HtmlBlockQuoteRenderer : INodeRenderer
       RenderOptions options)
    {
       writer.Write("<blockquote>");
-      current.RenderChildren(rawText, nodes, ref writer, options);
+      current.RenderChildren(context, rawText, nodes, ref writer, options);
       writer.Write("</blockquote>");
    }
 }

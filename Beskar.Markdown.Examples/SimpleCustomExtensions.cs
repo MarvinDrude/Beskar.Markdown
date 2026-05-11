@@ -130,7 +130,7 @@ public sealed class RedBlockExtension : BaseBlockExtension
          RenderOptions options)
       {
          writer.Write("<div class=\"red-block\">");
-         current.RenderChildren(rawText, nodes, ref writer, options);
+         current.RenderChildren(context, rawText, nodes, ref writer, options);
          writer.Write("</div>");
       }
    }

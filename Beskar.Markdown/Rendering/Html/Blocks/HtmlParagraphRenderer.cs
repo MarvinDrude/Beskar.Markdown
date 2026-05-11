@@ -9,7 +9,8 @@ public sealed class HtmlParagraphRenderer : INodeRenderer
 {
    public int TargetTypeValue => (int)NodeType.Paragraph;
 
-   public void Render(
+   public void Render<TData>(
+      MarkdownContext<TData> context,
       ReadOnlySpan<char> rawText, 
       ref TextWriterIndentSlim writer, 
       in MarkdownNode current, 
@@ -21,7 +22,7 @@ public sealed class HtmlParagraphRenderer : INodeRenderer
          writer.Write("<p>");
       }
       
-      current.RenderChildren(rawText, nodes, ref writer, options);
+      current.RenderChildren(context, rawText, nodes, ref writer, options);
       
       if (current.IsInsideListItem != 1 || current.ParagraphIsWrapped == 1)
       {
