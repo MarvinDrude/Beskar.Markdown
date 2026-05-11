@@ -19,7 +19,7 @@ public sealed class ParagraphBlockTests
          ...
          """;
 
-      var parser = new MarkdownParser(markdown, stackalloc MarkdownNode[32]);
+      var parser = new MarkdownParser<object>(markdown, stackalloc MarkdownNode[32]);
       parser.Parse(ParserOptions.Default);
       var debugString = parser.WrittenNodes.ToArray().CreateDebugString(markdown);
       

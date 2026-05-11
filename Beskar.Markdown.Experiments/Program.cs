@@ -130,11 +130,11 @@ const string example =
    """;
 
 var options = ParserOptions.Default;
-var parser = new MarkdownParser(example, stackalloc MarkdownNode[100]);
-parser.Parse(options);
+var parser = new MarkdownParser<object>(example, stackalloc MarkdownNode[100]);
+var context = parser.Parse(options);
 
 var renderer = new MarkdownRenderer(example);
-var html = renderer.Render(parser.WrittenNodes, RenderOptions.HtmlDefault);
+var html = renderer.Render(context, parser.WrittenNodes, RenderOptions.HtmlDefault);
 
 var debugString = parser.WrittenNodes.ToArray().CreateDebugString(example);
 Console.WriteLine(debugString);

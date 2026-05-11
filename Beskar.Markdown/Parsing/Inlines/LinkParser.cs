@@ -1,5 +1,6 @@
 ﻿using Beskar.Markdown.Parsing.Interfaces;
 using Beskar.Markdown.Parsing.Models;
+using Beskar.Markdown.Parsing.Utils;
 using Me.Memory.Buffers;
 
 namespace Beskar.Markdown.Parsing.Inlines;
@@ -12,8 +13,8 @@ public sealed class LinkParser : IInlineParser
    public char TriggerChar => '[';
    public char TriggerAltChar => '[';
    
-   public bool TryMatch(ref InlineState state, int parentIndex, 
-      ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser parser,
+   public bool TryMatch<TData>(ref InlineState<TData> state, int parentIndex, 
+      ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser<TData> parser,
       ParserOptions options)
    {
       var text = state.RemainingText;
@@ -21,13 +22,20 @@ public sealed class LinkParser : IInlineParser
       var closeBracketIndex = FindClosingBracket(text);
       if (closeBracketIndex == -1) return false;
       
-      // No space between ]( allowed
-      if (closeBracketIndex + 1 >= text.Length 
-          || text[closeBracketIndex + 1] != '(')
+      if (closeBracketIndex + 1 < text.Length && text[closeBracketIndex + 1] == '(')
       {
-         return false;
+         return ParseInlineLink(ref state, parentIndex, ref writer, 
+            ref parser, options, text, closeBracketIndex);
       }
       
+      return ParseReferenceLink(ref state, parentIndex, ref writer, 
+         ref parser, options, text, closeBracketIndex);
+   }
+
+   private bool ParseInlineLink<TData>(ref InlineState<TData> state, int parentIndex, 
+      ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser<TData> parser,
+      ParserOptions options, ReadOnlySpan<char> text, int closeBracketIndex)
+   {
       var urlStartIdx = closeBracketIndex + 2;
       var currentIndex = urlStartIdx;
       
@@ -46,7 +54,8 @@ public sealed class LinkParser : IInlineParser
          
          while (currentIndex < text.Length)
          {
-            if (text[currentIndex] == '\\' && currentIndex + 1 < text.Length && IsAsciiPunctuation(text[currentIndex + 1]))
+            if (text[currentIndex] == '\\' && currentIndex + 1 < text.Length 
+                  && LinkUtils.IsAsciiPunctuation(text[currentIndex + 1]))
             {
                currentIndex += 2;
                continue;
@@ -68,7 +77,8 @@ public sealed class LinkParser : IInlineParser
          {
             var c = text[currentIndex];
             
-            if (c == '\\' && currentIndex + 1 < text.Length && IsAsciiPunctuation(text[currentIndex + 1]))
+            if (c == '\\' && currentIndex + 1 < text.Length 
+                  && LinkUtils.IsAsciiPunctuation(text[currentIndex + 1]))
             {
                currentIndex += 2;
                continue;
@@ -94,20 +104,22 @@ public sealed class LinkParser : IInlineParser
       ushort titleLength = 0;
       
       // try get the optional title
-      if (currentIndex < text.Length && (text[currentIndex] == '"' || text[currentIndex] == '\''))
+      if (currentIndex < text.Length && (text[currentIndex] == '"' || text[currentIndex] == '\'' || text[currentIndex] == '('))
       {
-         var quote = text[currentIndex++];
+         var openQuote = text[currentIndex++];
+         var closeQuote = openQuote == '(' ? ')' : openQuote;
          var titleStartIndex = currentIndex;
          
          while (currentIndex < text.Length)
          {
-            if (text[currentIndex] == '\\' && currentIndex + 1 < text.Length && IsAsciiPunctuation(text[currentIndex + 1]))
+            if (text[currentIndex] == '\\' && currentIndex + 1 < text.Length 
+                  && LinkUtils.IsAsciiPunctuation(text[currentIndex + 1]))
             {
                currentIndex += 2;
                continue;
             }
             
-            if (text[currentIndex] == quote) 
+            if (text[currentIndex] == closeQuote) 
                break;
                
             currentIndex++;
@@ -150,12 +162,70 @@ public sealed class LinkParser : IInlineParser
       parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
       
       // name of link can have inline formatting itself
-      parser.ParseInnerContent(ref writer, nodeIndex, contentStart, contentLength, options);
+      parser.ParseInnerContent(state.Context, ref writer, nodeIndex, contentStart, contentLength, options);
 
       state.Advance(currentIndex + 1);
       return true;
    }
-   
+
+   private bool ParseReferenceLink<TData>(ref InlineState<TData> state, int parentIndex, 
+      ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser<TData> parser,
+      ParserOptions options, ReadOnlySpan<char> text, int closeBracketIndex)
+   {
+      ReadOnlySpan<char> label;
+      int nextIndex;
+
+      // [text][label] or [text][]
+      if (closeBracketIndex + 1 < text.Length && text[closeBracketIndex + 1] == '[')
+      {
+         var labelStart = closeBracketIndex + 1;
+         var labelEnd = FindClosingBracket(text[labelStart..]);
+         
+         if (labelEnd == -1) 
+            return false;
+         
+         labelEnd += labelStart;
+         var labelContent = text.Slice(labelStart + 1, labelEnd - labelStart - 1);
+         
+         label = labelContent.IsEmpty
+            ? text[1..closeBracketIndex] 
+            : labelContent;
+         
+         nextIndex = labelEnd + 1;
+      }
+      else
+      {
+         label = text[1..closeBracketIndex];
+         nextIndex = closeBracketIndex + 1;
+      }
+
+      if (LinkUtils.TryResolveReference(state.Context, label, out var lrdNodeIndex))
+      {
+         var lrdNode = writer.WrittenSpan[lrdNodeIndex];
+         
+         var nodeIndex = writer.WrittenSpan.Length;
+         writer.Add(new MarkdownNode()
+         {
+            Type = NodeType.Link,
+            TextSpan = new TextSpan(state.GlobalOffset, nextIndex),
+            FirstChildIndex = -1,
+            NextSiblingIndex = -1,
+            LinkUrlStart = lrdNode.TextSpan.Start,
+            LinkUrlLength = lrdNode.TextSpan.Length,
+            LinkTitleOffset = lrdNode.TitleSpanStart != -1 ? (short)(lrdNode.TitleSpanStart - (lrdNode.TextSpan.Start + lrdNode.TextSpan.Length)) : (short)-1,
+            LinkTitleLength = (ushort)lrdNode.TitleSpanLength
+         });
+
+         parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
+         parser.ParseInnerContent(state.Context, ref writer, nodeIndex, state.GlobalOffset + 1, closeBracketIndex - 1, options);
+
+         state.Advance(nextIndex);
+         return true;
+      }
+
+      return false;
+   }
+
    private static int FindClosingBracket(ReadOnlySpan<char> text)
    {
       var depth = 0;
@@ -164,7 +234,7 @@ public sealed class LinkParser : IInlineParser
          switch (text[i])
          {
             case '\\':
-               if (i + 1 < text.Length && IsAsciiPunctuation(text[i + 1])) i++;
+               if (i + 1 < text.Length && LinkUtils.IsAsciiPunctuation(text[i + 1])) i++;
                continue;
             case '[':
                depth++;
@@ -179,13 +249,5 @@ public sealed class LinkParser : IInlineParser
       }
       
       return -1;
-   }
-   
-   private static bool IsAsciiPunctuation(char c)
-   {
-      return c is >= '!' and <= '/' 
-         or >= ':' and <= '@' 
-         or >= '[' and <= '`' 
-         or >= '{' and <= '~';
    }
 }

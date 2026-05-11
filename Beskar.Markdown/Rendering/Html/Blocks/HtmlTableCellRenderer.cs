@@ -9,7 +9,8 @@ public sealed class HtmlTableCellRenderer : INodeRenderer
 {
    public int TargetTypeValue => (int)NodeType.TableCell;
 
-   public void Render(
+   public void Render<TData>(
+      MarkdownContext<TData> context,
       ReadOnlySpan<char> rawText, 
       ref TextWriterIndentSlim writer, 
       in MarkdownNode current, 
@@ -35,7 +36,7 @@ public sealed class HtmlTableCellRenderer : INodeRenderer
       }
 
       writer.Write(">");
-      current.RenderChildren(rawText, nodes, ref writer, options);
+      current.RenderChildren(context, rawText, nodes, ref writer, options);
       writer.WriteInterpolated($"</{tag}>");
    }
 }

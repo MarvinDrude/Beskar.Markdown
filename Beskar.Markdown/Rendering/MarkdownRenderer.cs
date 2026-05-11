@@ -7,7 +7,11 @@ public readonly ref struct MarkdownRenderer(ReadOnlySpan<char> rawText)
 {
    private readonly ReadOnlySpan<char> _rawText = rawText;
 
-   public void Render(in ReadOnlySpan<MarkdownNode> nodes, RenderOptions options, ref TextWriterIndentSlim writer)
+   public void Render<TData>(
+      MarkdownContext<TData> context, 
+      in ReadOnlySpan<MarkdownNode> nodes, 
+      RenderOptions options, 
+      ref TextWriterIndentSlim writer)
    {
       if (nodes.IsEmpty) 
          return;
@@ -20,10 +24,13 @@ public readonly ref struct MarkdownRenderer(ReadOnlySpan<char> rawText)
 
       var renderer = options.GetRenderer((int)NodeType.Document)
          ?? throw new InvalidOperationException("No renderer found for document node.");
-      renderer.Render(_rawText, ref writer, in documentNode, nodes, options);
+      renderer.Render(context, _rawText, ref writer, in documentNode, nodes, options);
    }
    
-   public string Render(in ReadOnlySpan<MarkdownNode> nodes, RenderOptions options)
+   public string Render<TData>(
+      MarkdownContext<TData> context, 
+      in ReadOnlySpan<MarkdownNode> nodes, 
+      RenderOptions options)
    {
       if (nodes.IsEmpty) 
          return string.Empty;
@@ -33,7 +40,7 @@ public readonly ref struct MarkdownRenderer(ReadOnlySpan<char> rawText)
       
       try
       {
-         Render(in nodes, options, ref writer);
+         Render(context, in nodes, options, ref writer);
 
          return writer.ToString();
       }

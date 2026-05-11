@@ -10,7 +10,7 @@ public sealed class ListItemParser : IBlockParser
    public int Priority => 10_070;
    public int SupportedTypeValue => (int)NodeType.ListItem;
    
-   public int TryMatch(ref LineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
+   public int TryMatch<TData>(ref LineState<TData> state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
    {
       if (parentIndex == -1) return -1;
       
@@ -62,7 +62,8 @@ public sealed class ListItemParser : IBlockParser
       return nodeIndex;
    }
 
-   public bool CanContinue(ref MarkdownNode node, ref LineState state, ref BufferWriter<MarkdownNode> writer)
+   public bool CanContinue<TData>(ref MarkdownNode node, ref LineState<TData> state, 
+      ref BufferWriter<MarkdownNode> writer)
    {
       if (state.IsBlank) 
          return true;

@@ -2,7 +2,7 @@
 
 Beskar.Markdown is a high-performance, low-allocation Markdown parser and HTML renderer 
 for .NET. It is built from the ground up to leverage modern C# features like `Span<T>`, 
-`ReadOnlySequence<T>`, and efficient memory management to provide a blazing-fast experience.
+`ReadOnlySequence<T>`, and efficient memory management to provide a blazing-fast and lean experience.
 
 ## Table of Contents
 
@@ -13,7 +13,7 @@ for .NET. It is built from the ground up to leverage modern C# features like `Sp
   - [Main Features](#main-features)
   - [Currently Supported Blocks & Inlines](#currently-supported-blocks--inlines)
   - [Future Plans](#future-plans)
-- [⚠️ Security Warning](#security-warning)
+- [⚠️ Security Warning](#%EF%B8%8F-security-warning)
 - [Simple custom markdown extensions](#simple-custom-markdown-extensions)
   - [Simple inline extension](#simple-inline-extension)
   - [Simple block extension](#simple-block-extension)
@@ -60,6 +60,7 @@ Console.WriteLine(html);
 - **Modern**: Built for modern .NET, taking advantage of the latest language and runtime optimizations.
 - **Easy to Use**: A clean, intuitive API that makes Markdown processing straightforward.
 - **Extensible**: Easily add support for new Markdown features or extensions.
+- **Advanced**: Supports contextual rendering
 
 ### Currently Supported Blocks & Inlines
 - **Blocks**:
@@ -73,6 +74,7 @@ Console.WriteLine(html);
     - Thematic Breaks (Horizontal Rules)
     - HTML Blocks
     - GitHub like Tables
+    - Full reference links
 - **Inlines**:
     - Emphasis (Bold, Italic)
     - Links
@@ -84,10 +86,9 @@ Console.WriteLine(html);
     - Images
 
 ### Future Plans
-- [ ] Footnotes
 - [ ] Full CommonMark Compliance suite validation
-- [ ] Context based rendering functions
 - [ ] In memory assembly baking
+- [ ] More tests and examples
 
 ## ⚠️ Security Warning
 
@@ -147,7 +148,8 @@ public sealed class EmojiInlineExtension : BaseInlineExtension
    {
       public int TargetTypeValue => _targetTypeValue;
 
-      public void Render(
+      public void Render<TData>(
+         MarkdownContext<TData> context,
          ReadOnlySpan<char> rawText, 
          ref TextWriterIndentSlim writer, 
          in MarkdownNode current, 
@@ -170,11 +172,11 @@ public sealed class EmojiInlineExtension : BaseInlineExtension
       public char TriggerChar => '.';
       public char TriggerAltChar => '.';
 
-      public bool TryMatch(
-         ref InlineState state, 
+      public bool TryMatch<TData>(
+         ref InlineState<TData> state, 
          int parentIndex, 
          ref BufferWriter<MarkdownNode> writer, 
-         scoped ref InlineParser parser,
+         scoped ref InlineParser<TData> parser,
          ParserOptions options)
       {
          if (state.RemainingText.Length < _identifier.Length) 
@@ -240,7 +242,8 @@ public sealed class RedBlockExtension : BaseBlockExtension
    {
       public int TargetTypeValue => _targetTypeValue;
 
-      public void Render(
+      public void Render<TData>(
+         MarkdownContext<TData> context,
          ReadOnlySpan<char> rawText, 
          ref TextWriterIndentSlim writer, 
          in MarkdownNode current, 
@@ -248,7 +251,7 @@ public sealed class RedBlockExtension : BaseBlockExtension
          RenderOptions options)
       {
          writer.Write("<div class=\"red-block\">");
-         current.RenderChildren(rawText, nodes, ref writer, options);
+         current.RenderChildren(context, rawText, nodes, ref writer, options);
          writer.Write("</div>");
       }
    }
@@ -260,7 +263,7 @@ public sealed class RedBlockExtension : BaseBlockExtension
       public int Priority => 10; // low priority
       public int SupportedTypeValue => _targetTypeValue;
       
-      public int TryMatch(ref LineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
+      public int TryMatch<TData>(ref LineState<TData> state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
       {
          if (state.IsBlank || state.LeadingSpaces > 0)
          {
@@ -292,7 +295,7 @@ public sealed class RedBlockExtension : BaseBlockExtension
          return nodeIndex;
       }
 
-      public bool CanContinue(ref MarkdownNode node, ref LineState state, ref BufferWriter<MarkdownNode> writer)
+      public bool CanContinue<TData>(ref MarkdownNode node, ref LineState<TData> state, ref BufferWriter<MarkdownNode> writer)
       {
          // simple example only an empty line can stop the block
          if (state.IsBlank)

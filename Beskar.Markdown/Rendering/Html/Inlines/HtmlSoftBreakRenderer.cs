@@ -8,7 +8,8 @@ public sealed class HtmlSoftBreakRenderer : INodeRenderer
 {
    public int TargetTypeValue => (int)NodeType.SoftBreak;
 
-   public void Render(
+   public void Render<TData>(
+      MarkdownContext<TData> context,
       ReadOnlySpan<char> rawText, 
       ref TextWriterIndentSlim writer, 
       in MarkdownNode current, 

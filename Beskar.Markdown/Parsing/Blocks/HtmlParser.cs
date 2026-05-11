@@ -9,7 +9,7 @@ public sealed class HtmlParser : IBlockParser
    public int Priority => 4_000;
    public int SupportedTypeValue => (int)NodeType.HtmlBlock;
    
-   public int TryMatch(ref LineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
+   public int TryMatch<TData>(ref LineState<TData> state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
    {
       if (state.IsBlank || state.LeadingSpaces >= 4)
       {
@@ -45,7 +45,8 @@ public sealed class HtmlParser : IBlockParser
       return nodeIndex;
    }
 
-   public bool CanContinue(ref MarkdownNode node, ref LineState state, ref BufferWriter<MarkdownNode> writer)
+   public bool CanContinue<TData>(ref MarkdownNode node, ref LineState<TData> state, 
+      ref BufferWriter<MarkdownNode> writer)
    {
       if (node.HtmlBlockIsClosed == 1)
       {

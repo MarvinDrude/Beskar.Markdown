@@ -9,7 +9,7 @@ public sealed class ThematicBreakParser : IBlockParser
    public int Priority => 10_085;
    public int SupportedTypeValue => (int)NodeType.ThematicBreak;
    
-   public int TryMatch(ref LineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
+   public int TryMatch<TData>(ref LineState<TData> state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
    {
       if (state.IsBlank || state.LeadingSpaces >= 4)
       {
@@ -57,7 +57,8 @@ public sealed class ThematicBreakParser : IBlockParser
       return nodeIndex;
    }
 
-   public bool CanContinue(ref MarkdownNode node, ref LineState state, ref BufferWriter<MarkdownNode> writer)
+   public bool CanContinue<TData>(ref MarkdownNode node, ref LineState<TData> state, 
+      ref BufferWriter<MarkdownNode> writer)
    {
       // only single lines
       return false;

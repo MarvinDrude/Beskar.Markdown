@@ -9,10 +9,10 @@ public interface IInlineParser : IParser
    
    public char TriggerAltChar { get; }
    
-   public bool TryMatch(
-      ref InlineState state, 
+   public bool TryMatch<TData>(
+      ref InlineState<TData> state, 
       int parentIndex, 
       ref BufferWriter<MarkdownNode> writer, 
-      scoped ref InlineParser parser,
+      scoped ref InlineParser<TData> parser,
       ParserOptions options);
 }

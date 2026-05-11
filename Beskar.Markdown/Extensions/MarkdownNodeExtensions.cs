@@ -10,7 +10,8 @@ public static class MarkdownNodeExtensions
    extension(scoped in MarkdownNode node)
    {
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      public void RenderChildren(
+      public void RenderChildren<TData>(
+         MarkdownContext<TData> context,
          ReadOnlySpan<char> rawText,
          in ReadOnlySpan<MarkdownNode> nodes,
          ref TextWriterIndentSlim writer,
@@ -24,7 +25,7 @@ public static class MarkdownNodeExtensions
             var renderer = options.GetRenderer((int)child.Type)
                ?? throw new InvalidOperationException($"No renderer found for node type {child.Type}");
          
-            renderer.Render(rawText, ref writer, child, nodes, options);
+            renderer.Render(context, rawText, ref writer, child, nodes, options);
             currentChildIndex = child.NextSiblingIndex;
          }
       }

@@ -9,7 +9,8 @@ public sealed class HtmlStrongEmphasisRenderer : INodeRenderer
 {
    public int TargetTypeValue => (int)NodeType.StrongEmphasis;
 
-   public void Render(
+   public void Render<TData>(
+      MarkdownContext<TData> context,
       ReadOnlySpan<char> rawText, 
       ref TextWriterIndentSlim writer, 
       in MarkdownNode current, 
@@ -17,7 +18,7 @@ public sealed class HtmlStrongEmphasisRenderer : INodeRenderer
       RenderOptions options)
    {
       writer.Write("<strong>");
-      current.RenderChildren(rawText, nodes, ref writer, options);
+      current.RenderChildren(context, rawText, nodes, ref writer, options);
       writer.Write("</strong>");
    }
 }

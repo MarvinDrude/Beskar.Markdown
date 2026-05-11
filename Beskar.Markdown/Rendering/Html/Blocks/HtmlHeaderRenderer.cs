@@ -9,7 +9,8 @@ public sealed class HtmlHeaderRenderer : INodeRenderer
 {
    public int TargetTypeValue => (int)NodeType.Header;
 
-   public void Render(
+   public void Render<TData>(
+      MarkdownContext<TData> context,
       ReadOnlySpan<char> rawText, 
       ref TextWriterIndentSlim writer, 
       in MarkdownNode current, 
@@ -17,7 +18,7 @@ public sealed class HtmlHeaderRenderer : INodeRenderer
       RenderOptions options)
    {
       writer.WriteInterpolated($"<h{current.HeadingLevel}>");
-      current.RenderChildren(rawText, nodes, ref writer, options);
+      current.RenderChildren(context, rawText, nodes, ref writer, options);
       writer.WriteInterpolated($"</h{current.HeadingLevel}>");
    }
 }

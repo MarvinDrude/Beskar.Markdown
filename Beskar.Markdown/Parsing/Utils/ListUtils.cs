@@ -2,7 +2,8 @@
 
 public static class ListUtils
 {
-   public static bool IsListMarker(ref LineState state, out char listChar, out int length, out int orderedNumber)
+   public static bool IsListMarker<TData>(ref LineState<TData> state, 
+      out char listChar, out int length, out int orderedNumber)
    {
       orderedNumber = -1;
       listChar = '\0';

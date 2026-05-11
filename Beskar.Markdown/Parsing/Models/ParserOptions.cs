@@ -156,6 +156,7 @@ public sealed class ParserOptions
       new BlockQuoteParser(),
       new HtmlParser(),
       new TableParser(),
+      new LinkReferenceDefinitionParser(),
       new ParagraphParser()
    ], [
       // Default inline parsers

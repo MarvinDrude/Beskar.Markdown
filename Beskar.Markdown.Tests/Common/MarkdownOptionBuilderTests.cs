@@ -112,26 +112,40 @@ public sealed class MarkdownOptionBuilderTests
         public int SupportedTypeValue => 1000;
         public char TriggerChar => 'm';
         public char TriggerAltChar => 'm';
-        public bool TryMatch(ref InlineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser parser, ParserOptions options) => false;
+        public bool TryMatch<TData>(ref InlineState<TData> state, int parentIndex, ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser<TData> parser, ParserOptions options) => false;
     }
 
     private class MockBlockParser : IBlockParser
     {
         public int Priority => 0;
         public int SupportedTypeValue => 1001;
-        public int TryMatch(ref LineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer) => -1;
-        public bool CanContinue(ref MarkdownNode node, ref LineState state, ref BufferWriter<MarkdownNode> writer) => false;
+        public int TryMatch<TData>(ref LineState<TData> state, int parentIndex, ref BufferWriter<MarkdownNode> writer) => -1;
+        public bool CanContinue<TData>(ref MarkdownNode node, ref LineState<TData> state, ref BufferWriter<MarkdownNode> writer) => false;
     }
 
     private class MockRenderer : INodeRenderer
     {
         public int TargetTypeValue => 1000;
-        public void Render(ReadOnlySpan<char> rawText, ref TextWriterIndentSlim writer, in MarkdownNode current, ReadOnlySpan<MarkdownNode> nodes, RenderOptions options) { }
+        public void Render<TData>(
+            MarkdownContext<TData> context, 
+            ReadOnlySpan<char> rawText, 
+            ref TextWriterIndentSlim writer, 
+            in MarkdownNode current, 
+            ReadOnlySpan<MarkdownNode> nodes, 
+            RenderOptions options) 
+        { }
     }
 
     private class MockBlockRenderer : INodeRenderer
     {
         public int TargetTypeValue => 1001;
-        public void Render(ReadOnlySpan<char> rawText, ref TextWriterIndentSlim writer, in MarkdownNode current, ReadOnlySpan<MarkdownNode> nodes, RenderOptions options) { }
+        public void Render<TData>(
+            MarkdownContext<TData> context, 
+            ReadOnlySpan<char> rawText, 
+            ref TextWriterIndentSlim writer, 
+            in MarkdownNode current, 
+            ReadOnlySpan<MarkdownNode> nodes, 
+            RenderOptions options) 
+        { }
     }
 }

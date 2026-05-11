@@ -9,7 +9,8 @@ public sealed class HtmlInlineCodeRenderer : INodeRenderer
 {
    public int TargetTypeValue => (int)NodeType.InlineCode;
 
-   public void Render(
+   public void Render<TData>(
+      MarkdownContext<TData> context,
       ReadOnlySpan<char> rawText, 
       ref TextWriterIndentSlim writer, 
       in MarkdownNode current, 

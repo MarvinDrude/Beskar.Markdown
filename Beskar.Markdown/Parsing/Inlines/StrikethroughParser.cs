@@ -12,8 +12,8 @@ public sealed class StrikethroughParser : IInlineParser
    public char TriggerChar => '~';
    public char TriggerAltChar => '~';
    
-   public bool TryMatch(ref InlineState state, int parentIndex, 
-      ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser parser,
+   public bool TryMatch<TData>(ref InlineState<TData> state, int parentIndex, 
+      ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser<TData> parser,
       ParserOptions options)
    {
       var text = state.RemainingText;
@@ -49,7 +49,7 @@ public sealed class StrikethroughParser : IInlineParser
       parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
       
       // strikethrough can have inline formatting itself
-      parser.ParseInnerContent(ref writer, nodeIndex, contentStart, contentLength, options);
+      parser.ParseInnerContent(state.Context, ref writer, nodeIndex, contentStart, contentLength, options);
       
       state.Advance(closeIdx + 2);
       return true;

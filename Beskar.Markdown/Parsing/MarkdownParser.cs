@@ -10,7 +10,7 @@ namespace Beskar.Markdown.Parsing;
 /// Main parser struct to run the raw text to AST conversion.
 /// </summary>
 [StructLayout(LayoutKind.Auto)]
-public ref struct MarkdownParser(
+public ref struct MarkdownParser<TData>(
    ReadOnlySpan<char> rawText,
    Span<MarkdownNode> initialNodeBuffer)
    : IDisposable
@@ -23,8 +23,13 @@ public ref struct MarkdownParser(
    /// <summary>
    /// Main parse logic to construct the AST of the Markdown document.
    /// </summary>
-   public void Parse(ParserOptions options)
+   public MarkdownContext<TData> Parse(ParserOptions options, TData? data = default)
    {
+      var context = new MarkdownContext<TData>
+      {
+         Data = data
+      };
+
       var documentIndex = _writer.WrittenSpan.Length;
       _writer.Add(new MarkdownNode()
       {
@@ -42,7 +47,7 @@ public ref struct MarkdownParser(
       var iterator = new LineIterator(_rawText);
       var lastLineWasBlank = false;
       
-      while (iterator.TryMoveNext(out var state))
+      while (iterator.TryMoveNext(context, out var state))
       {
          var matchedLevels = 1; // ignore the document node
          
@@ -104,6 +109,12 @@ public ref struct MarkdownParser(
                var parser = options.BlockParsers[index];
                
                if (parser.SupportedTypeValue == (int)NodeType.Paragraph)
+               {
+                  continue;
+               }
+
+               if (isParagraphOpen && parser.SupportedTypeValue is (int)NodeType.LinkReferenceDefinition 
+                  or (int)NodeType.IndentedCodeBlock)
                {
                   continue;
                }
@@ -228,8 +239,10 @@ public ref struct MarkdownParser(
       }
       
       // process inlines
-      var inlineParser = new InlineParser(_rawText);
-      inlineParser.Parse(ref _writer, options);
+      var inlineParser = new InlineParser<TData>(_rawText);
+      inlineParser.Parse(ref _writer, context, options);
+
+      return context;
    }
 
    private void LinkNodes(int parentIndex, int childIndex)
@@ -248,7 +261,7 @@ public ref struct MarkdownParser(
       parent.LastChildIndex = childIndex;
    }
    
-   private bool TryMatchSetextUnderline(ref LineState state, int paragraphIndex)
+   private bool TryMatchSetextUnderline(ref LineState<TData> state, int paragraphIndex)
    {
       if (state.IsBlank || state.LeadingSpaces >= 4) return false;
 
@@ -278,7 +291,7 @@ public ref struct MarkdownParser(
       return true;
    }
 
-   private static bool ShouldTryBlockParser(int parserType, ref LineState state)
+   private static bool ShouldTryBlockParser(int parserType, ref LineState<TData> state)
    {
       if (parserType is > ParserConstants.MaxInbuiltParseValue or < 0)
       {
@@ -310,7 +323,8 @@ public ref struct MarkdownParser(
       return c is '-' or '*' or '+' || char.IsAsciiDigit(c);
    }
 
-   private bool TryMatchTableDelimiter(ref LineState state, int paragraphIndex, int parentIndex, ref BufferWriter<MarkdownNode> writer, out int tableIndex)
+   private bool TryMatchTableDelimiter(ref LineState<TData> state, int paragraphIndex, int parentIndex, 
+      ref BufferWriter<MarkdownNode> writer, out int tableIndex)
    {
       tableIndex = -1;
       if (state.IsBlank || state.LeadingSpaces >= 4) return false;

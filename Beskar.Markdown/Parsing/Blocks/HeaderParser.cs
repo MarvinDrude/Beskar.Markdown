@@ -11,7 +11,7 @@ public sealed class HeaderParser : IBlockParser
 
    private const char _headingChar = '#';
    
-   public int TryMatch(ref LineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
+   public int TryMatch<TData>(ref LineState<TData> state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
    {
       if (state.FirstChar != _headingChar || state.LeadingSpaces >= 4)
       {
@@ -76,7 +76,8 @@ public sealed class HeaderParser : IBlockParser
       return nodeIndex;
    }
 
-   public bool CanContinue(ref MarkdownNode node, ref LineState state, ref BufferWriter<MarkdownNode> writer)
+   public bool CanContinue<TData>(ref MarkdownNode node, ref LineState<TData> state, 
+      ref BufferWriter<MarkdownNode> writer)
    {
       return false;
    }

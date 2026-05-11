@@ -52,7 +52,8 @@ public sealed class EmojiInlineExtension : BaseInlineExtension
    {
       public int TargetTypeValue => _targetTypeValue;
 
-      public void Render(
+      public void Render<TData>(
+         MarkdownContext<TData> context,
          ReadOnlySpan<char> rawText, 
          ref TextWriterIndentSlim writer, 
          in MarkdownNode current, 
@@ -75,11 +76,11 @@ public sealed class EmojiInlineExtension : BaseInlineExtension
       public char TriggerChar => '.';
       public char TriggerAltChar => '.';
 
-      public bool TryMatch(
-         ref InlineState state, 
+      public bool TryMatch<TData>(
+         ref InlineState<TData> state, 
          int parentIndex, 
          ref BufferWriter<MarkdownNode> writer, 
-         scoped ref InlineParser parser,
+         scoped ref InlineParser<TData> parser,
          ParserOptions options)
       {
          if (state.RemainingText.Length < _identifier.Length) 
@@ -120,7 +121,8 @@ public sealed class RedBlockExtension : BaseBlockExtension
    {
       public int TargetTypeValue => _targetTypeValue;
 
-      public void Render(
+      public void Render<TData>(
+         MarkdownContext<TData> context,
          ReadOnlySpan<char> rawText, 
          ref TextWriterIndentSlim writer, 
          in MarkdownNode current, 
@@ -128,7 +130,7 @@ public sealed class RedBlockExtension : BaseBlockExtension
          RenderOptions options)
       {
          writer.Write("<div class=\"red-block\">");
-         current.RenderChildren(rawText, nodes, ref writer, options);
+         current.RenderChildren(context, rawText, nodes, ref writer, options);
          writer.Write("</div>");
       }
    }
@@ -140,7 +142,7 @@ public sealed class RedBlockExtension : BaseBlockExtension
       public int Priority => 10; // low priority
       public int SupportedTypeValue => _targetTypeValue;
       
-      public int TryMatch(ref LineState state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
+      public int TryMatch<TData>(ref LineState<TData> state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
       {
          if (state.IsBlank || state.LeadingSpaces > 0)
          {
@@ -172,7 +174,7 @@ public sealed class RedBlockExtension : BaseBlockExtension
          return nodeIndex;
       }
 
-      public bool CanContinue(ref MarkdownNode node, ref LineState state, ref BufferWriter<MarkdownNode> writer)
+      public bool CanContinue<TData>(ref MarkdownNode node, ref LineState<TData> state, ref BufferWriter<MarkdownNode> writer)
       {
          // simple example only an empty line can stop the block
          if (state.IsBlank)

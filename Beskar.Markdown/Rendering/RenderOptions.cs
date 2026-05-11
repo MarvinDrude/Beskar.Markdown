@@ -66,6 +66,7 @@ public sealed class RenderOptions
       new HtmlParagraphRenderer(),
       new HtmlThematicBreakRenderer(),
       new HtmlTableRenderer(),
+      new HtmlLinkReferenceDefinitionRenderer(),
       new HtmlTableHeaderRenderer(),
       new HtmlTableBodyRenderer(),
       new HtmlTableRowRenderer(),
