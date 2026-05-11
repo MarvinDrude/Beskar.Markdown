@@ -150,7 +150,7 @@ public sealed class LinkParser : IInlineParser
       parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
       
       // name of link can have inline formatting itself
-      parser.ParseInnerContent(ref writer, nodeIndex, contentStart, contentLength, options);
+      parser.ParseInnerContent(state.Context, ref writer, nodeIndex, contentStart, contentLength, options);
 
       state.Advance(currentIndex + 1);
       return true;

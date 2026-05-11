@@ -16,6 +16,7 @@ public enum NodeType
    ListItem,
    ThematicBreak,
    HtmlBlock,
+   LinkReferenceDefinition,
    Table,
    TableHeader,
    TableBody,

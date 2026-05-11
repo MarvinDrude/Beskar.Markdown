@@ -1,13 +1,16 @@
 ﻿using System.Runtime.InteropServices;
+using Beskar.Markdown.Parsing.Models;
 
 namespace Beskar.Markdown.Parsing;
 
 [StructLayout(LayoutKind.Auto)]
 public ref struct InlineState(
+   MarkdownContext context,
    ReadOnlySpan<char> rawText,
    ReadOnlySpan<char> remainingText, 
    int globalOffset)
 {
+   public MarkdownContext Context = context;
    public ReadOnlySpan<char> RawText = rawText;
    
    public ReadOnlySpan<char> RemainingText = remainingText;

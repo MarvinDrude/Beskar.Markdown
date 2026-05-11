@@ -49,7 +49,7 @@ public sealed class StrikethroughParser : IInlineParser
       parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
       
       // strikethrough can have inline formatting itself
-      parser.ParseInnerContent(ref writer, nodeIndex, contentStart, contentLength, options);
+      parser.ParseInnerContent(state.Context, ref writer, nodeIndex, contentStart, contentLength, options);
       
       state.Advance(closeIdx + 2);
       return true;

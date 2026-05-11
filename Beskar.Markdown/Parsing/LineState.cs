@@ -1,9 +1,11 @@
 ﻿using System.Runtime.CompilerServices;
+using Beskar.Markdown.Parsing.Models;
 
 namespace Beskar.Markdown.Parsing;
 
 public ref struct LineState
 {
+   public MarkdownContext Context;
    public ReadOnlySpan<char> RawLine;
    
    public int GlobalOffset;
@@ -13,8 +15,13 @@ public ref struct LineState
    public char FirstChar;
    public bool IsBlank;
 
-   public LineState(ReadOnlySpan<char> rawLine, int globalOffset)
+   public LineState(
+      MarkdownContext context,
+      ReadOnlySpan<char> rawLine, 
+      int globalOffset)
    {
+      Context = context;
+      
       RawLine = rawLine;
       GlobalOffset = globalOffset;
 

@@ -25,6 +25,8 @@ public ref struct MarkdownParser(
    /// </summary>
    public void Parse(ParserOptions options)
    {
+      var context = new MarkdownContext();
+      
       var documentIndex = _writer.WrittenSpan.Length;
       _writer.Add(new MarkdownNode()
       {
@@ -42,7 +44,7 @@ public ref struct MarkdownParser(
       var iterator = new LineIterator(_rawText);
       var lastLineWasBlank = false;
       
-      while (iterator.TryMoveNext(out var state))
+      while (iterator.TryMoveNext(context, out var state))
       {
          var matchedLevels = 1; // ignore the document node
          
@@ -229,7 +231,7 @@ public ref struct MarkdownParser(
       
       // process inlines
       var inlineParser = new InlineParser(_rawText);
-      inlineParser.Parse(ref _writer, options);
+      inlineParser.Parse(ref _writer, context, options);
    }
 
    private void LinkNodes(int parentIndex, int childIndex)
@@ -310,7 +312,8 @@ public ref struct MarkdownParser(
       return c is '-' or '*' or '+' || char.IsAsciiDigit(c);
    }
 
-   private bool TryMatchTableDelimiter(ref LineState state, int paragraphIndex, int parentIndex, ref BufferWriter<MarkdownNode> writer, out int tableIndex)
+   private bool TryMatchTableDelimiter(ref LineState state, int paragraphIndex, int parentIndex, 
+      ref BufferWriter<MarkdownNode> writer, out int tableIndex)
    {
       tableIndex = -1;
       if (state.IsBlank || state.LeadingSpaces >= 4) return false;

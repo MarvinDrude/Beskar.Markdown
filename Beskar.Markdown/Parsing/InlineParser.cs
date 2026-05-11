@@ -13,7 +13,8 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
    
    private bool _hasDelimiterBuffer;
 
-   public void Parse(ref BufferWriter<MarkdownNode> writer, ParserOptions options)
+   public void Parse(ref BufferWriter<MarkdownNode> writer, 
+      MarkdownContext context, ParserOptions options)
    {
       // dont process new added nodes
       var originalBlockCount = writer.WrittenSpan.Length;
@@ -25,12 +26,13 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
          // We only process inlines inside leaf blocks
          if (type is NodeType.Paragraph or NodeType.Header or NodeType.TableCell)
          {
-            RunLeafContainer(i, ref writer, options);
+            RunLeafContainer(context, i, ref writer, options);
          }
       }
    }
 
    private void RunLeafContainer(
+      MarkdownContext context,
       int parentIndex,
       ref BufferWriter<MarkdownNode> writer,
       ParserOptions options)
@@ -56,7 +58,7 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
             var isLastLine = oldNode.NextSiblingIndex == -1;
             var span = _rawText.Slice(oldNode.TextSpan.Start, oldNode.TextSpan.Length);
 
-            var state = new InlineState(_rawText, span, oldNode.TextSpan.Start);
+            var state = new InlineState(context, _rawText, span, oldNode.TextSpan.Start);
             ProcessState(ref state, parentIndex, ref writer, options, isLastLine);
 
             nextNode = oldNode.NextSiblingIndex;
@@ -76,7 +78,7 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
       {
          // header, for example, has its text inside itself
          var span = _rawText.Slice(parent.TextSpan.Start, parent.TextSpan.Length);
-         var state = new InlineState(_rawText, span, parent.TextSpan.Start);
+         var state = new InlineState(context, _rawText, span, parent.TextSpan.Start);
 
          ProcessState(ref state, parentIndex, ref writer, options, isLastLine: true);
       }
@@ -302,12 +304,14 @@ public ref struct InlineParser(ReadOnlySpan<char> rawText) : IDisposable
       parent.LastChildIndex = childIndex;
    }
 
-   public void ParseInnerContent(ref BufferWriter<MarkdownNode> writer, int parentIndex, int start, int length, ParserOptions options)
+   public void ParseInnerContent(MarkdownContext context,
+      ref BufferWriter<MarkdownNode> writer, int parentIndex, 
+      int start, int length, ParserOptions options)
    {
       if (length <= 0) return;
       
       var span = _rawText.Slice(start, length);
-      var state = new InlineState(_rawText, span, start);
+      var state = new InlineState(context, _rawText, span, start);
       
       ProcessState(ref state, parentIndex, ref writer, options, isLastLine: true);
    }
