@@ -41,7 +41,7 @@ public static class BeMarkdown
       renderOptions ??= _defaultRenderOptions;
        
       using var parser = new MarkdownParser<object>(markdown, stackalloc MarkdownNode[GetInitialNodeBufferLength(markdown.Length)]);
-      parser.Parse(parserOptions);
+      var context = parser.Parse(parserOptions);
       
       var renderer = new MarkdownRenderer(markdown);
       var writer = new TextWriterIndentSlim(
@@ -49,7 +49,7 @@ public static class BeMarkdown
       
       try
       {
-         renderer.Render(parser.WrittenNodes, renderOptions, ref writer);
+         renderer.Render(context, parser.WrittenNodes, renderOptions, ref writer);
 
          return renderOptions.SanitizerFunc is not null 
             ? renderOptions.SanitizerFunc(writer.WrittenSpan) 

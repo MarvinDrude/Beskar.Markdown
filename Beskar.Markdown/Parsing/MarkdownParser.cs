@@ -23,7 +23,7 @@ public ref struct MarkdownParser<TData>(
    /// <summary>
    /// Main parse logic to construct the AST of the Markdown document.
    /// </summary>
-   public void Parse(ParserOptions options)
+   public MarkdownContext<TData> Parse(ParserOptions options)
    {
       var context = new MarkdownContext<TData>();
       
@@ -232,6 +232,8 @@ public ref struct MarkdownParser<TData>(
       // process inlines
       var inlineParser = new InlineParser<TData>(_rawText);
       inlineParser.Parse(ref _writer, context, options);
+
+      return context;
    }
 
    private void LinkNodes(int parentIndex, int childIndex)

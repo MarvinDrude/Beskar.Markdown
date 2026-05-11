@@ -9,7 +9,8 @@ public sealed class HtmlBlockQuoteRenderer : INodeRenderer
 {
    public int TargetTypeValue => (int)NodeType.BlockQuote;
 
-   public void Render(
+   public void Render<TData>(
+      MarkdownContext<TData> context,
       ReadOnlySpan<char> rawText, 
       ref TextWriterIndentSlim writer, 
       in MarkdownNode current, 

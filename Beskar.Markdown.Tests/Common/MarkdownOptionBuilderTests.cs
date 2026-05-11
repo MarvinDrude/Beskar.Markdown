@@ -126,12 +126,26 @@ public sealed class MarkdownOptionBuilderTests
     private class MockRenderer : INodeRenderer
     {
         public int TargetTypeValue => 1000;
-        public void Render(ReadOnlySpan<char> rawText, ref TextWriterIndentSlim writer, in MarkdownNode current, ReadOnlySpan<MarkdownNode> nodes, RenderOptions options) { }
+        public void Render<TData>(
+            MarkdownContext<TData> context, 
+            ReadOnlySpan<char> rawText, 
+            ref TextWriterIndentSlim writer, 
+            in MarkdownNode current, 
+            ReadOnlySpan<MarkdownNode> nodes, 
+            RenderOptions options) 
+        { }
     }
 
     private class MockBlockRenderer : INodeRenderer
     {
         public int TargetTypeValue => 1001;
-        public void Render(ReadOnlySpan<char> rawText, ref TextWriterIndentSlim writer, in MarkdownNode current, ReadOnlySpan<MarkdownNode> nodes, RenderOptions options) { }
+        public void Render<TData>(
+            MarkdownContext<TData> context, 
+            ReadOnlySpan<char> rawText, 
+            ref TextWriterIndentSlim writer, 
+            in MarkdownNode current, 
+            ReadOnlySpan<MarkdownNode> nodes, 
+            RenderOptions options) 
+        { }
     }
 }

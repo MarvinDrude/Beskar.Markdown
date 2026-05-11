@@ -52,7 +52,8 @@ public sealed class EmojiInlineExtension : BaseInlineExtension
    {
       public int TargetTypeValue => _targetTypeValue;
 
-      public void Render(
+      public void Render<TData>(
+         MarkdownContext<TData> context,
          ReadOnlySpan<char> rawText, 
          ref TextWriterIndentSlim writer, 
          in MarkdownNode current, 
@@ -120,7 +121,8 @@ public sealed class RedBlockExtension : BaseBlockExtension
    {
       public int TargetTypeValue => _targetTypeValue;
 
-      public void Render(
+      public void Render<TData>(
+         MarkdownContext<TData> context,
          ReadOnlySpan<char> rawText, 
          ref TextWriterIndentSlim writer, 
          in MarkdownNode current, 
