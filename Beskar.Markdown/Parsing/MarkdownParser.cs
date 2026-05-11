@@ -110,6 +110,12 @@ public ref struct MarkdownParser<TData>(
                   continue;
                }
 
+               if (isParagraphOpen && parser.SupportedTypeValue is (int)NodeType.LinkReferenceDefinition 
+                  or (int)NodeType.IndentedCodeBlock)
+               {
+                  continue;
+               }
+
                if (!ShouldTryBlockParser(parser.SupportedTypeValue, ref state))
                {
                   continue;

@@ -1,6 +1,7 @@
 ﻿using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Parsing.Interfaces;
 using Beskar.Markdown.Extensions;
+using Beskar.Markdown.Parsing.Utils;
 using Me.Memory.Buffers;
 
 namespace Beskar.Markdown.Parsing.Blocks;
@@ -44,7 +45,7 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
       });
 
       var labelSpan = line.Slice(labelStart, labelLength);
-      var normalizedLabel = NormalizeLabel(labelSpan);
+      var normalizedLabel = LinkUtils.NormalizeLabel(labelSpan);
       
       state.Context.ReferenceDefinitions.TryAdd(normalizedLabel, nodeIndex);
       state.Slice(i);
@@ -79,7 +80,7 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
          {
             if (isClosed)
             {
-               node.TitleSpanLength = (state.GlobalOffset + titleEnd) - node.TitleSpanStart;
+               node.TitleSpanLength = (state.GlobalOffset + titleEnd - 1) - node.TitleSpanStart;
                i = titleEnd;
                
                while (i < line.Length && (line[i] == ' ' || line[i] == '\t')) 
@@ -133,11 +134,11 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
             {
                if (TryParseTitle(line, i, out var tEnd, out var isClosed))
                {
-                  node.TitleSpanStart = state.GlobalOffset + i;
+                  node.TitleSpanStart = state.GlobalOffset + i + 1;
                   
                   if (isClosed)
                   {
-                     node.TitleSpanLength = tEnd - i;
+                     node.TitleSpanLength = tEnd - i - 2;
                      i = tEnd;
                      
                      while (i < line.Length && (line[i] == ' ' || line[i] == '\t')) 
@@ -182,11 +183,11 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
 
          if (TryParseTitle(line, i, out var tEnd, out var isClosed))
          {
-            node.TitleSpanStart = state.GlobalOffset + i;
+            node.TitleSpanStart = state.GlobalOffset + i + 1;
             
             if (isClosed)
             {
-               node.TitleSpanLength = tEnd - i;
+               node.TitleSpanLength = tEnd - i - 2;
                i = tEnd;
                
                while (i < line.Length && (line[i] == ' ' || line[i] == '\t')) 
@@ -233,7 +234,7 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
          if (c == '\\')
          {
             if (i + 1 < line.Length
-                && IsAsciiPunctuation(line[i + 1]))
+                && LinkUtils.IsAsciiPunctuation(line[i + 1]))
             {
                i++; foundContent = true; 
                continue;
@@ -275,7 +276,7 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
             var c = line[e];
             
             if (c == '\\' && e + 1 < line.Length 
-               && IsAsciiPunctuation(line[e + 1]))
+               && LinkUtils.IsAsciiPunctuation(line[e + 1]))
             {
                e++; 
                continue;
@@ -300,7 +301,7 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
       {
          var c = line[i];
          if (c == '\\' && i + 1 < line.Length
-                       && IsAsciiPunctuation(line[i + 1]))
+            && LinkUtils.IsAsciiPunctuation(line[i + 1]))
          {
             i += 2;
             continue;
@@ -343,7 +344,7 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
          var c = line[i];
          
          if (c == '\\' && i + 1 < line.Length
-            && IsAsciiPunctuation(line[i + 1]))
+            && LinkUtils.IsAsciiPunctuation(line[i + 1]))
          {
             i++; 
             continue;
@@ -373,7 +374,7 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
          var c = line[i];
 
          if (c == '\\' && i + 1 < line.Length
-            && IsAsciiPunctuation(line[i + 1]))
+            && LinkUtils.IsAsciiPunctuation(line[i + 1]))
          {
             i++; 
             continue;
@@ -392,43 +393,5 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
       isClosed = false;
       
       return true;
-   }
-
-   private static string NormalizeLabel(ReadOnlySpan<char> span)
-   {
-      Span<char> buffer = stackalloc char[span.Length];
-      
-      var len = 0;
-      var lastWasSpace = false;
-      var trimmed = span.Trim();
-      
-      foreach (var c in trimmed)
-      {
-         if (char.IsWhiteSpace(c))
-         {
-            if (!lastWasSpace)
-            {
-               buffer[len++] = ' '; 
-               lastWasSpace = true;
-            }
-         }
-         else
-         {
-            buffer[len++] = char.ToLowerInvariant(c);
-            lastWasSpace = false;
-         }
-      }
-      
-      // we need it as dictionary key anyway
-      return new string(buffer[..len]);
-   }
-
-   private static bool IsAsciiPunctuation(char c)
-   {
-      return c is >= '!' 
-         and <= '/' or >= ':' 
-         and <= '@' or >= '[' 
-         and <= '`' or >= '{' 
-         and <= '~';
    }
 }
