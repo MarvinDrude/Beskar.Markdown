@@ -23,10 +23,13 @@ public ref struct MarkdownParser<TData>(
    /// <summary>
    /// Main parse logic to construct the AST of the Markdown document.
    /// </summary>
-   public MarkdownContext<TData> Parse(ParserOptions options)
+   public MarkdownContext<TData> Parse(ParserOptions options, TData? data = default)
    {
-      var context = new MarkdownContext<TData>();
-      
+      var context = new MarkdownContext<TData>
+      {
+         Data = data
+      };
+
       var documentIndex = _writer.WrittenSpan.Length;
       _writer.Add(new MarkdownNode()
       {
