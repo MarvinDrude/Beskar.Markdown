@@ -132,7 +132,7 @@ public sealed class InlineNodeHtmlTests
          """;
 
       var options = RenderOptions.HtmlDefault;
-      options.PerserveSoftBreaks = false;
+      options.PreserveSoftBreaks = false;
 
       var html = BeMarkdown.ToHtml(markdown, renderOptions: options);
 

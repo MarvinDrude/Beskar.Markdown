@@ -234,7 +234,7 @@ public ref struct MarkdownParser<TData>(
                }
             }
          }
-
+         
          lastLineWasBlank = isBlankLine;
       }
       

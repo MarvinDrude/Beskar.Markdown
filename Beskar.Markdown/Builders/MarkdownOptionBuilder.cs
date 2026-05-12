@@ -16,7 +16,7 @@ public sealed class MarkdownOptionBuilder
    private readonly List<IMarkdownExtension> _extensions = [];
    
    // render options
-   private bool _perserveSoftBreaks = true;
+   private bool _preserveSoftBreaks = true;
    private readonly List<INodeRenderer> _nodeRenderers = new (_defaultRenderOptions.NodeRenderers.Length);
    
    private Func<ReadOnlySpan<char>, string>? _sanitizerFunc;
@@ -47,9 +47,9 @@ public sealed class MarkdownOptionBuilder
       return this;
    }
    
-   public MarkdownOptionBuilder WithPerserveSoftBreaks(bool perserveSoftBreaks)
+   public MarkdownOptionBuilder WithPreserveSoftBreaks(bool preserveSoftBreaks)
    {
-      _perserveSoftBreaks = perserveSoftBreaks;
+      _preserveSoftBreaks = preserveSoftBreaks;
       return this;
    }
 
@@ -85,7 +85,7 @@ public sealed class MarkdownOptionBuilder
       {
          RenderOptions = new RenderOptions(_nodeRenderers)
          {
-            PerserveSoftBreaks = _perserveSoftBreaks,
+            PreserveSoftBreaks = _preserveSoftBreaks,
             SanitizerFunc = _sanitizerFunc
          },
          ParserOptions = new ParserOptions(_blockParsers, _inlineParsers)
