@@ -26,7 +26,14 @@ public sealed class HtmlParagraphRenderer : INodeRenderer
       
       if (current.IsInsideListItem != 1 || current.ParagraphIsWrapped == 1)
       {
-         writer.Write("</p>");
+         if (options.AddBlockNewLines)
+         {
+            writer.WriteLine("</p>");
+         }
+         else
+         {
+            writer.Write("</p>");
+         }
       }
    }
 }

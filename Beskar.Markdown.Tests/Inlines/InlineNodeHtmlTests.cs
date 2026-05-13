@@ -136,7 +136,7 @@ public sealed class InlineNodeHtmlTests
 
       var html = BeMarkdown.ToHtml(markdown, renderOptions: options);
 
-      await Assert.That(html).IsEqualTo("<p>alpha beta</p>");
+      await Assert.That(html).IsEqualTo("<p>alpha beta</p>\n");
    }
 
    [Test]

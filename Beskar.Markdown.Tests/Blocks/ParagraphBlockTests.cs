@@ -34,6 +34,7 @@ public sealed class ParagraphBlockTests
          date: &apos;2024-01-28&apos;
          license: &apos;<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC-BY-SA 4.0</a>&apos;
          ...</p>
+         
          """.Replace("\r\n", "\n"));
    }
 }

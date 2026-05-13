@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using Beskar.Markdown.Rendering;
 
 namespace Beskar.Markdown.Tests.Common;
 
@@ -24,7 +25,7 @@ public sealed class SpecTests
    [MethodDataSource(nameof(GetExamples))]
    public Task Spec(string markdown, string html, int example, string section)
    {
-      return MarkdownAssert.RendersHtml(markdown, html);
+      return MarkdownAssert.RendersHtml(markdown, html, renderOptions: RenderOptions.HtmlDefault);
    }
 
    public static IEnumerable<(string markdown, string html, int example, string section)> GetExamples()
