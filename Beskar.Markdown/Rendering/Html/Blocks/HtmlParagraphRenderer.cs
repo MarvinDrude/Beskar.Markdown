@@ -17,23 +17,16 @@ public sealed class HtmlParagraphRenderer : INodeRenderer
       ReadOnlySpan<MarkdownNode> nodes,
       RenderOptions options)
    {
-      if (current.IsInsideListItem != 1 || current.ParagraphIsWrapped == 1)
-      {
-         writer.Write("<p>");
-      }
-      
+      writer.Write("<p>");
       current.RenderChildren(context, rawText, nodes, ref writer, options);
       
-      if (current.IsInsideListItem != 1 || current.ParagraphIsWrapped == 1)
+      if (options.AddBlockNewLines)
       {
-         if (options.AddBlockNewLines)
-         {
-            writer.WriteLine("</p>");
-         }
-         else
-         {
-            writer.Write("</p>");
-         }
+         writer.WriteLine("</p>");
+      }
+      else
+      {
+         writer.Write("</p>");
       }
    }
 }
