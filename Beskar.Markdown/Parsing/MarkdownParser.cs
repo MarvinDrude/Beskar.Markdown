@@ -284,6 +284,30 @@ public ref struct MarkdownParser<TData>(
       if (i < line.Length) return false;
 
       ref var para = ref _writer.GetReference(paragraphIndex);
+      
+      if (para.LastChildIndex != -1)
+      {
+         ref var lastChild = ref _writer.GetReference(para.LastChildIndex);
+         if (lastChild.Type == NodeType.Text)
+         {
+            var span = lastChild.TextSpan;
+            var content = _rawText.Slice(span.Start, span.Length);
+            var trimCount = 0;
+         
+            // Look back from the end of the span for whitespace
+            while (trimCount < content.Length 
+               && char.IsWhiteSpace(content[content.Length - 1 - trimCount]))
+            {
+               trimCount++;
+            }
+         
+            if (trimCount > 0)
+            {
+               lastChild.TextSpan = span with { Length = span.Length - trimCount };
+            }
+         }
+      }
+      
       para.Type = NodeType.Header;
       para.HeadingLevel = marker == '=' ? 1 : 2; 
       

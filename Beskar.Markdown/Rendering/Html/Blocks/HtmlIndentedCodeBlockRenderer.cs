@@ -19,7 +19,9 @@ public sealed class HtmlIndentedCodeBlockRenderer : INodeRenderer
    {
       if (current is { CodeLangSpanStart: > -1, CodeLangSpanLength: > 0 })
       {
-         writer.WriteInterpolated($"<pre><code class=\"language-{rawText.Slice(current.CodeLangSpanStart, current.CodeLangSpanLength)}\">");
+         writer.Write("<pre><code class=\"language-");
+         writer.WriteHtmlDecodedAndEncoded(rawText.Slice(current.CodeLangSpanStart, current.CodeLangSpanLength));
+         writer.Write("\">");
       }
       else
       {

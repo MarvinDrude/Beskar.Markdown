@@ -10,62 +10,69 @@ public static class TableUtils
     {
         columnCount = 0;
         var i = 0;
-        
+      
         while (i < line.Length && (line[i] == ' ' || line[i] == '\t')) i++;
-        
+      
         if (i >= line.Length) return false;
-        
+      
         var hasLeadingPipe = line[i] == '|';
         if (hasLeadingPipe) i++;
-        
-        var currentCellValid = false;
+      
         var cellCount = 0;
-        
+        var hasSeenCell = false;
+      
         while (i < line.Length)
         {
-            var c = line[i];
-            if (c is ' ' or '\t')
+            while (i < line.Length && (line[i] == ' ' || line[i] == '\t')) i++;
+            if (i >= line.Length) break;
+         
+            if (line[i] == '|')
             {
-                i++;
-                continue;
-            }
-            
-            if (c == '|')
-            {
-                if (!currentCellValid && cellCount > 0) 
+                if (!hasSeenCell && cellCount > 0) 
                 {
-                   return false; 
+                    return false; 
                 }
-                
+            
                 cellCount++;
-                currentCellValid = false;
+                hasSeenCell = false;
                 i++;
-                
+            
                 continue;
             }
-            
-            if (c is '-' or ':')
+         
+            if (line[i] == ':')
             {
-                currentCellValid = true;
                 i++;
-                
-                while (i < line.Length 
-                    && (line[i] == '-' 
-                        || line[i] == ':' 
-                        || line[i] == ' ' 
-                        || line[i] == '\t'))
-                {
-                    i++;
-                }
-                
-                continue;
             }
-            
-            return false;
+         
+            var hyphenCount = 0;
+            while (i < line.Length && line[i] == '-')
+            {
+                hyphenCount++;
+                i++;
+            }
+         
+            if (hyphenCount == 0) 
+            {
+                return false; 
+            }
+         
+            if (i < line.Length && line[i] == ':')
+            {
+                i++;
+            }
+         
+            while (i < line.Length && (line[i] == ' ' || line[i] == '\t')) i++;
+            if (i < line.Length && line[i] != '|') 
+            {
+                return false; 
+            }
+         
+            hasSeenCell = true;
         }
-        
-        if (currentCellValid) cellCount++;
-        
+      
+        if (hasSeenCell) cellCount++;
+      
         columnCount = cellCount;
         return columnCount > 0;
     }

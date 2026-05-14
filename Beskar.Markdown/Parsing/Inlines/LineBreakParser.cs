@@ -17,6 +17,18 @@ public sealed class LineBreakParser : IInlineParser
       ParserOptions options)
    {
       if (state.RemainingText.Length != 1) return false;
+
+      var nextPosition = state.GlobalOffset + 1;
+      if (state.RawText.Length <= nextPosition) 
+         return false;
+
+      var isR = state.RawText[nextPosition] == '\r';
+      if (!isR && state.RawText[nextPosition] != '\n')
+         return false;
+      
+      nextPosition++;
+      if (isR && (nextPosition >= state.RawText.Length || state.RawText[nextPosition] != '\n'))
+         return false;
       
       var nodeIndex = writer.WrittenSpan.Length;
       writer.Add(new MarkdownNode()

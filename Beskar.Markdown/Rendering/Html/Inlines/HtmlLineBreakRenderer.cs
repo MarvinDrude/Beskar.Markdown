@@ -16,6 +16,13 @@ public sealed class HtmlLineBreakRenderer : INodeRenderer
       ReadOnlySpan<MarkdownNode> nodes,
       RenderOptions options)
    {
-      writer.Write("<br />");
+      if (options.AddBlockNewLines)
+      {
+         writer.WriteLine("<br />");
+      }
+      else
+      {
+         writer.Write("<br />");
+      }
    }
 }
