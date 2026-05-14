@@ -18,8 +18,16 @@ public ref struct InlineState<TData>(
 
    public void Advance(int length)
    {
-      RemainingText = RemainingText[length..];
-      GlobalOffset += length;
+      if (length >= RemainingText.Length)
+      {
+         GlobalOffset += length;
+         RemainingText = ReadOnlySpan<char>.Empty;
+      }
+      else
+      {
+         RemainingText = RemainingText[length..];
+         GlobalOffset += length;
+      }
    }
    
    public bool HasContentOnNextLine()

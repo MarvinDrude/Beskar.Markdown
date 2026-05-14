@@ -28,6 +28,16 @@ public sealed class InlineHtmlParser : IInlineParser
          {
             closeIdx = terminatorIdx + 2;
          }
+         else
+         {
+            // Search in full text
+            var fullText = state.RawText[state.GlobalOffset..];
+            terminatorIdx = fullText.IndexOf("]]>");
+            if (terminatorIdx != -1)
+            {
+               closeIdx = terminatorIdx + 2;
+            }
+         }
       }
       else
       {
@@ -42,6 +52,20 @@ public sealed class InlineHtmlParser : IInlineParser
                {
                   closeIdx = i;
                   break;
+               }
+            }
+
+            if (closeIdx == -1)
+            {
+               // Search in full text
+               var fullText = state.RawText[state.GlobalOffset..];
+               for (var i = 1; i < fullText.Length; i++)
+               {
+                  if (fullText[i] == '>')
+                  {
+                     closeIdx = i;
+                     break;
+                  }
                }
             }
          }

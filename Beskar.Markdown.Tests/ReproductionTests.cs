@@ -13,10 +13,10 @@ public sealed class ReproductionTests
    }
 
    [Test]
-   public Task MultilineParagraphWithTrailingSpace()
+   public Task MultilineHtmlComment()
    {
-      const string markdown = "foo \nbaz";
-      const string expectedHtml = "<p>foo\nbaz</p>";
+      const string markdown = "foo <!-- this is a --\ncomment - with hyphens -->";
+      const string expectedHtml = "<p>foo <!-- this is a --\ncomment - with hyphens --></p>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
