@@ -35,9 +35,9 @@ public sealed class HtmlImageRenderer : INodeRenderer
       if (current.LinkTitleOffset > 0)
       {
          var startIndex = current.LinkUrlStart + current.LinkUrlLength + current.LinkTitleOffset;
-         writer.Write(" title=\"");
+         writer.Write("title=\"");
          writer.WriteHtmlEncoded(rawText.Slice(startIndex, current.LinkTitleLength));
-         writer.Write("\"");
+         writer.Write("\" ");
       }
       
       writer.Write("/>");

@@ -25,9 +25,37 @@ public sealed class HtmlIndentedCodeBlockRenderer : INodeRenderer
       {
          writer.Write("<pre><code>");
       }
+
+      var lastValidChildIndex = -1;
+      var searchIndex = current.FirstChildIndex;
+      
+      while (searchIndex != -1)
+      {
+         var child = nodes[searchIndex];
+         if (child.Type == NodeType.IndentedCodeFragment)
+         {
+            var content = child.TextSpan.Slice(rawText);
+            var isBlank = true;
+            
+            for (var i = 0; i < content.Length; i++)
+            {
+               var c = content[i];
+               if (c != ' ' && c != '\t' && c != '\r' && c != '\n')
+               {
+                  isBlank = false;
+                  break;
+               }
+            }
+
+            if (!isBlank)
+            {
+               lastValidChildIndex = searchIndex;
+            }
+         }
+         searchIndex = child.NextSiblingIndex;
+      }
       
       var currentChildIndex = current.FirstChildIndex;
-
       while (currentChildIndex != -1)
       {
          var child = nodes[currentChildIndex];
@@ -39,9 +67,21 @@ public sealed class HtmlIndentedCodeBlockRenderer : INodeRenderer
          }
          writer.WriteLine();
          
+         if (currentChildIndex == lastValidChildIndex)
+         {
+            break;
+         }
+         
          currentChildIndex = child.NextSiblingIndex;
       }
-      
-      writer.Write("</code></pre>");
+
+      if (options.AddBlockNewLines)
+      {
+         writer.WriteLine("</code></pre>");
+      }
+      else
+      {
+         writer.Write("</code></pre>");
+      }
    }
 }

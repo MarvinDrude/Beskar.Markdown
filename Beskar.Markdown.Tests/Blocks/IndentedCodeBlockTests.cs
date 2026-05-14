@@ -11,7 +11,7 @@ public sealed class IndentedCodeBlockTests
          """;
       
       var html = BeMarkdown.ToHtml(markdown);
-      await Assert.That(html).IsEqualTo("<pre><code>foo    baz        bim\n</code></pre>");
+      await Assert.That(html).IsEqualTo("<pre><code>foo    baz        bim\n</code></pre>\n");
    }
    
    [Test]
@@ -21,7 +21,7 @@ public sealed class IndentedCodeBlockTests
          "\tfoo\tbaz\t\tbim";
       
       var html = BeMarkdown.ToHtml(markdown);
-      await Assert.That(html).IsEqualTo("<pre><code>\tbaz\t\tbim\n</code></pre>");
+      await Assert.That(html).IsEqualTo("<pre><code>\tbaz\t\tbim\n</code></pre>\n");
    }
    
    

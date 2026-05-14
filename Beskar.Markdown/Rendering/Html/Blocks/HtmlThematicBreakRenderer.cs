@@ -16,6 +16,13 @@ public sealed class HtmlThematicBreakRenderer : INodeRenderer
       ReadOnlySpan<MarkdownNode> nodes,
       RenderOptions options)
    {
-      writer.Write("<hr />");
+      if (options.AddBlockNewLines)
+      {
+         writer.WriteLine("<hr />");
+      }
+      else
+      {
+         writer.Write("<hr />");
+      }
    }
 }

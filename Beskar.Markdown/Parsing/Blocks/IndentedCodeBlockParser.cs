@@ -31,7 +31,7 @@ public sealed class IndentedCodeBlockParser : IBlockParser
          CodeLangSpanLength = 0
       });
       
-      var skipAmount = state.LeadingSpaces;
+      const int skipAmount = 4;
       writer.Add(new MarkdownNode()
       {
          Type = NodeType.IndentedCodeFragment,
@@ -52,7 +52,7 @@ public sealed class IndentedCodeBlockParser : IBlockParser
       
       var newLength = (state.GlobalOffset - node.TextSpan.Start) + state.RawLine.Length;
       node.TextSpan = node.TextSpan with { Length = newLength };
-      var skipAmount = state.LeadingSpaces;
+      const int skipAmount = 4;
       
       var newLineIndex = writer.WrittenSpan.Length;
        
