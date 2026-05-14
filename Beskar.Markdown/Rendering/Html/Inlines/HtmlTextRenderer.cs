@@ -17,7 +17,6 @@ public sealed class HtmlTextRenderer : INodeRenderer
       ReadOnlySpan<MarkdownNode> nodes,
       RenderOptions options)
    {
-      
       writer.WriteHtmlDecodedAndEncoded(current.TextSpan.Slice(rawText), encodeApostrophe: false);
    }
 }

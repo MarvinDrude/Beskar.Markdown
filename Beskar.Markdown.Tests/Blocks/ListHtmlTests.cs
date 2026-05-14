@@ -137,7 +137,7 @@ public sealed class ListHtmlTests
    public Task ListWithBlankLineAndIndentedCode()
    {
       const string markdown = "- item 1\n\n      code";
-      const string expectedHtml = "<ul><li>item 1<pre><code>code\n</code></pre></li></ul>";
+      const string expectedHtml = "<ul><li><p>item 1</p>\n<pre><code>code\n</code></pre>\n</li>\n</ul>";
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 
