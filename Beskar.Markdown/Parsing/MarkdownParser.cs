@@ -2,6 +2,7 @@
 using Beskar.Markdown.Extensions;
 using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Parsing.Utils;
+using Beskar.Markdown.Utils;
 using Me.Memory.Buffers;
 
 namespace Beskar.Markdown.Parsing;
@@ -190,10 +191,12 @@ public ref struct MarkdownParser<TData>(
                {
                   // Continuation: Extend the TextSpan of the existing paragraph
                   var textIndex = _writer.WrittenSpan.Length;
+                  var trailingSpaces = SpanUtils.CountTrailingSpaces(state.RawLine);
+                  
                   _writer.Add(new MarkdownNode()
                   {
                      Type = NodeType.Text,
-                     TextSpan = new TextSpan(state.GlobalOffset + state.FirstNonSpaceIndex, state.RawLine.Length - state.FirstNonSpaceIndex),
+                     TextSpan = new TextSpan(state.GlobalOffset + state.FirstNonSpaceIndex, state.RawLine.Length - state.FirstNonSpaceIndex - trailingSpaces),
                      FirstChildIndex = -1,
                      LastChildIndex = -1,
                      NextSiblingIndex = -1

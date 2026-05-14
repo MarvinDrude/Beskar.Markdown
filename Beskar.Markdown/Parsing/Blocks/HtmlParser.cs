@@ -22,7 +22,7 @@ public sealed class HtmlParser : IBlockParser
          return -1;
       }
 
-      int type = GetHtmlBlockType(line);
+      var type = GetHtmlBlockType(line);
       if (type == -1 || IsAutolink(line))
       {
          return -1;
@@ -108,7 +108,7 @@ public sealed class HtmlParser : IBlockParser
       
       var tagName = line.Slice(nameStart, i - nameStart);
       var isBlockTag = IsBlockTag(tagName);
-         
+      
       if (isBlockTag)
       {
          if (i == line.Length || char.IsWhiteSpace(line[i]) || line[i] == '>' || (line[i] == '/' && i + 1 < line.Length && line[i + 1] == '>'))
@@ -118,6 +118,12 @@ public sealed class HtmlParser : IBlockParser
       }
       else
       {
+         if (tagName.Length == 1
+             && char.ToLowerInvariant(tagName[0]) == 'a')
+         {
+            return -1;
+         }
+         
          // Type 7: not a block tag, but must be a complete tag followed only by whitespace
          var closeBracket = -1;
          for (var j = i; j < line.Length; j++)

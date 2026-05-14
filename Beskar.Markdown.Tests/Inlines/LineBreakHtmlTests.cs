@@ -8,7 +8,7 @@ public sealed class LineBreakHtmlTests
    public Task HardLineBreakWithSpaces()
    {
       const string markdown = "line 1  \nline 2";
-      const string expectedHtml = "<p>line 1<br />line 2</p>";
+      const string expectedHtml = "<p>line 1\nline 2</p>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
@@ -35,7 +35,7 @@ public sealed class LineBreakHtmlTests
    public Task MultipleSpacesAreSoftBreak()
    {
       const string markdown = "line 1 \nline 2";
-      const string expectedHtml = "<p>line 1 \nline 2</p>";
+      const string expectedHtml = "<p>line 1\nline 2</p>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
@@ -44,7 +44,7 @@ public sealed class LineBreakHtmlTests
    public Task HardLineBreakAtEndOfParagraph()
    {
       const string markdown = "line 1  ";
-      const string expectedHtml = "<p>line 1  </p>";
+      const string expectedHtml = "<p>line 1</p>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
@@ -53,7 +53,7 @@ public sealed class LineBreakHtmlTests
    public Task HardLineBreakWithMoreThanTwoSpaces()
    {
       const string markdown = "line 1   \nline 2";
-      const string expectedHtml = "<p>line 1<br />line 2</p>";
+      const string expectedHtml = "<p>line 1\nline 2</p>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }

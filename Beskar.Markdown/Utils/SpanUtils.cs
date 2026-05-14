@@ -49,4 +49,22 @@ public static class SpanUtils
 
       return '\0';
    }
+
+   public static int CountTrailingSpaces(ReadOnlySpan<char> span)
+   {
+      var count = 0;
+      for (var i = span.Length - 1; i >= 0; i--)
+      {
+         if (span[i] == ' ')
+         {
+            count++;
+         }
+         else
+         {
+            break;
+         }
+      }
+
+      return count;
+   }
 }
