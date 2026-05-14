@@ -122,9 +122,12 @@ public sealed class CodeBlockParser : IBlockParser
             
             if (isClosingFence)
             {
-               // correctly get the last new line in code block
-               var newLength = node.TextSpan.Length + 1;
-               node.TextSpan = node.TextSpan with { Length = newLength };
+               // Correctly get the last new line in the code block
+               if (node.TextSpan.Start != -1)
+               {
+                  var newLength = state.GlobalOffset - node.TextSpan.Start;
+                  node.TextSpan = node.TextSpan with { Length = newLength };
+               }
             }
          }
       }
@@ -152,12 +155,18 @@ public sealed class CodeBlockParser : IBlockParser
       
       state.ConsumeRest();
 
-      if (state.FullText[state.GlobalOffset] == '\n'
-          && state.FullText.Length <= state.GlobalOffset + 1)
+      var remainingChars = state.FullText.Length - state.GlobalOffset;
+
+      if ((remainingChars == 1 && state.FullText[state.GlobalOffset] == '\n') ||
+         (remainingChars == 2 && state.FullText[state.GlobalOffset] == '\r' 
+            && state.FullText[state.GlobalOffset + 1] == '\n'))
       {
-         // if an open code block isn't closed and the document ends
-         var newLength = node.TextSpan.Length + 1;
-         node.TextSpan = node.TextSpan with { Length = newLength };
+         // If an open code block isn't closed and the document ends
+         if (node.TextSpan.Start != -1)
+         {
+            var newLength = state.FullText.Length - node.TextSpan.Start;
+            node.TextSpan = node.TextSpan with { Length = newLength };
+         }
       }
       
       return !isClosingFence;

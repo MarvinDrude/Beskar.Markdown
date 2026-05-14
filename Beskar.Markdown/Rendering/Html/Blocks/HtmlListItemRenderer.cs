@@ -32,6 +32,14 @@ public sealed class HtmlListItemRenderer : INodeRenderer
       }
       
       current.RenderChildren(context, rawText, nodes, ref writer, options);
-      writer.Write("</li>");
+
+      if (options.AddBlockNewLines)
+      {
+         writer.WriteLine("</li>");
+      }
+      else
+      {
+         writer.Write("</li>");
+      }
    }
 }

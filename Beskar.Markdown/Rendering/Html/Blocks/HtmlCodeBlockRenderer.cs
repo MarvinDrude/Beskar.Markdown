@@ -18,6 +18,8 @@ public sealed class HtmlCodeBlockRenderer : INodeRenderer
       RenderOptions options)
    {
       var span = current.TextSpan;
+      var text = span.Slice(rawText);
+      
       if (current is { CodeLangSpanStart: > -1, CodeLangSpanLength: > 0 })
       {
          writer.WriteInterpolated($"<pre><code class=\"language-{rawText.Slice(current.CodeLangSpanStart, current.CodeLangSpanLength)}\">");
@@ -27,7 +29,7 @@ public sealed class HtmlCodeBlockRenderer : INodeRenderer
          writer.Write("<pre><code>");
       }
       
-      writer.WriteHtmlEncoded(span.Slice(rawText));
+      writer.WriteHtmlEncoded(text);
 
       if (options.AddBlockNewLines)
       {
