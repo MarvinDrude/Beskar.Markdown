@@ -17,8 +17,16 @@ public sealed class HtmlBlockQuoteRenderer : INodeRenderer
       ReadOnlySpan<MarkdownNode> nodes,
       RenderOptions options)
    {
-      writer.Write("<blockquote>");
+      writer.WriteLine("<blockquote>");
       current.RenderChildren(context, rawText, nodes, ref writer, options);
-      writer.Write("</blockquote>");
+
+      if (options.AddBlockNewLines)
+      {
+         writer.WriteLine("</blockquote>");
+      }
+      else
+      {
+         writer.Write("</blockquote>");
+      }
    }
 }

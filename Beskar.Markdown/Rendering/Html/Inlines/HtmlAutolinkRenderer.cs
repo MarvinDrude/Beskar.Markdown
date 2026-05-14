@@ -26,13 +26,13 @@ public sealed class HtmlAutolinkRenderer : INodeRenderer
       }
       
       writer.Write("<a href=\"");
-      writer.WriteHtmlEncoded(preamble);
-      writer.WriteHtmlEncoded(url);
+      writer.WriteHtmlEncoded(preamble, encodeApostrophe: false);
+      writer.WriteHtmlEncoded(url, encodeApostrophe: false);
       writer.Write("\">");
       
       if (url.Length > 0)
       {
-         writer.WriteHtmlEncoded(url);
+         writer.WriteHtmlEncoded(url, encodeApostrophe: false);
       }
       writer.Write("</a>");
    }

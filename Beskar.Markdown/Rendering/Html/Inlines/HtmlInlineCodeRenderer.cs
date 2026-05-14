@@ -28,27 +28,27 @@ public sealed class HtmlInlineCodeRenderer : INodeRenderer
               var backslashIndex = span[i..].IndexOf('\\');
               if (backslashIndex == -1 || i + backslashIndex + 1 >= span.Length)
               {
-                  writer.WriteHtmlEncoded(span[i..]);
+                  writer.WriteHtmlEncoded(span[i..], encodeApostrophe: false);
                   break;
               }
               
               var absoluteBackslash = i + backslashIndex;
               if (span[absoluteBackslash + 1] == '|')
               {
-                  writer.WriteHtmlEncoded(span[i..absoluteBackslash]);
+                  writer.WriteHtmlEncoded(span[i..absoluteBackslash], encodeApostrophe: false);
                   writer.Write("|");
                   i = absoluteBackslash + 2;
               }
               else
               {
-                  writer.WriteHtmlEncoded(span[i..(absoluteBackslash + 1)]);
+                  writer.WriteHtmlEncoded(span[i..(absoluteBackslash + 1)], encodeApostrophe: false);
                   i = absoluteBackslash + 1;
               }
           }
       }
       else
       {
-          writer.WriteHtmlEncoded(span);
+          writer.WriteHtmlEncoded(span, encodeApostrophe: false);
       }
       
       writer.Write("</code>");

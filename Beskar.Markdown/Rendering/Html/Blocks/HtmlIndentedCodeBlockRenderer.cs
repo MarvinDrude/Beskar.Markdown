@@ -63,7 +63,7 @@ public sealed class HtmlIndentedCodeBlockRenderer : INodeRenderer
 
          if (child.TextSpan is { Start: >= 0, Length: > 0 })
          {
-            writer.WriteHtmlEncoded(child.TextSpan.Slice(rawText));
+            writer.WriteHtmlEncoded(child.TextSpan.Slice(rawText), encodeApostrophe: false);
          }
          writer.WriteLine();
          

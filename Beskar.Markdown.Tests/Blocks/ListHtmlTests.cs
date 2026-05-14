@@ -151,7 +151,7 @@ public sealed class ListHtmlTests
            
            para
          """;
-      const string expectedHtml = "<ul><li>item 1<blockquote><p>quote</p></blockquote><p>para</p></li></ul>";
+      const string expectedHtml = "<ul><li>item 1<blockquote>\n<p>quote</p></blockquote><p>para</p></li></ul>";
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 

@@ -123,7 +123,7 @@ public sealed class BlockNodeHtmlTests
          > quoted text
          """;
 
-      const string expectedHtml = "<blockquote><h1>Title</h1><p>quoted text</p></blockquote>";
+      const string expectedHtml = "<blockquote>\n<h1>Title</h1><p>quoted text</p></blockquote>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }

@@ -15,14 +15,12 @@ public sealed class IndentedCodeBlockTests
    }
    
    [Test]
-   public async Task TabulatedExampleOne()
+   public Task TabulatedExampleOne()
    {
       const string markdown = 
          "\tfoo\tbaz\t\tbim";
-      
-      var html = BeMarkdown.ToHtml(markdown);
-      await Assert.That(html).IsEqualTo("<pre><code>\tbaz\t\tbim\n</code></pre>\n");
+
+      const string expected = "<pre><code>foo\tbaz\t\tbim\n</code></pre>";
+      return MarkdownAssert.RendersHtml(markdown, expected);
    }
-   
-   
 }

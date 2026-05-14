@@ -29,7 +29,7 @@ public sealed class HtmlCodeBlockRenderer : INodeRenderer
          writer.Write("<pre><code>");
       }
       
-      writer.WriteHtmlEncoded(text);
+      writer.WriteHtmlEncoded(text, encodeApostrophe: false);
 
       if (options.AddBlockNewLines)
       {
