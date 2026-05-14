@@ -1,4 +1,6 @@
-﻿using Beskar.Markdown.Parsing.Interfaces;
+﻿using System.Resources;
+using Beskar.Markdown.Extensions;
+using Beskar.Markdown.Parsing.Interfaces;
 using Beskar.Markdown.Parsing.Models;
 using Me.Memory.Buffers;
 
@@ -117,6 +119,13 @@ public sealed class CodeBlockParser : IBlockParser
                   break;
                }
             }
+            
+            if (isClosingFence)
+            {
+               // correctly get the last new line in code block
+               var newLength = node.TextSpan.Length + 1;
+               node.TextSpan = node.TextSpan with { Length = newLength };
+            }
          }
       }
 
@@ -142,6 +151,15 @@ public sealed class CodeBlockParser : IBlockParser
       }
       
       state.ConsumeRest();
+
+      if (state.FullText[state.GlobalOffset] == '\n'
+          && state.FullText.Length <= state.GlobalOffset + 1)
+      {
+         // if an open code block isn't closed and the document ends
+         var newLength = node.TextSpan.Length + 1;
+         node.TextSpan = node.TextSpan with { Length = newLength };
+      }
+      
       return !isClosingFence;
    }
 }

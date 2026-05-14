@@ -17,7 +17,14 @@ public sealed class HtmlIndentedCodeBlockRenderer : INodeRenderer
       ReadOnlySpan<MarkdownNode> nodes,
       RenderOptions options)
    {
-      writer.Write("<pre><code>");
+      if (current is { CodeLangSpanStart: > -1, CodeLangSpanLength: > 0 })
+      {
+         writer.WriteInterpolated($"<pre><code class=\"language-{rawText.Slice(current.CodeLangSpanStart, current.CodeLangSpanLength)}\">");
+      }
+      else
+      {
+         writer.Write("<pre><code>");
+      }
       
       var currentChildIndex = current.FirstChildIndex;
 
