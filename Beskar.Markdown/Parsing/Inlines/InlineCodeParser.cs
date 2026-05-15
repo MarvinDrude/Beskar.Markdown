@@ -31,11 +31,12 @@ public sealed class InlineCodeParser : IInlineParser
       
       var rawText = state.RawText;
       var rawBase = state.GlobalOffset;
+      var scanBound = state.BlockEnd;
 
       var closeIndex = -1;
       var scanIndex = markerLength;
 
-      while (rawBase + scanIndex < rawText.Length)
+      while (rawBase + scanIndex < scanBound)
       {
          var c = rawText[rawBase + scanIndex];
 
@@ -43,15 +44,15 @@ public sealed class InlineCodeParser : IInlineParser
          {
             var afterNewline = scanIndex + 1;
             
-            if (c == '\r' && rawBase + afterNewline < rawText.Length 
+            if (c == '\r' && rawBase + afterNewline < scanBound
                   && rawText[rawBase + afterNewline] == '\n')
                afterNewline++;
 
             var lineCheck = rawBase + afterNewline;
             var lineIsBlank = true;
-            
-            while (lineCheck < rawText.Length 
-                   && rawText[lineCheck] != '\n' 
+
+            while (lineCheck < scanBound
+                   && rawText[lineCheck] != '\n'
                    && rawText[lineCheck] != '\r')
             {
                if (rawText[lineCheck] != ' ' 
@@ -74,7 +75,7 @@ public sealed class InlineCodeParser : IInlineParser
          if (c == '`')
          {
             var streak = 0;
-            while (rawBase + scanIndex + streak < rawText.Length 
+            while (rawBase + scanIndex + streak < scanBound
                    && rawText[rawBase + scanIndex + streak] == '`')
             {
                streak++;

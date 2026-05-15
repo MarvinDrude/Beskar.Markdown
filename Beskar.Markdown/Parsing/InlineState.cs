@@ -12,9 +12,11 @@ public ref struct InlineState<TData>(
 {
    public MarkdownContext<TData> Context = context;
    public ReadOnlySpan<char> RawText = rawText;
-   
+
    public ReadOnlySpan<char> RemainingText = remainingText;
    public int GlobalOffset = globalOffset;
+
+   public int BlockEnd = rawText.Length;
 
    public void Advance(int length)
    {

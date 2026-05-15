@@ -50,14 +50,18 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
          _delimiters.Position = 0;
       }
 
+      var blockEnd = currentChildIndex != -1
+         ? writer.WrittenSpan[parent.LastChildIndex].TextSpan.Start + writer.WrittenSpan[parent.LastChildIndex].TextSpan.Length
+         : parent.TextSpan.Start + parent.TextSpan.Length;
+
       parent.FirstChildIndex = -1;
       parent.LastChildIndex = -1;
-      
+
       if (currentChildIndex != -1)
       {
          var nextNode = currentChildIndex;
          var lastProcessedOffset = -1;
-         
+
          while (nextNode != -1)
          {
             var oldNode = writer.WrittenSpan[nextNode];
@@ -70,7 +74,10 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
             var isLastLine = oldNode.NextSiblingIndex == -1;
             var span = _rawText.Slice(oldNode.TextSpan.Start, oldNode.TextSpan.Length);
 
-            var state = new InlineState<TData>(context, _rawText, span, oldNode.TextSpan.Start);
+            var state = new InlineState<TData>(context, _rawText, span, oldNode.TextSpan.Start)
+            {
+               BlockEnd = blockEnd
+            };
             ProcessState(ref state, parentIndex, ref writer, options, isLastLine);
             lastProcessedOffset = state.GlobalOffset;
 
@@ -91,7 +98,10 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
       {
          // header, for example, has its text inside itself
          var span = _rawText.Slice(parent.TextSpan.Start, parent.TextSpan.Length);
-         var state = new InlineState<TData>(context, _rawText, span, parent.TextSpan.Start);
+         var state = new InlineState<TData>(context, _rawText, span, parent.TextSpan.Start)
+         {
+            BlockEnd = parent.TextSpan.Start + parent.TextSpan.Length
+         };
 
          ProcessState(ref state, parentIndex, ref writer, options, isLastLine: true);
       }
@@ -340,8 +350,11 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
       
       _nestingLevel++;
       var span = _rawText.Slice(start, length);
-      var state = new InlineState<TData>(context, _rawText, span, start);
-      
+      var state = new InlineState<TData>(context, _rawText, span, start)
+      {
+         BlockEnd = start + length
+      };
+
       ProcessState(ref state, parentIndex, ref writer, options, isLastLine: false);
       _nestingLevel--;
    }
