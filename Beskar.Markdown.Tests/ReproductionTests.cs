@@ -85,6 +85,15 @@ public sealed class ReproductionTests
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
+
+   [Test]
+   public Task PartialEmphasisMatch()
+   {
+      const string markdown = "**foo*";
+      const string expectedHtml = "<p>*<em>foo</em></p>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
    
    // [Test]
    // public Task MultiLineListItem()

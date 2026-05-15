@@ -27,11 +27,23 @@ public sealed class EmphasisParser : IInlineParser
 
       GetFlankingInfo(marker, state, length, out var canOpen, out var canClose);
 
-      if (!canOpen && !canClose) return false;
-      
       var parent = writer.WrittenSpan[parentIndex];
       var previousNodeIndex = parent.FirstChildIndex == -1 ? -1 : parent.LastChildIndex;
       var nodeIndex = writer.WrittenSpan.Length;
+
+      if (!canOpen && !canClose)
+      {
+         writer.Add(new MarkdownNode()
+         {
+            Type = NodeType.Text,
+            TextSpan = new TextSpan(state.GlobalOffset, length),
+            FirstChildIndex = -1,
+            NextSiblingIndex = -1
+         });
+         parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
+         state.Advance(length);
+         return true;
+      }
       writer.Add(new MarkdownNode()
       {
          Type = NodeType.Text,

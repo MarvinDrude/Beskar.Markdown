@@ -205,7 +205,7 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
             if (!opener.Active || !opener.CanOpen || opener.Marker != closer.Marker || opener.NestingLevel != closer.NestingLevel)
                continue;
 
-            if ((opener.CanOpen || opener.CanClose) && (closer.CanOpen || closer.CanClose))
+            if (opener is { CanOpen: true, CanClose: true } || closer is { CanOpen: true, CanClose: true })
             {
                if ((opener.Length + closer.Length) % 3 == 0 && (opener.Length % 3 != 0 || closer.Length % 3 != 0))
                {
