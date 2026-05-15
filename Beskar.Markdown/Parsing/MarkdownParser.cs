@@ -138,14 +138,31 @@ public ref struct MarkdownParser<TData>(
             if (foundNewNodeIndex != -1)
             {
                matchedNew = true;
+
+               if (lastLineWasBlank)
+               {
+                  ref var parentForWrap = ref _writer.GetReference(currentParentIndex);
+                  if (parentForWrap.Type == NodeType.ListItem && parentForWrap.FirstChildIndex != -1)
+                  {
+                     var childIdx = parentForWrap.FirstChildIndex;
+                     while (childIdx != -1)
+                     {
+                        ref var child = ref _writer.GetReference(childIdx);
+                        if (child.Type == NodeType.Paragraph)
+                           child.ParagraphIsWrapped = 1;
+                        childIdx = child.NextSiblingIndex;
+                     }
+                  }
+               }
+
                lastLineWasBlank = false;
-               
+
                if (isParagraphOpen)
                {
                   openBlockCount--;
                   currentParentIndex = testParentIndex;
                }
-               
+
                LinkNodes(currentParentIndex, foundNewNodeIndex);
 
                var newType = (int)_writer.WrittenSpan[foundNewNodeIndex].Type;
