@@ -44,7 +44,7 @@ public sealed class LinkHtmlTests
    public Task LinkWithSpacesInDestination()
    {
       const string markdown = "[link](<my url>)";
-      const string expectedHtml = """<p><a href="my url">link</a></p>""";
+      const string expectedHtml = """<p><a href="my%20url">link</a></p>""";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
@@ -79,7 +79,7 @@ public sealed class LinkHtmlTests
    public Task LinkWithAngleBracketsAndEscapes()
    {
       const string markdown = "[link](<url\\>>)";
-      const string expectedHtml = """<p><a href="url&gt;">link</a></p>""";
+      const string expectedHtml = """<p><a href="url%5C%3E">link</a></p>""";
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 }

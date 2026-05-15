@@ -27,7 +27,7 @@ public sealed class HtmlImageRenderer : INodeRenderer
       }
       
       writer.WriteInterpolated($"<img src=\"");
-      writer.WriteHtmlEncoded(url, encodeApostrophe: false);
+      writer.WriteMarkdownUrlEncoded(url);
       writer.Write("\" alt=\"");
       writer.WriteHtmlDecodedAndEncoded(title, encodeApostrophe: false);
       writer.Write("\" ");

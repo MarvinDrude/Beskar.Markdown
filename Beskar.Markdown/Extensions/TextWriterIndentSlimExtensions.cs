@@ -25,9 +25,26 @@ public static class TextWriterIndentSlimExtensions
                   if (i > lastIndex) 
                      writer.Write(text[lastIndex..i]);
 
-                  decoded[0] = decodedChar;
-                  writer.Write(decoded);
-
+                  switch (decodedChar)
+                  {
+                     case '<':
+                        writer.Write("&lt;");
+                        break;
+                     case '>':
+                        writer.Write("&gt;");
+                        break;
+                     case '"':
+                        writer.Write("&quot;");
+                        break;
+                     case '&':
+                        writer.Write("&amp;");
+                        break;
+                     default:
+                        decoded[0] = decodedChar;
+                        writer.Write(decoded);
+                        break;
+                  }
+                  
                   i += consumed - 1;
                   lastIndex = i + 1;
                   continue;

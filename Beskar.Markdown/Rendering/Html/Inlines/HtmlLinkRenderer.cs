@@ -20,7 +20,7 @@ public sealed class HtmlLinkRenderer : INodeRenderer
       var url = rawText.Slice(current.LinkUrlStart, current.LinkUrlLength);
       
       writer.Write("<a href=\"");
-      WriteUnescapedHtmlEncoded(ref writer, url);
+      writer.WriteMarkdownUrlEncoded(url);
       writer.Write("\"");
 
       if (current.LinkTitleOffset > -1)
@@ -47,10 +47,10 @@ public sealed class HtmlLinkRenderer : INodeRenderer
          {
             if (currentIndex > chunkStart)
             {
-               writer.WriteHtmlEncoded(text.Slice(chunkStart, currentIndex - chunkStart), encodeApostrophe: false);
+               writer.WriteHtmlEncoded(text.Slice(chunkStart, currentIndex - chunkStart));
             }
             
-            writer.WriteHtmlEncoded(text.Slice(currentIndex + 1, 1), encodeApostrophe: false);
+            writer.WriteHtmlEncoded(text.Slice(currentIndex + 1, 1));
             
             currentIndex += 2;
             chunkStart = currentIndex;
@@ -63,7 +63,7 @@ public sealed class HtmlLinkRenderer : INodeRenderer
 
       if (chunkStart < text.Length)
       {
-         writer.WriteHtmlEncoded(text[chunkStart..], encodeApostrophe: false);
+         writer.WriteHtmlEncoded(text[chunkStart..]);
       }
    }
 
