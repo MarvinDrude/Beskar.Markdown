@@ -59,7 +59,10 @@ public sealed class TableHtmlTests
          > bar
          """;
       const string html =
-         """<table><thead><tr><th>abc</th><th>def</th></tr></thead><tbody><tr><td>bar</td><td>baz</td></tr></tbody></table><blockquote><p>bar</p></blockquote>""";
+         """
+         <table><thead><tr><th>abc</th><th>def</th></tr></thead><tbody><tr><td>bar</td><td>baz</td></tr></tbody></table><blockquote>
+         <p>bar</p></blockquote>
+         """;
 
       return MarkdownAssert.RendersHtml(markdown, html);
    }

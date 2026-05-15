@@ -53,18 +53,27 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
       if (currentChildIndex != -1)
       {
          var nextNode = currentChildIndex;
+         var lastProcessedOffset = -1;
+         
          while (nextNode != -1)
          {
             var oldNode = writer.WrittenSpan[nextNode];
+            if (oldNode.TextSpan.Start < lastProcessedOffset)
+            {
+               nextNode = oldNode.NextSiblingIndex;
+               continue;
+            }
+
             var isLastLine = oldNode.NextSiblingIndex == -1;
             var span = _rawText.Slice(oldNode.TextSpan.Start, oldNode.TextSpan.Length);
 
             var state = new InlineState<TData>(context, _rawText, span, oldNode.TextSpan.Start);
             ProcessState(ref state, parentIndex, ref writer, options, isLastLine);
+            lastProcessedOffset = state.GlobalOffset;
 
             nextNode = oldNode.NextSiblingIndex;
 
-            if (nextNode != -1)
+            if (nextNode != -1 && state.GlobalOffset <= oldNode.TextSpan.Start + oldNode.TextSpan.Length)
             {
                var lastNodeIndex = writer.WrittenSpan.Length - 1;
                if (lastNodeIndex < 0 || writer.WrittenSpan[lastNodeIndex].Type != NodeType.LineBreak)

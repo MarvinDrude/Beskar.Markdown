@@ -78,7 +78,7 @@ public class LinkReferenceDefinitionTests
    public Task ReferenceImage()
    {
       const string markdown = "[foo]: /url \"title\"\n\n![bar][foo]";
-      const string expected = "<p><img src=\"/url\" alt=\"bar\"  title=\"title\"/></p>";
+      const string expected = "<p><img src=\"/url\" alt=\"bar\" title=\"title\" /></p>";
 
       return MarkdownAssert.RendersHtml(markdown, expected);
    }

@@ -2,6 +2,7 @@
 using Beskar.Markdown.Extensions;
 using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Parsing.Utils;
+using Beskar.Markdown.Utils;
 using Me.Memory.Buffers;
 
 namespace Beskar.Markdown.Parsing;
@@ -190,10 +191,12 @@ public ref struct MarkdownParser<TData>(
                {
                   // Continuation: Extend the TextSpan of the existing paragraph
                   var textIndex = _writer.WrittenSpan.Length;
+                  var trailingSpaces = SpanUtils.CountTrailingSpaces(state.RawLine);
+                  
                   _writer.Add(new MarkdownNode()
                   {
                      Type = NodeType.Text,
-                     TextSpan = new TextSpan(state.GlobalOffset + state.FirstNonSpaceIndex, state.RawLine.Length - state.FirstNonSpaceIndex),
+                     TextSpan = new TextSpan(state.GlobalOffset + state.FirstNonSpaceIndex, state.RawLine.Length - state.FirstNonSpaceIndex - trailingSpaces),
                      FirstChildIndex = -1,
                      LastChildIndex = -1,
                      NextSiblingIndex = -1
@@ -234,7 +237,7 @@ public ref struct MarkdownParser<TData>(
                }
             }
          }
-
+         
          lastLineWasBlank = isBlankLine;
       }
       
@@ -284,6 +287,30 @@ public ref struct MarkdownParser<TData>(
       if (i < line.Length) return false;
 
       ref var para = ref _writer.GetReference(paragraphIndex);
+      
+      if (para.LastChildIndex != -1)
+      {
+         ref var lastChild = ref _writer.GetReference(para.LastChildIndex);
+         if (lastChild.Type == NodeType.Text)
+         {
+            var span = lastChild.TextSpan;
+            var content = _rawText.Slice(span.Start, span.Length);
+            var trimCount = 0;
+         
+            // Look back from the end of the span for whitespace
+            while (trimCount < content.Length 
+               && char.IsWhiteSpace(content[content.Length - 1 - trimCount]))
+            {
+               trimCount++;
+            }
+         
+            if (trimCount > 0)
+            {
+               lastChild.TextSpan = span with { Length = span.Length - trimCount };
+            }
+         }
+      }
+      
       para.Type = NodeType.Header;
       para.HeadingLevel = marker == '=' ? 1 : 2; 
       

@@ -1,12 +1,17 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Beskar.Markdown.Parsing.Models;
 
 namespace Beskar.Markdown.Parsing;
 
+[DebuggerDisplay("LineState: {RawLine.Length} chars, GlobalOffset: {GlobalOffset}: {RawLine}")]
+[StructLayout(LayoutKind.Auto)]
 public ref struct LineState<TData>
 {
    public MarkdownContext<TData> Context;
    public ReadOnlySpan<char> RawLine;
+   public ReadOnlySpan<char> FullText;
    
    public int GlobalOffset;
    
@@ -17,12 +22,14 @@ public ref struct LineState<TData>
 
    public LineState(
       MarkdownContext<TData> context,
+      ReadOnlySpan<char> fullText,
       ReadOnlySpan<char> rawLine, 
       int globalOffset)
    {
       Context = context;
       
       RawLine = rawLine;
+      FullText = fullText;
       GlobalOffset = globalOffset;
 
       Recalculate();

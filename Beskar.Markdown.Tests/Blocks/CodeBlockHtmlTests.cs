@@ -13,7 +13,7 @@ public sealed class CodeBlockHtmlTests
          code
          ```
          """;
-      const string expectedHtml = "<pre><code>code</code></pre>";
+      const string expectedHtml = "<pre><code>code\n</code></pre>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
@@ -27,8 +27,8 @@ public sealed class CodeBlockHtmlTests
          var x = 1;
          ```
          """;
-      // Assuming language doesn't add class by default based on BlockNodeHtmlTests
-      const string expectedHtml = "<pre><code>var x = 1;</code></pre>";
+      
+      const string expectedHtml = "<pre><code class=\"language-csharp\">var x = 1;\n</code></pre>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
@@ -42,7 +42,7 @@ public sealed class CodeBlockHtmlTests
          code
          ~~~
          """;
-      const string expectedHtml = "<pre><code>code</code></pre>";
+      const string expectedHtml = "<pre><code>code\n</code></pre>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
@@ -56,7 +56,7 @@ public sealed class CodeBlockHtmlTests
          `backtick`
          ```
          """;
-      const string expectedHtml = "<pre><code>`backtick`</code></pre>";
+      const string expectedHtml = "<pre><code>`backtick`\n</code></pre>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
@@ -70,7 +70,7 @@ public sealed class CodeBlockHtmlTests
          code
          ````
          """;
-      const string expectedHtml = "<pre><code>code</code></pre>";
+      const string expectedHtml = "<pre><code>code\n</code></pre>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
@@ -87,6 +87,20 @@ public sealed class CodeBlockHtmlTests
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
+   
+   [Test]
+   public Task FencedCodeBlockNotClosedNewline()
+   {
+      const string markdown = 
+         """
+         ```
+         code
+         
+         """;
+      const string expectedHtml = "<pre><code>code\n</code></pre>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
 
    [Test]
    public Task FencedCodeBlockIndented()
@@ -97,7 +111,7 @@ public sealed class CodeBlockHtmlTests
            code
            ```
          """;
-      const string expectedHtml = "<pre><code>  code</code></pre>";
+      const string expectedHtml = "<pre><code>  code\n</code></pre>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }

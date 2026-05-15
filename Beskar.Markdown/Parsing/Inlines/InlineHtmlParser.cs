@@ -19,35 +19,73 @@ public sealed class InlineHtmlParser : IInlineParser
       var text = state.RemainingText;
       if (text.Length < 3) return false;
 
-      var next = text[1];
-      var isValidStart = char.IsLetter(next) 
-         || next == '/' || next == '!' || next == '?';
-      
-      if (!isValidStart) return false;
-
       var closeIdx = -1;
-      for (var i = 1; i < text.Length; i++)
+
+      if (text.StartsWith("<![CDATA["))
       {
-         if (text[i] == '>')
+         var terminatorIdx = text.IndexOf("]]>");
+         if (terminatorIdx != -1)
          {
-            closeIdx = i;
-            break;
+            closeIdx = terminatorIdx + 2;
+         }
+         else
+         {
+            // Search in full text
+            var fullText = state.RawText[state.GlobalOffset..];
+            terminatorIdx = fullText.IndexOf("]]>");
+            if (terminatorIdx != -1)
+            {
+               closeIdx = terminatorIdx + 2;
+            }
+         }
+      }
+      else
+      {
+         var next = text[1];
+         var isValidStart = char.IsLetter(next) || next == '/' || next == '!' || next == '?';
+
+         if (isValidStart)
+         {
+            for (var i = 1; i < text.Length; i++)
+            {
+               if (text[i] == '>')
+               {
+                  closeIdx = i;
+                  break;
+               }
+            }
+
+            if (closeIdx == -1)
+            {
+               // Search in full text
+               var fullText = state.RawText[state.GlobalOffset..];
+               for (var i = 1; i < fullText.Length; i++)
+               {
+                  if (fullText[i] == '>')
+                  {
+                     closeIdx = i;
+                     break;
+                  }
+               }
+            }
          }
       }
 
       if (closeIdx == -1) return false;
 
+      var nodeLength = closeIdx + 1;
       var nodeIndex = writer.WrittenSpan.Length;
+      
       writer.Add(new MarkdownNode()
       {
          Type = NodeType.InlineHtml,
-         TextSpan = new TextSpan(state.GlobalOffset, closeIdx + 1),
+         TextSpan = new TextSpan(state.GlobalOffset, nodeLength),
          FirstChildIndex = -1,
          NextSiblingIndex = -1
       });
 
       parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
-      state.Advance(closeIdx + 1);
+      state.Advance(nodeLength);
       
       return true;
    }

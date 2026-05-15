@@ -21,6 +21,13 @@ public sealed class EscapeCharParser : IInlineParser
       var text = state.RemainingText;
       if (text.Length < 2)
       {
+         var parent = writer.WrittenSpan[parentIndex];
+         if (parent.Type is NodeType.Header || !state.HasContentOnNextLine())
+         {
+            // Treat as literal text instead of a line break if no further content
+            return CreateLiteralNode(ref state, parentIndex, ref writer, ref parser);
+         }
+         
          return _lineBreakParser.TryMatch(ref state, parentIndex, 
             ref writer, ref parser, options);
       }
@@ -44,6 +51,23 @@ public sealed class EscapeCharParser : IInlineParser
       }
 
       return false;
+   }
+   
+   private static bool CreateLiteralNode<TData>(ref InlineState<TData> state, int parentIndex, 
+      ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser<TData> parser)
+   {
+      var nodeIndex = writer.WrittenSpan.Length;
+      writer.Add(new MarkdownNode()
+      {
+         Type = NodeType.Text,
+         TextSpan = new TextSpan(state.GlobalOffset, 1),
+         FirstChildIndex = -1,
+         NextSiblingIndex = -1
+      });
+
+      parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
+      state.Advance(1);
+      return true;
    }
    
    private static bool IsEscapable(char c)

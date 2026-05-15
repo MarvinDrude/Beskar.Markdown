@@ -26,6 +26,35 @@ public sealed class ListParser : IBlockParser
          {
             return -1;
          }
+         
+         if (parent.LastChildIndex != -1)
+         {
+            var lastChild = writer.WrittenSpan[parent.LastChildIndex];
+            if (lastChild.Type == NodeType.Paragraph)
+            {
+               // Rule 1: An ordered list can interrupt a paragraph ONLY if the list start number is 1
+               if (orderedNumber != -1 && orderedNumber != 1)
+               {
+                  return -1;
+               }
+
+               // Rule 2: An empty list item cannot interrupt a paragraph
+               var isRestOfLineBlank = true;
+               for (var i = state.FirstNonSpaceIndex + len; i < state.RawLine.Length; i++)
+               {
+                  if (state.RawLine[i] != ' ' && state.RawLine[i] != '\t')
+                  {
+                     isRestOfLineBlank = false;
+                     break;
+                  }
+               }
+
+               if (isRestOfLineBlank)
+               {
+                  return -1;
+               }
+            }
+         }
       }
       
       var nodeIndex = writer.WrittenSpan.Length;

@@ -1,6 +1,7 @@
 ﻿using Beskar.Markdown.Extensions;
 using Beskar.Markdown.Parsing.Interfaces;
 using Beskar.Markdown.Parsing.Models;
+using Beskar.Markdown.Utils;
 using Me.Memory.Buffers;
 
 namespace Beskar.Markdown.Parsing.Blocks;
@@ -55,10 +56,11 @@ public sealed class ParagraphParser : IBlockParser
       if (!state.IsBlank)
       {
          var textIndex = writer.WrittenSpan.Length;
+         var trailingSpaces = SpanUtils.CountTrailingSpaces(state.RawLine);
          writer.Add(new MarkdownNode()
          {
             Type = NodeType.Text,
-            TextSpan = new TextSpan(state.GlobalOffset + state.FirstNonSpaceIndex, state.RawLine.Length - state.FirstNonSpaceIndex),
+            TextSpan = new TextSpan(state.GlobalOffset + state.FirstNonSpaceIndex, state.RawLine.Length - state.FirstNonSpaceIndex - trailingSpaces),
             FirstChildIndex = -1,
             NextSiblingIndex = -1,
             LastChildIndex = -1,

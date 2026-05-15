@@ -11,7 +11,9 @@ public sealed class RenderOptions
    
    public ReadOnlySpan<INodeRenderer> NodeRenderers => _nodeRenderer;
     
-   public bool PerserveSoftBreaks { get; set; } = true;
+   public bool PreserveSoftBreaks { get; set; } = true;
+   
+   public bool AddBlockNewLines { get; set; } = true;
    
    public Func<ReadOnlySpan<char>, string>? SanitizerFunc { get; set; }
    

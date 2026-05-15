@@ -66,7 +66,10 @@ public sealed class BlockNodeHtmlTests
          ```
          """;
 
-      const string expectedHtml = """<pre><code>Console.WriteLine(&quot;hello&quot;);</code></pre>""";
+      const string expectedHtml = """
+                                  <pre><code class="language-csharp">Console.WriteLine(&quot;hello&quot;);
+                                  </code></pre>
+                                  """;
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
@@ -85,7 +88,8 @@ public sealed class BlockNodeHtmlTests
       const string expectedHtml =
          """
          <pre><code>first line
-         second line</code></pre>
+         second line
+         </code></pre>
          """;
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
@@ -119,7 +123,7 @@ public sealed class BlockNodeHtmlTests
          > quoted text
          """;
 
-      const string expectedHtml = "<blockquote><h1>Title</h1><p>quoted text</p></blockquote>";
+      const string expectedHtml = "<blockquote>\n<h1>Title</h1><p>quoted text</p></blockquote>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }

@@ -31,7 +31,7 @@ public sealed class IndentedCodeBlockParser : IBlockParser
          CodeLangSpanLength = 0
       });
       
-      var skipAmount = state.LeadingSpaces;
+      var skipAmount = CalculatePhysicalSkipAmount(state.RawLine);
       writer.Add(new MarkdownNode()
       {
          Type = NodeType.IndentedCodeFragment,
@@ -52,7 +52,7 @@ public sealed class IndentedCodeBlockParser : IBlockParser
       
       var newLength = (state.GlobalOffset - node.TextSpan.Start) + state.RawLine.Length;
       node.TextSpan = node.TextSpan with { Length = newLength };
-      var skipAmount = state.LeadingSpaces;
+      var skipAmount = CalculatePhysicalSkipAmount(state.RawLine);
       
       var newLineIndex = writer.WrittenSpan.Length;
        
@@ -69,5 +69,32 @@ public sealed class IndentedCodeBlockParser : IBlockParser
       state.ConsumeRest();
       return true;
 
+   }
+   
+   private static int CalculatePhysicalSkipAmount(ReadOnlySpan<char> line)
+   {
+      var physicalChars = 0;
+      var logicalSpaces = 0;
+
+      for (var i = 0; i < line.Length && logicalSpaces < 4; i++)
+      {
+         if (line[i] == '\t')
+         {
+            physicalChars++;
+            break;
+         }
+         
+         if (line[i] == ' ')
+         {
+            physicalChars++;
+            logicalSpaces++;
+         }
+         else
+         {
+            break;
+         }
+      }
+
+      return physicalChars;
    }
 }

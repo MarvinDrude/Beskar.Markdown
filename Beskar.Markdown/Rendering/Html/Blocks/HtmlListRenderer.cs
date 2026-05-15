@@ -25,10 +25,25 @@ public sealed class HtmlListRenderer : INodeRenderer
       {
          writer.WriteInterpolated($" start=\"{current.ListStartNumber}\"");
       }
-      writer.Write(">");
+
+      if (options.AddBlockNewLines)
+      {
+         writer.WriteLine(">");
+      }
+      else
+      {
+         writer.Write(">");
+      }
       
       current.RenderChildren(context, rawText, nodes, ref writer, options);
       
-      writer.WriteInterpolated($"</{type}>");
+      if (options.AddBlockNewLines)
+      {
+         writer.WriteLineInterpolated($"</{type}>");
+      }
+      else
+      {
+         writer.WriteInterpolated($"</{type}>");
+      }
    }
 }

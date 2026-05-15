@@ -27,17 +27,17 @@ public sealed class HtmlImageRenderer : INodeRenderer
       }
       
       writer.WriteInterpolated($"<img src=\"");
-      writer.WriteHtmlEncoded(url);
+      writer.WriteHtmlEncoded(url, encodeApostrophe: false);
       writer.Write("\" alt=\"");
-      writer.WriteHtmlEncoded(title);
+      writer.WriteHtmlDecodedAndEncoded(title, encodeApostrophe: false);
       writer.Write("\" ");
 
       if (current.LinkTitleOffset > 0)
       {
          var startIndex = current.LinkUrlStart + current.LinkUrlLength + current.LinkTitleOffset;
-         writer.Write(" title=\"");
-         writer.WriteHtmlEncoded(rawText.Slice(startIndex, current.LinkTitleLength));
-         writer.Write("\"");
+         writer.Write("title=\"");
+         writer.WriteHtmlDecodedAndEncoded(rawText.Slice(startIndex, current.LinkTitleLength), encodeApostrophe: false);
+         writer.Write("\" ");
       }
       
       writer.Write("/>");

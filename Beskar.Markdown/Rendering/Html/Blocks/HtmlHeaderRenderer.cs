@@ -19,6 +19,14 @@ public sealed class HtmlHeaderRenderer : INodeRenderer
    {
       writer.WriteInterpolated($"<h{current.HeadingLevel}>");
       current.RenderChildren(context, rawText, nodes, ref writer, options);
-      writer.WriteInterpolated($"</h{current.HeadingLevel}>");
+
+      if (options.AddBlockNewLines)
+      {
+         writer.WriteLineInterpolated($"</h{current.HeadingLevel}>");
+      }
+      else
+      {
+         writer.WriteInterpolated($"</h{current.HeadingLevel}>");
+      }
    }
 }

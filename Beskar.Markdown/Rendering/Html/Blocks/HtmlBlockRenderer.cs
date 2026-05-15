@@ -18,6 +18,14 @@ public sealed class HtmlBlockRenderer : INodeRenderer
       RenderOptions options)
    {
       var span = current.TextSpan;
-      writer.Write(span.Slice(rawText));
+
+      if (options.AddBlockNewLines)
+      {
+         writer.WriteLine(span.Slice(rawText));
+      }
+      else
+      {
+         writer.Write(span.Slice(rawText));
+      }
    }
 }

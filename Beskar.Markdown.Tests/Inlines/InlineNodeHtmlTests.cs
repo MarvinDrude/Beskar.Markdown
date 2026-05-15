@@ -132,11 +132,11 @@ public sealed class InlineNodeHtmlTests
          """;
 
       var options = RenderOptions.HtmlDefault;
-      options.PerserveSoftBreaks = false;
+      options.PreserveSoftBreaks = false;
 
       var html = BeMarkdown.ToHtml(markdown, renderOptions: options);
 
-      await Assert.That(html).IsEqualTo("<p>alpha beta</p>");
+      await Assert.That(html).IsEqualTo("<p>alpha beta</p>\n");
    }
 
    [Test]
@@ -157,7 +157,7 @@ public sealed class InlineNodeHtmlTests
    public Task TrailingSpacesLineBreakRendersBreakElement()
    {
       const string markdown = "alpha  \nbeta";
-      const string expectedHtml = "<p>alpha<br />beta</p>";
+      const string expectedHtml = "<p>alpha<br />\nbeta</p>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }

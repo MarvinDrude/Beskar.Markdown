@@ -18,7 +18,7 @@ public sealed class MarkdownOptionBuilderTests
         var options = MarkdownOptionBuilder.Create().Build();
 
         await Assert.That(options.ParserOptions.MaxBlockDepth).IsEqualTo(16);
-        await Assert.That(options.RenderOptions.PerserveSoftBreaks).IsTrue();
+        await Assert.That(options.RenderOptions.PreserveSoftBreaks).IsTrue();
         await Assert.That(options.RenderOptions.SanitizerFunc).IsNull();
     }
 
@@ -44,13 +44,13 @@ public sealed class MarkdownOptionBuilderTests
     }
 
     [Test]
-    public async Task WithPerserveSoftBreaks_SetsPerserveSoftBreaks()
+    public async Task WithPreserveSoftBreaks_SetsPreserveSoftBreaks()
     {
-        var options = MarkdownOptionBuilder.Create()
-            .WithPerserveSoftBreaks(false)
-            .Build();
+       var options = MarkdownOptionBuilder.Create()
+          .WithPreserveSoftBreaks(false)
+          .Build();
 
-        await Assert.That(options.RenderOptions.PerserveSoftBreaks).IsFalse();
+       await Assert.That(options.RenderOptions.PreserveSoftBreaks).IsFalse();
     }
 
     [Test]

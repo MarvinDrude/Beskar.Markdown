@@ -16,6 +16,6 @@ public sealed class HtmlSoftBreakRenderer : INodeRenderer
       ReadOnlySpan<MarkdownNode> nodes,
       RenderOptions options)
    {
-      writer.Write(options.PerserveSoftBreaks ? "\n" : " ");
+      writer.Write(options.PreserveSoftBreaks ? "\n" : " ");
    }
 }

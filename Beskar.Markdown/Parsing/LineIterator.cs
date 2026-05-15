@@ -4,7 +4,9 @@ namespace Beskar.Markdown.Parsing;
 
 public ref struct LineIterator(ReadOnlySpan<char> rawText)
 {
+   private readonly ReadOnlySpan<char> _rawTextFull = rawText;
    private ReadOnlySpan<char> _rawText = rawText;
+   
    private int _consumedOffset = 0;
 
    public bool TryMoveNext<TData>(MarkdownContext<TData> context, out LineState<TData> state)
@@ -35,7 +37,7 @@ public ref struct LineIterator(ReadOnlySpan<char> rawText)
          lineLengthWithSeparator = _rawText.Length;
       }
 
-      state = new LineState<TData>(context, line, _consumedOffset);
+      state = new LineState<TData>(context, _rawTextFull, line, _consumedOffset);
       
       _rawText = _rawText[lineLengthWithSeparator..];
       _consumedOffset += lineLengthWithSeparator;

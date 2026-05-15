@@ -103,7 +103,7 @@ var sanitizer = new HtmlSanitizer();
 var safeHtml = sanitizer.Sanitize(rawHtml);
 ```
 
-If your sanitizer supports spans, you can use the following to prevent double allocation like above:
+If your sanitizer supports spans, you can use the following to prevent double allocation unlike above:
 ```csharp
 var options = RenderOptions.HtmlDefault;
 options.SanitizerFunc = (span) => HtmlSanitizer.Sanitize(span);
