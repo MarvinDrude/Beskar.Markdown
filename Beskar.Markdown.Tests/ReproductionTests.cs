@@ -20,4 +20,22 @@ public sealed class ReproductionTests
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
+
+   [Test]
+   public Task HardLineBreakWithSpaces()
+   {
+      const string markdown = "foo  \nbaz";
+      const string expectedHtml = "<p>foo<br />\nbaz</p>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task NestedEmphasis()
+   {
+      const string markdown = "_*foo*_";
+      const string expectedHtml = "<p><em><em>foo</em></em></p>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
 }
