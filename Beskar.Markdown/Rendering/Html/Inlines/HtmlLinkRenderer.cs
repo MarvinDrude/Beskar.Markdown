@@ -21,7 +21,7 @@ public sealed class HtmlLinkRenderer : INodeRenderer
       var url = rawText.Slice(current.LinkUrlStart, current.LinkUrlLength);
       
       writer.Write("<a href=\"");
-      writer.WriteMarkdownUrlEncoded(url);
+      writer.WriteCommonMarkdownUrlEncoded(url);
       writer.Write("\"");
 
       if (current.LinkTitleOffset > -1)
