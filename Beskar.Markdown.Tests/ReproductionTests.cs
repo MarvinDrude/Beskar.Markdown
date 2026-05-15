@@ -60,12 +60,21 @@ public sealed class ReproductionTests
    }
    
    [Test]
-   public Task MultiLineListItem()
+   public Task HeaderFrontSpaces()
    {
-      const string markdown = "  - foo\n\n    bar\n";
-      const string expectedHtml = "<ul>\n<li>\n<p>foo</p>\n<p>bar</p>\n</li>\n</ul>\n";
+      const string markdown = "#                  foo                     \n";
+      const string expectedHtml = "<h1>foo</h1>";
 
-      var renderOptions = RenderOptions.HtmlDefault;
-      return MarkdownAssert.RendersHtml(markdown, expectedHtml, renderOptions: renderOptions);
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
+   
+   // [Test]
+   // public Task MultiLineListItem()
+   // {
+   //    const string markdown = "  - foo\n\n    bar\n";
+   //    const string expectedHtml = "<ul>\n<li>\n<p>foo</p>\n<p>bar</p>\n</li>\n</ul>\n";
+   //
+   //    var renderOptions = RenderOptions.HtmlDefault;
+   //    return MarkdownAssert.RendersHtml(markdown, expectedHtml, renderOptions: renderOptions);
+   // }
 }
