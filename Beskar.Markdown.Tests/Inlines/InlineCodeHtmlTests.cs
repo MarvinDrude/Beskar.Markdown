@@ -35,7 +35,7 @@ public sealed class InlineCodeHtmlTests
    public Task InlineCodeAcrossLines()
    {
       const string markdown = "`code\nacross lines`";
-      const string expectedHtml = "<p>`code\nacross lines`</p>";
+      const string expectedHtml = "<p><code>code across lines</code></p>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
