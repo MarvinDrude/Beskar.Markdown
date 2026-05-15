@@ -1,4 +1,5 @@
-﻿using Beskar.Markdown.Utils;
+﻿using Beskar.Markdown.Parsing.Utils;
+using Beskar.Markdown.Utils;
 using Me.Memory.Buffers;
 
 namespace Beskar.Markdown.Extensions;
@@ -17,7 +18,22 @@ public static class TextWriterIndentSlimExtensions
          for (var i = 0; i < text.Length; i++)
          {
             var c = text[i];
-            if (c == '&')
+            
+            if (c == '\\' && i + 1 < text.Length)
+            {
+               var next = text[i + 1];
+               if (LinkUtils.IsAsciiPunctuation(next))
+               {
+                  if (i > lastIndex) writer.Write(text[lastIndex..i]);
+
+                  writer.WriteCharHtmlEncoded(next);
+                  
+                  i++;
+                  lastIndex = i + 1;
+                  continue;
+               }
+            }
+            else if (c == '&')
             {
                var decodedChar = SpanUtils.TryParseEntity(text[i..], out var consumed);
                if (consumed > 0)
@@ -25,25 +41,7 @@ public static class TextWriterIndentSlimExtensions
                   if (i > lastIndex) 
                      writer.Write(text[lastIndex..i]);
 
-                  switch (decodedChar)
-                  {
-                     case '<':
-                        writer.Write("&lt;");
-                        break;
-                     case '>':
-                        writer.Write("&gt;");
-                        break;
-                     case '"':
-                        writer.Write("&quot;");
-                        break;
-                     case '&':
-                        writer.Write("&amp;");
-                        break;
-                     default:
-                        decoded[0] = decodedChar;
-                        writer.Write(decoded);
-                        break;
-                  }
+                  writer.WriteCharHtmlEncoded(decodedChar);
                   
                   i += consumed - 1;
                   lastIndex = i + 1;
@@ -52,15 +50,7 @@ public static class TextWriterIndentSlimExtensions
             }
 
             // Normal encoding logic for non-entity characters
-            ReadOnlySpan<char> entity = c switch
-            {
-               '<' => "&lt;",
-               '>' => "&gt;",
-               '&' => "&amp;",
-               '"' => "&quot;",
-               '\'' when encodeApostrophe => "&#39;",
-               _ => []
-            };
+            ReadOnlySpan<char> entity = GetEntity(c);
 
             if (!entity.IsEmpty)
             {
@@ -73,43 +63,33 @@ public static class TextWriterIndentSlimExtensions
 
          if (lastIndex < text.Length) 
             writer.Write(text[lastIndex..]);
+         return;
+
+         ReadOnlySpan<char> GetEntity(char c) => c switch
+         {
+            '<' => "&lt;",
+            '>' => "&gt;",
+            '&' => "&amp;",
+            '"' => "&quot;",
+            '\'' when encodeApostrophe => "&#39;",
+            _ => []
+         };
       }
       
-      public void WriteDecodedEntities(scoped ReadOnlySpan<char> text)
+      private void WriteCharHtmlEncoded(char c)
       {
-         if (text.IsEmpty) return;
-
-         var lastIndex = 0;
-         Span<char> singleCharSpan = stackalloc char[1];
-
-         for (var i = 0; i < text.Length; i++)
-         {
-            if (text[i] != '&') continue;
-
-            if (i > lastIndex)
-            {
-               writer.Write(text[lastIndex..i]);
-            }
-
-            var decodedChar = SpanUtils.TryParseEntity(text[i..], out var entityLength);
-            if (entityLength > 0)
-            {
-               singleCharSpan[0] = decodedChar;
-               writer.Write(singleCharSpan);
+         Span<char> buffer = stackalloc char[1];
          
-               i += entityLength - 1;
-            }
-            else
-            {
-               writer.Write("&");
-            }
-
-            lastIndex = i + 1;
-         }
-
-         if (lastIndex < text.Length)
+         switch (c)
          {
-            writer.Write(text[lastIndex..]);
+            case '<': writer.Write("&lt;"); break;
+            case '>': writer.Write("&gt;"); break;
+            case '"': writer.Write("&quot;"); break;
+            case '&': writer.Write("&amp;"); break;
+            default:
+               buffer[0] = c;
+               writer.Write(buffer);
+               break;
          }
       }
    }

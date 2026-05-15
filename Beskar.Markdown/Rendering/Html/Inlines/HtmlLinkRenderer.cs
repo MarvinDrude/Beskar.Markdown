@@ -1,5 +1,6 @@
 ﻿using Beskar.Markdown.Extensions;
 using Beskar.Markdown.Parsing.Models;
+using Beskar.Markdown.Parsing.Utils;
 using Beskar.Markdown.Rendering.Interfaces;
 using Me.Memory.Buffers;
 
@@ -43,7 +44,8 @@ public sealed class HtmlLinkRenderer : INodeRenderer
 
       while (currentIndex < text.Length)
       {
-         if (text[currentIndex] == '\\' && currentIndex + 1 < text.Length && IsAsciiPunctuation(text[currentIndex + 1]))
+         if (text[currentIndex] == '\\' && currentIndex + 1 < text.Length 
+            && LinkUtils.IsAsciiPunctuation(text[currentIndex + 1]))
          {
             if (currentIndex > chunkStart)
             {
@@ -65,13 +67,5 @@ public sealed class HtmlLinkRenderer : INodeRenderer
       {
          writer.WriteHtmlEncoded(text[chunkStart..]);
       }
-   }
-
-   private static bool IsAsciiPunctuation(char c)
-   {
-      return c is >= '!' and <= '/' 
-         or >= ':' and <= '@' 
-         or >= '[' and <= '`' 
-         or >= '{' and <= '~';
    }
 }

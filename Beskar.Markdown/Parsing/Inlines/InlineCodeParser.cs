@@ -115,12 +115,18 @@ public sealed class InlineCodeParser : IInlineParser
       var contentStart = state.GlobalOffset + markerLength;
       var contentLength = closeIndex - markerLength;
 
-      if (contentLength >= 2 && IsSpaceOrLineEnding(rawText[rawBase + markerLength]) && IsSpaceOrLineEnding(rawText[rawBase + closeIndex - 1]))
+      if (contentLength >= 2 
+         && IsSpaceOrLineEnding(rawText[rawBase + markerLength]) 
+         && IsSpaceOrLineEnding(rawText[rawBase + closeIndex - 1]))
       {
          var allSpaces = true;
          for (var k = rawBase + markerLength; k < rawBase + closeIndex; k++)
          {
-            if (!IsSpaceOrLineEnding(rawText[k])) { allSpaces = false; break; }
+            if (!IsSpaceOrLineEnding(rawText[k]))
+            {
+               allSpaces = false;
+               break;
+            }
          }
 
          if (!allSpaces)
