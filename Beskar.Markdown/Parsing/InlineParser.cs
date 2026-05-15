@@ -146,19 +146,19 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
       // Flush any leftover text at the end of the line
       if (plainTextLength > 0)
       {
+         var lineSpan = state.RawText.Slice(plainTextStart, plainTextLength);
+         var trailingSpaces = 0;
+         while (trailingSpaces < plainTextLength)
+         {
+            var c = lineSpan[plainTextLength - 1 - trailingSpaces];
+            if (c is ' ' or '\t')
+               trailingSpaces++;
+            else
+               break;
+         }
+
          if (!isLastLine)
          {
-            var lineSpan = state.RawText.Slice(plainTextStart, plainTextLength);
-            var trailingSpaces = 0;
-            while (trailingSpaces < plainTextLength)
-            {
-               var c = lineSpan[plainTextLength - 1 - trailingSpaces];
-               if (c is ' ' or '\t')
-                  trailingSpaces++;
-               else
-                  break;
-            }
-
             if (trailingSpaces > 0)
             {
                var subSpan = lineSpan[..plainTextLength];
@@ -171,6 +171,13 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
                   return;
                }
             }
+         }
+         else if (trailingSpaces > 0)
+         {
+            var textLen = plainTextLength - trailingSpaces;
+            if (textLen > 0)
+               AddInlineNode(ref writer, parentIndex, NodeType.Text, plainTextStart, textLen);
+            return;
          }
 
          AddInlineNode(ref writer, parentIndex, NodeType.Text, plainTextStart, plainTextLength);
@@ -332,7 +339,7 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
       var span = _rawText.Slice(start, length);
       var state = new InlineState<TData>(context, _rawText, span, start);
       
-      ProcessState(ref state, parentIndex, ref writer, options, isLastLine: true);
+      ProcessState(ref state, parentIndex, ref writer, options, isLastLine: false);
    }
    
    public void AddDelimiter(scoped in Delimiter delimiter)
