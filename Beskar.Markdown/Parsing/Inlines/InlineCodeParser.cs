@@ -58,7 +58,19 @@ public sealed class InlineCodeParser : IInlineParser
       
       if (closeIndex == -1)
       {
-         return false; 
+         var literalIndex = writer.WrittenSpan.Length;
+         writer.Add(new MarkdownNode()
+         {
+            Type = NodeType.Text,
+            TextSpan = new TextSpan(state.GlobalOffset, markerLength),
+            FirstChildIndex = -1,
+            NextSiblingIndex = -1
+         });
+
+         parser.LinkInlineNode(ref writer, parentIndex, literalIndex);
+         
+         state.Advance(markerLength);
+         return true;
       }
       
       var contentStart = state.GlobalOffset + markerLength;
