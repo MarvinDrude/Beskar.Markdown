@@ -111,7 +111,7 @@ public sealed class CodeBlockHtmlTests
            code
            ```
          """;
-      const string expectedHtml = "<pre><code>  code\n</code></pre>";
+      const string expectedHtml = "<pre><code>code\n</code></pre>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }

@@ -81,8 +81,9 @@ public sealed class CodeBlockParser : IBlockParser
          NextSiblingIndex = -1,
          CodeBlockMarker = marker,
          CodeBlockFenceCount = (ushort)count,
+         CodeBlockIndent = (ushort)state.LeadingSpaces,
          CodeLangSpanStart = langStart != -1 ? state.GlobalOffset + langStart : 0,
-         CodeLangSpanLength = langLength
+         CodeLangSpanLength = (ushort)langLength
       });
 
       state.ConsumeRest();

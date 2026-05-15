@@ -47,4 +47,13 @@ public sealed class ReproductionTests
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
+   
+   [Test]
+   public Task SpacesBeforeCodeBlock()
+   {
+      const string markdown = " ```\n aaa\naaa\n```\n";
+      const string expectedHtml = "<pre><code>aaa\naaa\n</code></pre>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
 }
