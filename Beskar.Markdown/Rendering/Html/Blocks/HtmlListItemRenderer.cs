@@ -17,6 +17,10 @@ public sealed class HtmlListItemRenderer : INodeRenderer
       ReadOnlySpan<MarkdownNode> nodes,
       RenderOptions options)
    {
+      var hasBlockChildren = current.FirstChildIndex != -1
+         && nodes[current.FirstChildIndex].Type == NodeType.Paragraph
+         && nodes[current.FirstChildIndex].ParagraphIsWrapped == 1;
+
       writer.Write("<li>");
 
       if (current.TaskListStatus != 0)
@@ -30,7 +34,12 @@ public sealed class HtmlListItemRenderer : INodeRenderer
             writer.Write("<input checked=\"\" disabled=\"\" type=\"checkbox\"> ");
          }
       }
-      
+
+      if (hasBlockChildren && options.AddBlockNewLines)
+      {
+         writer.WriteLine();
+      }
+
       current.RenderChildren(context, rawText, nodes, ref writer, options);
 
       if (options.AddBlockNewLines)
