@@ -157,7 +157,7 @@ public sealed class InlineNodeHtmlTests
    public Task TrailingSpacesLineBreakRendersBreakElement()
    {
       const string markdown = "alpha  \nbeta";
-      const string expectedHtml = "<p>alpha\nbeta</p>";
+      const string expectedHtml = "<p>alpha<br />\nbeta</p>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
