@@ -15,4 +15,6 @@ public struct Delimiter
    public bool CanClose;
 
    public bool Active;
+
+   public ushort NestingLevel;
 }

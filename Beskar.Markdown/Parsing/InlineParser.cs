@@ -15,6 +15,8 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
    
    private bool _hasDelimiterBuffer;
 
+   private ushort _nestingLevel;
+
    public void Parse(ref BufferWriter<MarkdownNode> writer, 
       MarkdownContext<TData> context, ParserOptions options)
    {
@@ -200,7 +202,7 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
          {
             ref var opener = ref _delimiters.GetReference(j);
 
-            if (!opener.Active || !opener.CanOpen || opener.Marker != closer.Marker)
+            if (!opener.Active || !opener.CanOpen || opener.Marker != closer.Marker || opener.NestingLevel != closer.NestingLevel)
                continue;
 
             if ((opener.CanOpen || opener.CanClose) && (closer.CanOpen || closer.CanClose))
@@ -336,10 +338,12 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
    {
       if (length <= 0) return;
       
+      _nestingLevel++;
       var span = _rawText.Slice(start, length);
       var state = new InlineState<TData>(context, _rawText, span, start);
       
       ProcessState(ref state, parentIndex, ref writer, options, isLastLine: false);
+      _nestingLevel--;
    }
    
    public void AddDelimiter(scoped in Delimiter delimiter)
@@ -350,7 +354,9 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
          _hasDelimiterBuffer = true;
       }
 
-      _delimiters.Add(delimiter);
+      var d = delimiter;
+      d.NestingLevel = _nestingLevel;
+      _delimiters.Add(d);
    }
 
    public void Dispose()

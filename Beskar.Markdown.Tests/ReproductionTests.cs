@@ -68,6 +68,24 @@ public sealed class ReproductionTests
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
    
+   [Test]
+   public Task EmphasisWithLinkNoEmphasis()
+   {
+      const string markdown = "*[bar*](/url)\n";
+      const string expectedHtml = "<p>*<a href=\"/url\">bar*</a></p>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+   
+   [Test]
+   public Task EmphasisWithLinkNoEmphasis2()
+   {
+      const string markdown = "*[bar](/url)*";
+      const string expectedHtml = "<p><em><a href=\"/url\">bar</a></em></p>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+   
    // [Test]
    // public Task MultiLineListItem()
    // {

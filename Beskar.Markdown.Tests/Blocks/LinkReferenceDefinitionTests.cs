@@ -87,7 +87,7 @@ public class LinkReferenceDefinitionTests
    public Task BackslashEscapes()
    {
       const string markdown = "[foo]: /url\\bar\\*baz \"foo\\\"bar\\\\baz\"\n\n[foo]";
-      const string expected = "<p><a href=\"/url%5Cbar%5C*baz\" title=\"foo&quot;bar\\baz\">foo</a></p>";
+      const string expected = "<p><a href=\"/url%5Cbar*baz\" title=\"foo&quot;bar\\baz\">foo</a></p>";
 
       return MarkdownAssert.RendersHtml(markdown, expected);
    }
