@@ -226,11 +226,25 @@ public ref struct MarkdownParser<TData>(
                         var isFirstChild = parentNodeRef.FirstChildIndex == -1;
                         var prevSiblingIsParagraph = !isFirstChild && _writer.WrittenSpan[parentNodeRef.LastChildIndex].Type == NodeType.Paragraph;
 
-                        if (parentNodeRef.Type != NodeType.ListItem 
-                            || (isFirstChild && lastLineWasBlank) 
-                            || (!isFirstChild && !prevSiblingIsParagraph))
+                        var isLooseListItem = !isFirstChild && lastLineWasBlank;
+                        if (parentNodeRef.Type != NodeType.ListItem
+                            || (isFirstChild && lastLineWasBlank)
+                            || (!isFirstChild && !prevSiblingIsParagraph)
+                            || isLooseListItem)
                         {
                            pNode.ParagraphIsWrapped = 1;
+                        }
+                        
+                        if (isLooseListItem)
+                        {
+                           var childIdx = parentNodeRef.FirstChildIndex;
+                           while (childIdx != -1)
+                           {
+                              ref var child = ref _writer.GetReference(childIdx);
+                              if (child.Type == NodeType.Paragraph)
+                                 child.ParagraphIsWrapped = 1;
+                              childIdx = child.NextSiblingIndex;
+                           }
                         }
 
                         LinkNodes(currentParentIndex, pIndex);

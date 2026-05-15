@@ -24,29 +24,28 @@ public sealed class ListItemParser : IBlockParser
 
       var nodeIndex = writer.WrittenSpan.Length;
       var markerStartOffset = state.GlobalOffset + state.FirstNonSpaceIndex;
-      var originalLeadingSpaces = state.LeadingSpaces;
       var visibleMarkerLength = 0;
-      
+
       for (var i = state.FirstNonSpaceIndex; i < state.RawLine.Length; i++)
       {
          if (state.RawLine[i] == ' ' || state.RawLine[i] == '\t') break;
          visibleMarkerLength++;
       }
-      
-      state.Slice(state.FirstNonSpaceIndex + markerLength);
-      
+
+      state.Slice(markerLength);
+
       var spacesAfterMarker = 0;
       while (spacesAfterMarker < state.RawLine.Length && state.RawLine[spacesAfterMarker] == ' ')
       {
          spacesAfterMarker++;
       }
-      
+
       if (spacesAfterMarker == 0 && state.IsBlank || spacesAfterMarker > 4)
       {
          spacesAfterMarker = 1;
       }
 
-      var contentIndent = originalLeadingSpaces + markerLength + spacesAfterMarker;
+      var contentIndent = markerLength + spacesAfterMarker;
       state.Slice(spacesAfterMarker);
 
       writer.Add(new MarkdownNode()

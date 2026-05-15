@@ -95,13 +95,13 @@ public sealed class ReproductionTests
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
    
-   // [Test]
-   // public Task MultiLineListItem()
-   // {
-   //    const string markdown = "  - foo\n\n    bar\n";
-   //    const string expectedHtml = "<ul>\n<li>\n<p>foo</p>\n<p>bar</p>\n</li>\n</ul>\n";
-   //
-   //    var renderOptions = RenderOptions.HtmlDefault;
-   //    return MarkdownAssert.RendersHtml(markdown, expectedHtml, renderOptions: renderOptions);
-   // }
+   [Test]
+   public Task MultiLineListItem()
+   {
+      const string markdown = "  - foo\n\n    bar\n";
+      const string expectedHtml = "<ul>\n<li>\n<p>foo</p>\n<p>bar</p>\n</li>\n</ul>\n";
+   
+      var renderOptions = RenderOptions.HtmlDefault;
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml, renderOptions: renderOptions);
+   }
 }
