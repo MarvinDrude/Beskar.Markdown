@@ -193,6 +193,12 @@ public ref struct MarkdownParser<TData>(
                   var textIndex = _writer.WrittenSpan.Length;
                   var trailingSpaces = SpanUtils.CountTrailingSpaces(state.RawLine);
                   
+                  if (trailingSpaces > 0 && SpanUtils.IsHardBreak(state.RawLine))
+                  {
+                     // preserve the spaces for the inline parser to handle the hard break
+                     trailingSpaces = 0;
+                  }
+                  
                   _writer.Add(new MarkdownNode()
                   {
                      Type = NodeType.Text,

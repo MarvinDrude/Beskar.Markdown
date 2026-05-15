@@ -55,7 +55,8 @@ public static class SpanUtils
       var count = 0;
       for (var i = span.Length - 1; i >= 0; i--)
       {
-         if (span[i] == ' ')
+         var c = span[i];
+         if (c is ' ' or '\t')
          {
             count++;
          }
@@ -66,5 +67,16 @@ public static class SpanUtils
       }
 
       return count;
+   }
+
+   public static bool IsHardBreak(ReadOnlySpan<char> span)
+   {
+      if (span.Length == 0) return false;
+      
+      var last = span[^1];
+      if (last == '\t') return true;
+      if (last != ' ') return false;
+      
+      return span.Length >= 2 && span[^2] == ' ';
    }
 }

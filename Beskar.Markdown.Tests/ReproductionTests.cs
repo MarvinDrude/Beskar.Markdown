@@ -31,10 +31,19 @@ public sealed class ReproductionTests
    }
 
    [Test]
-   public Task NestedEmphasis()
+   public Task HardLineBreakWithTab()
    {
-      const string markdown = "_*foo*_";
-      const string expectedHtml = "<p><em><em>foo</em></em></p>";
+      const string markdown = "foo\t\nbaz";
+      const string expectedHtml = "<p>foo<br />\nbaz</p>";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task HardLineBreakWithThreeSpaces()
+   {
+      const string markdown = "foo   \nbaz";
+      const string expectedHtml = "<p>foo<br />\nbaz</p>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }

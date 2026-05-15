@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Beskar.Markdown.Extensions;
 using Beskar.Markdown.Parsing.Models;
+using Beskar.Markdown.Utils;
 using Me.Memory.Buffers;
 
 namespace Beskar.Markdown.Parsing;
@@ -145,22 +146,30 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
       // Flush any leftover text at the end of the line
       if (plainTextLength > 0)
       {
-         if (!isLastLine && plainTextLength >= 2)
+         if (!isLastLine)
          {
+            var lineSpan = state.RawText.Slice(plainTextStart, plainTextLength);
             var trailingSpaces = 0;
-            while (trailingSpaces < plainTextLength &&
-                   state.RawText[plainTextStart + plainTextLength - 1 - trailingSpaces] == ' ')
+            while (trailingSpaces < plainTextLength)
             {
-               trailingSpaces++;
+               var c = lineSpan[plainTextLength - 1 - trailingSpaces];
+               if (c is ' ' or '\t')
+                  trailingSpaces++;
+               else
+                  break;
             }
 
-            if (trailingSpaces >= 2)
+            if (trailingSpaces > 0)
             {
-               var textLen = plainTextLength - trailingSpaces;
-               if (textLen > 0)
-                  AddInlineNode(ref writer, parentIndex, NodeType.Text, plainTextStart, textLen);
-               AddInlineNode(ref writer, parentIndex, NodeType.LineBreak, plainTextStart + textLen, trailingSpaces);
-               return;
+               var subSpan = lineSpan[..plainTextLength];
+               if (SpanUtils.IsHardBreak(subSpan))
+               {
+                  var textLen = plainTextLength - trailingSpaces;
+                  if (textLen > 0)
+                     AddInlineNode(ref writer, parentIndex, NodeType.Text, plainTextStart, textLen);
+                  AddInlineNode(ref writer, parentIndex, NodeType.LineBreak, plainTextStart + textLen, trailingSpaces);
+                  return;
+               }
             }
          }
 
