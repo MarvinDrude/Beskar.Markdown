@@ -1,4 +1,6 @@
 
+using Beskar.Markdown.Rendering;
+
 namespace Beskar.Markdown.Tests;
 
 public sealed class ReproductionTests
@@ -55,5 +57,15 @@ public sealed class ReproductionTests
       const string expectedHtml = "<pre><code>aaa\naaa\n</code></pre>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+   
+   [Test]
+   public Task MultiLineListItem()
+   {
+      const string markdown = "  - foo\n\n    bar\n";
+      const string expectedHtml = "<ul>\n<li>\n<p>foo</p>\n<p>bar</p>\n</li>\n</ul>\n";
+
+      var renderOptions = RenderOptions.HtmlDefault;
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml, renderOptions: renderOptions);
    }
 }
