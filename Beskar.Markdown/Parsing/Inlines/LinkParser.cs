@@ -282,11 +282,6 @@ public sealed class LinkParser : IInlineParser
       var closeBracketIndex = FindClosingBracket(text);
       if (closeBracketIndex == -1) return false;
 
-      if (ContainsInlineLink(context, text[1..closeBracketIndex]))
-      {
-         return true;
-      }
-
       if (closeBracketIndex + 1 < text.Length && text[closeBracketIndex + 1] == '(')
       {
          return TryScanInlineLink(text, closeBracketIndex, out _);

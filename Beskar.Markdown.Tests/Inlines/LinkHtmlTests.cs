@@ -68,6 +68,15 @@ public sealed class LinkHtmlTests
    }
 
    [Test]
+   public Task DeepBracketRunDoesNotExplodeNestedLinkDetection()
+   {
+      const string markdown = "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]";
+      const string expectedHtml = """<p>[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]</p>""";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
    public Task LinkWithNewlinesInTitle()
    {
       const string markdown = "[link](url 'title with newline')";
