@@ -41,31 +41,56 @@ public sealed class InlineHtmlParser : IInlineParser
       }
       else
       {
-         var next = text[1];
-         var isValidStart = char.IsLetter(next) || next == '/' || next == '!' || next == '?';
-
-         if (isValidStart)
+         if (text.Length < 3) return false;
+         
+         if (text[1] == '/')
          {
-            for (var i = 1; i < text.Length; i++)
+            var i = 2;
+            while (i < text.Length && (char.IsAsciiLetterOrDigit(text[i]) || text[i] == '-')) 
+               i++;
+            
+            if (i == 2) 
+               return false;
+            
+            while (i < text.Length && char.IsWhiteSpace(text[i])) 
+               i++;
+            
+            if (i < text.Length && text[i] == '>')
             {
-               if (text[i] == '>')
-               {
-                  closeIdx = i;
-                  break;
-               }
+               closeIdx = i;
             }
-
-            if (closeIdx == -1)
+         }
+         else if (text[1] == '!')
+         {
+            if (text.StartsWith("<!--", StringComparison.Ordinal))
             {
-               // Search in full text
-               var fullText = state.RawText[state.GlobalOffset..];
-               for (var i = 1; i < fullText.Length; i++)
+               var endIdx = text[4..].IndexOf("-->", StringComparison.Ordinal);
+               if (endIdx != -1) closeIdx = endIdx + 4 + 2;
+            }
+            else if (text.Length > 2 && char.IsAsciiLetterUpper(text[2]))
+            {
+               var endIdx = text.IndexOf('>');
+               if (endIdx != -1) closeIdx = endIdx;
+            }
+         }
+         else if (text[1] == '?')
+         {
+            var endIdx = text[2..].IndexOf("?>", StringComparison.Ordinal);
+            if (endIdx != -1) closeIdx = endIdx + 2 + 1;
+         }
+         else if (char.IsAsciiLetter(text[1]))
+         {
+            var i = 2;
+            while (i < text.Length && (char.IsAsciiLetterOrDigit(text[i]) || text[i] == '-')) 
+               i++;
+            
+            if (i < text.Length)
+            {
+               var c = text[i];
+               if (c == '>' || char.IsWhiteSpace(c) || (c == '/' && i + 1 < text.Length && text[i + 1] == '>'))
                {
-                  if (fullText[i] == '>')
-                  {
-                     closeIdx = i;
-                     break;
-                  }
+                  var endIdx = text.IndexOf('>');
+                  if (endIdx != -1) closeIdx = endIdx;
                }
             }
          }

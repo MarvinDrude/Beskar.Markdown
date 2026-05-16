@@ -25,7 +25,7 @@ public sealed class HtmlAutolinkRenderer : INodeRenderer
          writer.Write("mailto:");
       }
       
-      writer.WriteCommonMarkdownUrlEncoded(url);
+      writer.WriteCommonMarkdownUrlEncoded(url, processEscapes: false);
       writer.Write("\">");
       
       writer.WriteHtmlEncoded(url, encodeApostrophe: false);

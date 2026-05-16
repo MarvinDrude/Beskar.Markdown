@@ -98,7 +98,7 @@ public static class TextWriterIndentSlimExtensions
       }
 
       public void WriteCommonMarkdownUrlEncoded(
-         scoped ReadOnlySpan<char> text, bool multiLine = false)
+         scoped ReadOnlySpan<char> text, bool processEscapes = true, bool multiLine = false)
       {
          if (text.IsEmpty) return;
 
@@ -112,10 +112,10 @@ public static class TextWriterIndentSlimExtensions
          var lastIndex = 0;
          var parenDepth = 0;
 
-         for (var i = firstIndex; i < text.Length; i++)
+         for (var i = 0; i < text.Length; i++)
          {
             var c = text[i];
-            if (c == '\\' && i + 1 < text.Length)
+            if (processEscapes && c == '\\' && i + 1 < text.Length)
             {
                var next = text[i + 1];
                if (TextWriterIndentSlim.IsEscapable(next))
