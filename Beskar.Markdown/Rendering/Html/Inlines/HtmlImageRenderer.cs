@@ -18,7 +18,7 @@ public sealed class HtmlImageRenderer : INodeRenderer
       RenderOptions options)
    {
       var url = rawText.Slice(current.LinkUrlStart, current.LinkUrlLength);
-      writer.WriteInterpolated($"<img src=\"");
+      writer.Write("<img src=\"");
       writer.WriteCommonMarkdownUrlEncoded(url);
       writer.Write("\" alt=\"");
       WriteAltText(context, rawText, ref writer, current.FirstChildIndex, nodes, options);

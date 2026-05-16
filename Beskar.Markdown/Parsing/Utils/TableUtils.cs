@@ -91,11 +91,16 @@ public static class TableUtils
             var start = i;
             while (i < line.Length && line[i] != '|') i++;
             
-            var cell = line[start..i].Trim();
-            if (cell.Length > 0)
+            var cellStart = start;
+            var cellEnd = i;
+            
+            while (cellStart < cellEnd && (line[cellStart] == ' ' || line[cellStart] == '\t')) cellStart++;
+            while (cellEnd > cellStart && (line[cellEnd - 1] == ' ' || line[cellEnd - 1] == '\t')) cellEnd--;
+
+            if (cellEnd > cellStart)
             {
-                var left = cell[0] == ':';
-                var right = cell[^1] == ':';
+                var left = line[cellStart] == ':';
+                var right = line[cellEnd - 1] == ':';
                 
                 long val;
                 
@@ -138,9 +143,19 @@ public static class TableUtils
                 i++;
             }
             
-            var cell = line[start..i];
+            var cellEnd = i;
+            var hasContent = false;
             
-            if (i < line.Length || cell.Trim().Length > 0)
+            for (var j = start; j < cellEnd; j++)
+            {
+                if (line[j] is not (' ' or '\t'))
+                {
+                    hasContent = true;
+                    break;
+                }
+            }
+
+            if (i < line.Length || hasContent)
             {
                 count++;
             }
@@ -148,10 +163,18 @@ public static class TableUtils
             if (i < line.Length && line[i] == '|') i++;
             
             if (i >= line.Length) break;
+            var hasRemainingContent = false;
             
-            var remaining = line[i..];
-            
-            if (remaining.Trim().Length == 0) break;
+            for (var j = i; j < line.Length; j++)
+            {
+                if (line[j] is not (' ' or '\t'))
+                {
+                    hasRemainingContent = true;
+                    break;
+                }
+            }
+
+            if (!hasRemainingContent) break;
         }
         
         return count;
@@ -196,14 +219,16 @@ public static class TableUtils
                     i++;
                 }
                 
-                var cellSpan = line[start..i];
-                var trimmedCell = cellSpan.Trim();
-                var cellContentStart = start + (cellSpan.Length - cellSpan.TrimStart().Length);
+                var cellStart = start;
+                var cellEnd = i;
+                
+                while (cellStart < cellEnd && (line[cellStart] == ' ' || line[cellStart] == '\t')) cellStart++;
+                while (cellEnd > cellStart && (line[cellEnd - 1] == ' ' || line[cellEnd - 1] == '\t')) cellEnd--;
                 
                 writer.Add(new MarkdownNode()
                 {
                     Type = NodeType.TableCell,
-                    TextSpan = new TextSpan(globalOffset + cellContentStart, trimmedCell.Length),
+                    TextSpan = new TextSpan(globalOffset + cellStart, cellEnd - cellStart),
                     TableCellAlignment = alignment,
                     IsHeaderCell = (byte)(isHeader ? 1 : 0),
                     FirstChildIndex = -1,

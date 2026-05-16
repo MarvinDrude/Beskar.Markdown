@@ -90,7 +90,8 @@ public sealed class AutolinkParser : IInlineParser
       var localPart = content[..atIdx];
       foreach (var c in localPart)
       {
-         if (!char.IsAsciiLetterOrDigit(c) && !".!#$%&'*+/=?^_`{|}~-".Contains(c))
+         if (!char.IsAsciiLetterOrDigit(c) 
+             && !IsEmailLocalPartPunctuation(c))
             return false;
       }
 
@@ -121,5 +122,11 @@ public sealed class AutolinkParser : IInlineParser
       }
 
       return lastDotIdx != -1;
+   }
+
+   private static bool IsEmailLocalPartPunctuation(char c)
+   {
+      return c is '.' or '!' or '#' or '$' or '%' or '&' or '\'' or '*' or '+'
+         or '/' or '=' or '?' or '^' or '_' or '`' or '{' or '|' or '}' or '~' or '-';
    }
 }

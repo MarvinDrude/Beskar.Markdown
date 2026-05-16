@@ -24,7 +24,7 @@ public sealed class HtmlCodeBlockRenderer : INodeRenderer
       if (current is { CodeLangSpanStart: > -1, CodeLangSpanLength: > 0 })
       {
          var slice = rawText.Slice(current.CodeLangSpanStart, current.CodeLangSpanLength);
-         writer.Write($"<pre><code class=\"language-");
+         writer.Write("<pre><code class=\"language-");
          writer.WriteHtmlDecodedAndEncoded(slice);
          writer.Write("\">");
       }

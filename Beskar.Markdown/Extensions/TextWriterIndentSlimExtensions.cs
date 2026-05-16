@@ -230,14 +230,17 @@ public static class TextWriterIndentSlimExtensions
       private static void WriteUrlEncodedCodePoint(ref TextWriterIndentSlim output, int codePoint)
       {
          Span<byte> utf8 = stackalloc byte[4];
-         var byteCount = Encoding.UTF8.GetBytes(char.ConvertFromUtf32(codePoint).AsSpan(), utf8);
+         var byteCount = new Rune(codePoint).EncodeToUtf8(utf8);
+         
          const string hex = "0123456789ABCDEF";
+         
          Span<char> encoded = stackalloc char[12];
          var outputIndex = 0;
 
          for (var i = 0; i < byteCount; i++)
          {
             var b = utf8[i];
+            
             encoded[outputIndex++] = '%';
             encoded[outputIndex++] = hex[b >> 4];
             encoded[outputIndex++] = hex[b & 0x0F];
