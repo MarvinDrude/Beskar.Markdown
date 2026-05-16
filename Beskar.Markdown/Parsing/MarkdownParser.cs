@@ -50,6 +50,7 @@ public ref struct MarkdownParser<TData>(
       
       while (iterator.TryMoveNext(context, out var state))
       {
+         var currentLineIsBlank = state.IsBlank;
          var matchedLevels = 1; // ignore the document node
          
          // Phase one: continue open blocks if possible
@@ -89,7 +90,52 @@ public ref struct MarkdownParser<TData>(
             var isLazyParagraph = !isParagraphOpen && openBlockCount == matchedLevels && matchedLevels < originalOpenBlockCount && _writer.WrittenSpan[openBlocks[originalOpenBlockCount - 1]].Type == NodeType.Paragraph;
             
             var testParentIndex = isParagraphOpen ? openBlocks[openBlockCount - 2] : currentParentIndex;
-            
+
+            if (_writer.WrittenSpan[testParentIndex].Type is NodeType.List)
+            {
+               var listItemParser = options.GetParserForType((int)NodeType.ListItem);
+               
+               if (listItemParser == null 
+                   || !ShouldTryBlockParser((int)NodeType.ListItem, ref state))
+               {
+                  if (isLazyParagraph)
+                  {
+                     break;
+                  }
+
+                  openBlockCount--;
+                  if (openBlockCount <= 0)
+                  {
+                     openBlockCount = 1;
+                     break;
+                  }
+
+                  continue;
+               }
+
+               var tempState = state;
+               foundNewNodeIndex = listItemParser.TryMatch(ref tempState, testParentIndex, ref _writer);
+               
+               if (foundNewNodeIndex == -1)
+               {
+                  if (isLazyParagraph)
+                  {
+                     break;
+                  }
+
+                  openBlockCount--;
+                  if (openBlockCount <= 0)
+                  {
+                     openBlockCount = 1;
+                     break;
+                  }
+
+                  continue;
+               }
+
+               state = tempState;
+            }
+
             if (isParagraphOpen)
             {
                if (TryMatchSetextUnderline(ref state, currentParentIndex))
@@ -107,33 +153,36 @@ public ref struct MarkdownParser<TData>(
                }
             }
             
-            for (var index = 0; index < options.BlockParsers.Length; index++)
+            if (foundNewNodeIndex == -1)
             {
-               var parser = options.BlockParsers[index];
+               for (var index = 0; index < options.BlockParsers.Length; index++)
+               {
+                  var parser = options.BlockParsers[index];
                
-               if (parser.SupportedTypeValue == (int)NodeType.Paragraph)
-               {
-                  continue;
-               }
+                  if (parser.SupportedTypeValue == (int)NodeType.Paragraph)
+                  {
+                     continue;
+                  }
 
-               if ((isParagraphOpen || isLazyParagraph) && parser.SupportedTypeValue is (int)NodeType.LinkReferenceDefinition 
-                  or (int)NodeType.IndentedCodeBlock)
-               {
-                  continue;
-               }
+                  if ((isParagraphOpen || isLazyParagraph) && parser.SupportedTypeValue is (int)NodeType.LinkReferenceDefinition 
+                     or (int)NodeType.IndentedCodeBlock)
+                  {
+                     continue;
+                  }
 
-               if (!ShouldTryBlockParser(parser.SupportedTypeValue, ref state))
-               {
-                  continue;
-               }
+                  if (!ShouldTryBlockParser(parser.SupportedTypeValue, ref state))
+                  {
+                     continue;
+                  }
                 
-               var tempState = state;
-               foundNewNodeIndex = parser.TryMatch(ref tempState, testParentIndex, ref _writer);
+                  var tempState = state;
+                  foundNewNodeIndex = parser.TryMatch(ref tempState, testParentIndex, ref _writer);
                
-               if (foundNewNodeIndex != -1) 
-               {
-                  state = tempState; // commit state change
-                  break;
+                  if (foundNewNodeIndex != -1) 
+                  {
+                     state = tempState; // commit state change
+                     break;
+                  }
                }
             }
 
@@ -189,7 +238,7 @@ public ref struct MarkdownParser<TData>(
             }
          }
 
-         var isBlankLine = state.IsBlank;
+         var isBlankLine = currentLineIsBlank;
          if (!matchedNew || !state.IsBlank)
          {
             var currentParentIndex = openBlocks[openBlockCount - 1];
@@ -276,6 +325,9 @@ public ref struct MarkdownParser<TData>(
          lastLineWasBlank = isBlankLine;
       }
       
+      MarkListsLooseFromBlankLinesBetweenItems();
+      ApplyLooseListParagraphs();
+
       // process inlines
       var inlineParser = new InlineParser<TData>(_rawText);
       inlineParser.Parse(ref _writer, context, options);
@@ -297,6 +349,176 @@ public ref struct MarkdownParser<TData>(
       ref var lastChild = ref _writer.GetReference(parent.LastChildIndex);
       lastChild.NextSiblingIndex = childIndex;
       parent.LastChildIndex = childIndex;
+   }
+
+   private void ApplyLooseListParagraphs()
+   {
+      var nodes = _writer.WrittenSpan;
+      for (var i = 0; i < nodes.Length; i++)
+      {
+         if (nodes[i] is not { Type: NodeType.List, IsLoose: 1 })
+         {
+            continue;
+         }
+
+         var itemIndex = nodes[i].FirstChildIndex;
+         while (itemIndex != -1)
+         {
+            var item = nodes[itemIndex];
+            if (item.Type == NodeType.ListItem)
+            {
+               var childIndex = item.FirstChildIndex;
+               while (childIndex != -1)
+               {
+                  ref var child = ref _writer.GetReference(childIndex);
+                  if (child.Type == NodeType.Paragraph)
+                  {
+                     child.ParagraphIsWrapped = 1;
+                  }
+
+                  childIndex = child.NextSiblingIndex;
+               }
+            }
+
+            itemIndex = item.NextSiblingIndex;
+         }
+      }
+   }
+
+   private void MarkListsLooseFromBlankLinesBetweenItems()
+   {
+      var nodes = _writer.WrittenSpan;
+      for (var i = 0; i < nodes.Length; i++)
+      {
+         if (nodes[i].Type != NodeType.List)
+         {
+            continue;
+         }
+
+         var itemIndex = nodes[i].FirstChildIndex;
+         while (itemIndex != -1)
+         {
+            var item = nodes[itemIndex];
+            if (ContainsBlankLineBetweenBlockChildren(item))
+            {
+               _writer.GetReference(i).IsLoose = 1;
+               break;
+            }
+
+            var nextItemIndex = item.NextSiblingIndex;
+            if (nextItemIndex != -1)
+            {
+               var itemEnd = GetNodeEnd(itemIndex);
+               var nextItemStart = nodes[nextItemIndex].TextSpan.Start;
+               if (itemEnd >= 0
+                   && nextItemStart > itemEnd
+                   && ContainsBlankLine(_rawText[itemEnd..nextItemStart]))
+               {
+                  _writer.GetReference(i).IsLoose = 1;
+                  break;
+               }
+            }
+
+            itemIndex = nextItemIndex;
+         }
+      }
+   }
+
+   private bool ContainsBlankLineBetweenBlockChildren(MarkdownNode item)
+   {
+      var childIndex = item.FirstChildIndex;
+      while (childIndex != -1)
+      {
+         var child = _writer.WrittenSpan[childIndex];
+         var nextChildIndex = child.NextSiblingIndex;
+         if (nextChildIndex != -1)
+         {
+            var childEnd = GetNodeEnd(childIndex);
+            var nextChildStart = GetNodeStart(nextChildIndex);
+            if (childEnd >= 0
+                && nextChildStart > childEnd
+                && ContainsBlankLine(_rawText[childEnd..nextChildStart]))
+            {
+               return true;
+            }
+         }
+
+         childIndex = nextChildIndex;
+      }
+
+      return false;
+   }
+
+   private int GetNodeEnd(int nodeIndex)
+   {
+      var node = _writer.WrittenSpan[nodeIndex];
+      var end = node.TextSpan.Start >= 0
+         ? node.TextSpan.Start + node.TextSpan.Length
+         : -1;
+
+      var childIndex = node.FirstChildIndex;
+      while (childIndex != -1)
+      {
+         var childEnd = GetNodeEnd(childIndex);
+         if (childEnd > end)
+         {
+            end = childEnd;
+         }
+
+         childIndex = _writer.WrittenSpan[childIndex].NextSiblingIndex;
+      }
+
+      return end;
+   }
+
+   private int GetNodeStart(int nodeIndex)
+   {
+      var node = _writer.WrittenSpan[nodeIndex];
+      var start = node.TextSpan is { Start: >= 0, Length: > 0 }
+         ? node.TextSpan.Start
+         : -1;
+
+      var childIndex = node.FirstChildIndex;
+      while (childIndex != -1)
+      {
+         var childStart = GetNodeStart(childIndex);
+         if (childStart >= 0 && (start < 0 || childStart < start))
+         {
+            start = childStart;
+         }
+
+         childIndex = _writer.WrittenSpan[childIndex].NextSiblingIndex;
+      }
+
+      return start;
+   }
+
+   private static bool ContainsBlankLine(ReadOnlySpan<char> text)
+   {
+      var lineHasContent = true;
+      for (var i = 0; i < text.Length; i++)
+      {
+         var c = text[i];
+         if (c is '\r' or '\n')
+         {
+            if (!lineHasContent)
+            {
+               return true;
+            }
+
+            lineHasContent = false;
+            if (c == '\r' && i + 1 < text.Length && text[i + 1] == '\n')
+            {
+               i++;
+            }
+         }
+         else if (c is not (' ' or '\t'))
+         {
+            lineHasContent = true;
+         }
+      }
+
+      return false;
    }
    
    private bool TryMatchSetextUnderline(ref LineState<TData> state, int paragraphIndex)

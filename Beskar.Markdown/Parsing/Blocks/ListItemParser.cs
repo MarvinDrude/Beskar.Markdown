@@ -13,6 +13,7 @@ public sealed class ListItemParser : IBlockParser
    public int TryMatch<TData>(ref LineState<TData> state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
    {
       if (parentIndex == -1) return -1;
+      if (state.LeadingSpaces >= 4) return -1;
       
       var parent = writer.WrittenSpan[parentIndex];
       if (parent.Type is not NodeType.List) return -1;
