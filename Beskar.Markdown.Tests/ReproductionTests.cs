@@ -114,6 +114,7 @@ public sealed class ReproductionTests
       var renderOptions = RenderOptions.HtmlDefault;
       return MarkdownAssert.RendersHtml(markdown, expectedHtml, renderOptions: renderOptions);
    }
+   
    [Test]
    public Task Tabs_5()
    {

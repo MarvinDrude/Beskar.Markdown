@@ -20,6 +20,9 @@ public ref struct LineState<TData>
    public char FirstChar;
    public bool IsBlank;
 
+   private int _virtualSpaces;
+   public int VirtualSpaces => _virtualSpaces;
+
    public LineState(
       MarkdownContext<TData> context,
       ReadOnlySpan<char> fullText,
@@ -43,7 +46,77 @@ public ref struct LineState<TData>
       RawLine = RawLine[length..];
       
       GlobalOffset += length;
+      _virtualSpaces = 0;
       Recalculate();
+   }
+
+   public void SliceIndentation(int amount)
+   {
+      if (amount <= 0) return;
+
+      var physicalToSlice = 0;
+
+      if (_virtualSpaces > 0)
+      {
+         var toTake = Math.Min(amount, _virtualSpaces);
+         _virtualSpaces -= toTake;
+         amount -= toTake;
+      }
+
+      while (amount > 0 && physicalToSlice < RawLine.Length)
+      {
+         var c = RawLine[physicalToSlice];
+         var currentAmount = 0;
+         
+         if (c == ' ')
+         {
+            currentAmount = 1;
+            physicalToSlice++;
+         }
+         else if (c == '\t')
+         {
+            var tabSpaces = 4 - ((LeadingSpaces - GetRemainingLeadingSpaces()) % 4);
+            currentAmount = tabSpaces;
+            physicalToSlice++;
+         }
+         else
+         {
+            break;
+         }
+
+         if (currentAmount > amount)
+         {
+            _virtualSpaces = currentAmount - amount;
+            amount = 0;
+         }
+         else
+         {
+            amount -= currentAmount;
+         }
+      }
+
+      if (physicalToSlice > 0)
+      {
+         RawLine = RawLine[physicalToSlice..];
+         GlobalOffset += physicalToSlice;
+      }
+      
+      Recalculate();
+   }
+
+   private int GetRemainingLeadingSpaces()
+   {
+      var spaces = 0;
+      
+      for (var i = 0; i < RawLine.Length; i++)
+      {
+         var c = RawLine[i];
+         if (c == ' ') spaces++;
+         else if (c == '\t') spaces += 4 - (spaces % 4);
+         else break;
+      }
+      
+      return spaces;
    }
 
    public void ConsumeRest()
@@ -61,7 +134,7 @@ public ref struct LineState<TData>
    [MethodImpl(MethodImplOptions.AggressiveInlining)]
    private void Recalculate()
    {
-      LeadingSpaces = 0;
+      LeadingSpaces = _virtualSpaces;
       FirstNonSpaceIndex = -1;
       FirstChar = '\0';
       IsBlank = true;
@@ -76,7 +149,7 @@ public ref struct LineState<TData>
                LeadingSpaces++;
                break;
             case '\t':
-               LeadingSpaces += 4;
+               LeadingSpaces += 4 - (LeadingSpaces % 4);
                break;
             default:
                FirstNonSpaceIndex = e;

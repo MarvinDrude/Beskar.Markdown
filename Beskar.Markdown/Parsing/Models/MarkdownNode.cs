@@ -30,6 +30,8 @@ public struct MarkdownNode
    public int CodeLangSpanStart;
    [FieldOffset(24)] // NodeType.ListItem
    public int ListIndent;
+   [FieldOffset(24)] // NodeType.IndentedCodeFragment
+   public byte LeadingVirtualSpaces;
    [FieldOffset(24)] // NodeType.Link / NodeType.Image
    public int LinkUrlStart;
    [FieldOffset(24)] // NodeType.AutoLink

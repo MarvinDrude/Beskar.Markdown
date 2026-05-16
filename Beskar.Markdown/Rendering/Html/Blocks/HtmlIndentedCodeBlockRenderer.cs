@@ -63,8 +63,14 @@ public sealed class HtmlIndentedCodeBlockRenderer : INodeRenderer
          var child = nodes[currentChildIndex];
          if (child.Type is not NodeType.IndentedCodeFragment) continue;
 
-         if (child.TextSpan is { Start: >= 0, Length: > 0 })
+         if (child.TextSpan is { Start: >= 0, Length: > 0 } 
+             || child.LeadingVirtualSpaces > 0)
          {
+            for (var i = 0; i < child.LeadingVirtualSpaces; i++)
+            {
+               writer.Write(" ");
+            }
+            
             writer.WriteHtmlEncoded(child.TextSpan.Slice(rawText), encodeApostrophe: false);
          }
          writer.WriteLine();

@@ -20,20 +20,19 @@ public sealed class BlockQuoteParser : IBlockParser
 
       var nodeIndex = writer.WrittenSpan.Length;
       var increment = state.FirstNonSpaceIndex + 1;
+      state.Slice(increment);
       
-      if (state.RawLine.Length > increment && state.RawLine[increment] == ' ')
-      {
-         increment++;
-      }
-
       writer.Add(new MarkdownNode()
       {
          Type = NodeType.BlockQuote,
          FirstChildIndex = -1,
          NextSiblingIndex = -1
       });
-      
-      state.Slice(increment);
+
+      if (!state.IsBlank && state.RawLine[0] == ' ')
+      {
+         state.SliceIndentation(1);
+      }
       return nodeIndex;
    }
 
@@ -46,7 +45,7 @@ public sealed class BlockQuoteParser : IBlockParser
          
          if (!state.IsBlank && state.RawLine[0] == ' ')
          {
-            state.Slice(1);
+            state.SliceIndentation(1);
          }
          
          return true;

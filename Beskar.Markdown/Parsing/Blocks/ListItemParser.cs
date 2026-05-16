@@ -70,30 +70,7 @@ public sealed class ListItemParser : IBlockParser
       if (state.LeadingSpaces < node.ListIndent) 
          return false;
       
-      var charsToSlice = 0;
-      var currentIndent = 0;
-         
-      for (var i = 0; i < state.RawLine.Length; i++)
-      {
-         if (currentIndent >= node.ListIndent) break;
-         
-         if (state.RawLine[i] == ' ')
-         {
-            currentIndent++;
-            charsToSlice++;
-         }
-         else if (state.RawLine[i] == '\t')
-         {
-            currentIndent += 4;
-            charsToSlice++;
-         }
-         else
-         {
-            break;
-         }
-      }
-         
-      state.Slice(charsToSlice);
+      state.SliceIndentation(node.ListIndent);
       return true;
 
    }
