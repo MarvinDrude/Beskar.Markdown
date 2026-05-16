@@ -9,7 +9,7 @@ public static class SpanUtils
          return '\0';
 
       var semiColonIndex = span.IndexOf(';');
-      if (semiColonIndex is -1 or > 10) 
+      if (semiColonIndex is -1 or > 32) 
          return '\0';
 
       var content = span[1..semiColonIndex];
@@ -26,7 +26,10 @@ public static class SpanUtils
       
          if (uint.TryParse(numberSpan, style, null, out var codePoint))
          {
+            if (codePoint > 0x10FFFF) return '\0';
+
             consumed = semiColonIndex + 1;
+            if (codePoint == 0) return '\uFFFD';
             return (char)codePoint; 
          }
       }
@@ -74,6 +77,10 @@ public static class SpanUtils
          "frac34"   => '¾',
          "iquest"   => '¿',
          "euro"     => '€',
+         "Dcaron"   => 'Ď',
+         "HilbertSpace" => 'ℋ',
+         "DifferentialD" => 'ⅆ',
+         "ClockwiseContourIntegral" => '∲',
 
          // Latin-1 Uppercase Letters
          "Agrave"   => 'À',

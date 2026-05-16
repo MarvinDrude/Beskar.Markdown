@@ -8,7 +8,7 @@ namespace Beskar.Markdown.Extensions;
 public static class TextWriterIndentSlimExtensions
 {
    private static readonly SearchValues<char> UrlSearchValues =
-      SearchValues.Create(' ', '"', '\'', '<', '>', '(', ')', '[', ']', '\\');
+      SearchValues.Create(' ', '"', '\'', '<', '>', '(', ')', '[', ']', '\\', '`');
 
    extension(ref TextWriterIndentSlim writer)
    {
@@ -163,6 +163,7 @@ public static class TextWriterIndentSlimExtensions
                '[' => "%5B",
                ']' => "%5D",
                '\\' => "%5C",
+               '`' => "%60",
                _ => []
             };
 

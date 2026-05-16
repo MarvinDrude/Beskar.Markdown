@@ -845,6 +845,14 @@ public sealed class ReproductionTests
    }
 
    [Test]
+   public Task Emphasis_Nested_Simple()
+   {
+      const string markdown = "*_foo_*";
+      const string expectedHtml = "<p><em><em>foo</em></em></p>";
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
    public Task Emphasisandstrongemphasis_353()
    {
       const string markdown = "* a *\n";

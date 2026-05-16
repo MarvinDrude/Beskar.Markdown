@@ -236,6 +236,41 @@ public sealed class LinkParser : IInlineParser
             case '\\':
                if (i + 1 < text.Length && LinkUtils.IsAsciiPunctuation(text[i + 1])) i++;
                continue;
+            case '`':
+            {
+               var markerLen = 1;
+               while (i + markerLen < text.Length && text[i + markerLen] == '`') markerLen++;
+               
+               var closeIdx = -1;
+               for (var j = i + markerLen; j < text.Length; j++)
+               {
+                  if (text[j] == '`')
+                  {
+                     var endMarkerLen = 0;
+                     
+                     while (j + endMarkerLen < text.Length && text[j + endMarkerLen] == '`') 
+                        endMarkerLen++;
+                     
+                     if (endMarkerLen == markerLen)
+                     {
+                        closeIdx = j;
+                        break;
+                     }
+                     
+                     j += endMarkerLen - 1;
+                  }
+               }
+               
+               if (closeIdx != -1)
+               {
+                  i = closeIdx + markerLen - 1;
+               }
+               else
+               {
+                  i += markerLen - 1;
+               }
+               break;
+            }
             case '[':
                depth++;
                break;

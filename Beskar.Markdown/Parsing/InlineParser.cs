@@ -238,18 +238,16 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
             {
                firstChildIdx = -1;
             }
-            else if (closer.PreviousNodeIndex != -1 &&
-                     writer.WrittenSpan[closer.PreviousNodeIndex].NextSiblingIndex == closerNodeIdx)
-            {
-               writer.GetReference(closer.PreviousNodeIndex).NextSiblingIndex = -1;
-            }
             else
             {
                var current = firstChildIdx;
                while (current != -1 && writer.WrittenSpan[current].NextSiblingIndex != closerNodeIdx)
                   current = writer.WrittenSpan[current].NextSiblingIndex;
+               
                if (current != -1)
+               {
                   writer.GetReference(current).NextSiblingIndex = -1;
+               }
             }
 
             var openerFullyConsumed = opener.Length <= consumed;

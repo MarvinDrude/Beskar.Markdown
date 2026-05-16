@@ -86,6 +86,8 @@ public ref struct MarkdownParser<TData>(
 
             // Check if we are currently inside a paragraph that might be interrupted
             var isParagraphOpen = _writer.WrittenSpan[currentParentIndex].Type is NodeType.Paragraph;
+            var isLazyParagraph = !isParagraphOpen && openBlockCount == matchedLevels && matchedLevels < originalOpenBlockCount && _writer.WrittenSpan[openBlocks[originalOpenBlockCount - 1]].Type == NodeType.Paragraph;
+            
             var testParentIndex = isParagraphOpen ? openBlocks[openBlockCount - 2] : currentParentIndex;
             
             if (isParagraphOpen)
@@ -114,7 +116,7 @@ public ref struct MarkdownParser<TData>(
                   continue;
                }
 
-               if (isParagraphOpen && parser.SupportedTypeValue is (int)NodeType.LinkReferenceDefinition 
+               if ((isParagraphOpen || isLazyParagraph) && parser.SupportedTypeValue is (int)NodeType.LinkReferenceDefinition 
                   or (int)NodeType.IndentedCodeBlock)
                {
                   continue;
@@ -183,11 +185,7 @@ public ref struct MarkdownParser<TData>(
             var lastIdx = openBlocks[originalOpenBlockCount - 1];
             if (_writer.WrittenSpan[lastIdx].Type is NodeType.Paragraph)
             {
-               var parentIdx = openBlocks[originalOpenBlockCount - 2];
-               if (_writer.WrittenSpan[parentIdx].Type != NodeType.BlockQuote)
-               {
-                  openBlockCount = originalOpenBlockCount;
-               }
+               openBlockCount = originalOpenBlockCount;
             }
          }
 

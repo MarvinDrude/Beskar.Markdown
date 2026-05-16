@@ -8,8 +8,8 @@ public class WarmupDetailedConfig : DetailedConfig
    public WarmupDetailedConfig()
    {
       AddJob(Job.Default
-         .WithWarmupCount(5)
-         .WithIterationCount(10)
+         .WithWarmupCount(1)
+         .WithIterationCount(4)
          .WithInvocationCount(16 * 2)
          .WithStrategy(RunStrategy.Throughput));
    }
