@@ -1,5 +1,6 @@
 ﻿using Beskar.Markdown.Parsing.Interfaces;
 using Beskar.Markdown.Parsing.Models;
+using Beskar.Markdown.Parsing.Utils;
 using Me.Memory.Buffers;
 
 namespace Beskar.Markdown.Parsing.Inlines;
@@ -11,60 +12,39 @@ public sealed class InlineHtmlParser : IInlineParser
 
    public char TriggerChar => '<';
    public char TriggerAltChar => '<';
-   
-   public bool TryMatch<TData>(ref InlineState<TData> state, int parentIndex, 
+
+   public bool TryMatch<TData>(ref InlineState<TData> state, int parentIndex,
       ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser<TData> parser,
       ParserOptions options)
    {
       var text = state.RemainingText;
       if (text.Length < 3) return false;
 
+      var blockText = state.RawText[state.GlobalOffset..state.BlockEnd];
       var closeIdx = -1;
 
-      if (text.StartsWith("<![CDATA["))
+      if (blockText.StartsWith("<![CDATA["))
       {
-         var terminatorIdx = text.IndexOf("]]>");
+         var terminatorIdx = blockText.IndexOf("]]>");
+
          if (terminatorIdx != -1)
          {
             closeIdx = terminatorIdx + 2;
          }
-         else
-         {
-            // Search in full text
-            var fullText = state.RawText[state.GlobalOffset..];
-            terminatorIdx = fullText.IndexOf("]]>");
-            if (terminatorIdx != -1)
-            {
-               closeIdx = terminatorIdx + 2;
-            }
-         }
       }
       else
       {
-         if (text.Length < 3) return false;
-         
-         if (text[1] == '/')
+         if (blockText.Length < 3) return false;
+
+         if (HtmlTagUtils.TryParseClosingTag(blockText, out var closingTagEnd))
          {
-            var i = 2;
-            while (i < text.Length && (char.IsAsciiLetterOrDigit(text[i]) || text[i] == '-')) 
-               i++;
-            
-            if (i == 2) 
-               return false;
-            
-            while (i < text.Length && char.IsWhiteSpace(text[i])) 
-               i++;
-            
-            if (i < text.Length && text[i] == '>')
-            {
-               closeIdx = i;
-            }
+            closeIdx = closingTagEnd - 1;
          }
          else if (text[1] == '!')
          {
             if (text.StartsWith("<!--", StringComparison.Ordinal))
             {
-               var endIdx = text[4..].IndexOf("-->", StringComparison.Ordinal);
+               var endIdx = blockText[4..].IndexOf("-->", StringComparison.Ordinal);
                if (endIdx != -1) closeIdx = endIdx + 4 + 2;
             }
             else if (text.Length > 2 && char.IsAsciiLetterUpper(text[2]))
@@ -78,21 +58,9 @@ public sealed class InlineHtmlParser : IInlineParser
             var endIdx = text[2..].IndexOf("?>", StringComparison.Ordinal);
             if (endIdx != -1) closeIdx = endIdx + 2 + 1;
          }
-         else if (char.IsAsciiLetter(text[1]))
+         else if (HtmlTagUtils.TryParseOpenTag(blockText, out var openTagEnd))
          {
-            var i = 2;
-            while (i < text.Length && (char.IsAsciiLetterOrDigit(text[i]) || text[i] == '-')) 
-               i++;
-            
-            if (i < text.Length)
-            {
-               var c = text[i];
-               if (c == '>' || char.IsWhiteSpace(c) || (c == '/' && i + 1 < text.Length && text[i + 1] == '>'))
-               {
-                  var endIdx = text.IndexOf('>');
-                  if (endIdx != -1) closeIdx = endIdx;
-               }
-            }
+            closeIdx = openTagEnd - 1;
          }
       }
 
@@ -100,7 +68,7 @@ public sealed class InlineHtmlParser : IInlineParser
 
       var nodeLength = closeIdx + 1;
       var nodeIndex = writer.WrittenSpan.Length;
-      
+
       writer.Add(new MarkdownNode()
       {
          Type = NodeType.InlineHtml,
@@ -111,7 +79,7 @@ public sealed class InlineHtmlParser : IInlineParser
 
       parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
       state.Advance(nodeLength);
-      
+
       return true;
    }
 }

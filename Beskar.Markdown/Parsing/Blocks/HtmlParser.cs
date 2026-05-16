@@ -1,5 +1,6 @@
 ﻿using Beskar.Markdown.Parsing.Interfaces;
 using Beskar.Markdown.Parsing.Models;
+using Beskar.Markdown.Parsing.Utils;
 using Me.Memory.Buffers;
 
 namespace Beskar.Markdown.Parsing.Blocks;
@@ -125,22 +126,17 @@ public sealed class HtmlParser : IBlockParser
       else
       {
          // Type 7: not a block tag, but must be a complete tag followed only by whitespace
-         var closeBracket = -1;
-         for (var j = i; j < line.Length; j++)
+         if (!HtmlTagUtils.TryParseCompleteTag(line, out var tagLength))
          {
-            if (line[j] != '>') continue;
-            closeBracket = j;
-            break;
+            return -1;
          }
 
-         if (closeBracket != -1)
+         for (var j = tagLength; j < line.Length; j++)
          {
-            for (var j = closeBracket + 1; j < line.Length; j++)
-            {
-               if (!char.IsWhiteSpace(line[j])) return -1;
-            }
-            return 7;
+            if (!HtmlTagUtils.IsHtmlWhitespace(line[j])) return -1;
          }
+
+         return 7;
       }
 
       return -1;
