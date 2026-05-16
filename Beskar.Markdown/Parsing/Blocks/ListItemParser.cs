@@ -18,7 +18,8 @@ public sealed class ListItemParser : IBlockParser
       var parent = writer.WrittenSpan[parentIndex];
       if (parent.Type is not NodeType.List) return -1;
 
-      if (!ListUtils.IsListMarker(ref state, out _, out var markerLength, out _))
+      if (!ListUtils.IsListMarker(ref state, out var listChar, out var markerLength, out _)
+          || parent.ListMarker != listChar)
       {
          return -1;
       }
@@ -37,7 +38,7 @@ public sealed class ListItemParser : IBlockParser
       state.Slice(markerLength);
 
       var paddingAfterMarker = state.LeadingSpaces;
-      if ((paddingAfterMarker == 0 && state.IsBlank) || paddingAfterMarker > 4)
+      if (state.IsBlank || paddingAfterMarker > 4)
       {
          paddingAfterMarker = 1;
       }
@@ -62,7 +63,7 @@ public sealed class ListItemParser : IBlockParser
       ref BufferWriter<MarkdownNode> writer)
    {
       if (state.IsBlank) 
-         return true;
+         return node.FirstChildIndex != -1;
 
       if (state.LeadingSpaces < node.ListIndent) 
          return false;

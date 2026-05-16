@@ -35,6 +35,11 @@ public static class ListUtils
       while (i < raw.Length && char.IsDigit(raw[i])
              && byte.TryParse(raw.Slice(i, 1), out var digit))
       {
+         if (i == 9)
+         {
+            return false;
+         }
+
          orderedNumber = orderedNumber * 10 + digit;
          i++;
       }

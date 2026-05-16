@@ -98,7 +98,7 @@ public ref struct MarkdownParser<TData>(
                if (listItemParser == null 
                    || !ShouldTryBlockParser((int)NodeType.ListItem, ref state))
                {
-                  if (isLazyParagraph)
+                  if (state.IsBlank || isLazyParagraph)
                   {
                      break;
                   }
@@ -118,7 +118,9 @@ public ref struct MarkdownParser<TData>(
                
                if (foundNewNodeIndex == -1)
                {
-                  if (isLazyParagraph)
+                  if (isLazyParagraph
+                      && (state.LeadingSpaces >= 4 
+                          || !IsPossibleListMarkerStart(state.FirstChar)))
                   {
                      break;
                   }
@@ -288,12 +290,12 @@ public ref struct MarkdownParser<TData>(
                         ref var parentNodeRef = ref _writer.GetReference(currentParentIndex);
                         
                         var isFirstChild = parentNodeRef.FirstChildIndex == -1;
-                        var prevSiblingIsParagraph = !isFirstChild && _writer.WrittenSpan[parentNodeRef.LastChildIndex].Type == NodeType.Paragraph;
-
+                        var previousSiblingType = isFirstChild ? NodeType.Document : _writer.WrittenSpan[parentNodeRef.LastChildIndex].Type;
                         var isLooseListItem = !isFirstChild && lastLineWasBlank;
+                        
                         if (parentNodeRef.Type != NodeType.ListItem
                             || (isFirstChild && lastLineWasBlank)
-                            || (!isFirstChild && !prevSiblingIsParagraph)
+                            || (!isFirstChild && previousSiblingType is not (NodeType.Paragraph or NodeType.Header))
                             || isLooseListItem)
                         {
                            pNode.ParagraphIsWrapped = 1;
