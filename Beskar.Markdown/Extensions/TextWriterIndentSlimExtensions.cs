@@ -232,7 +232,11 @@ public static class TextWriterIndentSlimExtensions
 
       private static void WriteUrlEncodedChar(ref TextWriterIndentSlim output, char c)
       {
-         TextWriterIndentSlim.WriteUrlEncodedCodePoint(ref output, c);
+         var codePoint = char.IsSurrogate(c)
+            ? Rune.ReplacementChar.Value
+            : c;
+
+         TextWriterIndentSlim.WriteUrlEncodedCodePoint(ref output, codePoint);
       }
 
       private static void WriteUrlEncoded(ref TextWriterIndentSlim output, scoped ReadOnlySpan<char> text)
@@ -247,7 +251,7 @@ public static class TextWriterIndentSlimExtensions
                continue;
             }
 
-            TextWriterIndentSlim.WriteUrlEncodedCodePoint(ref output, text[i]);
+            TextWriterIndentSlim.WriteUrlEncodedCodePoint(ref output, Rune.ReplacementChar.Value);
             i++;
          }
       }

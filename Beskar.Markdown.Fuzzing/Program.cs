@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using Beskar.Markdown;
 using Beskar.Markdown.Extensions;
@@ -103,8 +104,8 @@ while (true)
       // Write to file for reproduction
       try
       {
-         File.WriteAllText("crash_repro.md", input);
-         Console.WriteLine("\nCrash input saved to 'crash_repro.md'");
+         SaveCrashInput(input);
+         Console.WriteLine("\nCrash input saved to 'crash_repro.md' and 'crash_repro.utf16.bin'");
       }
       catch (Exception writeEx)
       {
@@ -121,6 +122,14 @@ while (true)
       Console.Write(
          $"\rIterations: {totalIterations:N0} | IPS: {ips:F0} | Data: {totalBytes / 1024.0 / 1024.0:F2} MB    ");
    }
+}
+
+static void SaveCrashInput(string input)
+{
+   File.WriteAllText("crash_repro.md", input, new UTF8Encoding(false, false));
+
+   using var rawFile = File.Create("crash_repro.utf16.bin");
+   rawFile.Write(MemoryMarshal.AsBytes(input.AsSpan()));
 }
 
 #endif
