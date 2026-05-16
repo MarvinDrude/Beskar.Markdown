@@ -59,10 +59,37 @@ public sealed class LinkHtmlTests
    }
 
    [Test]
+   public Task LinkWithLoneLowSurrogateInDestination()
+   {
+      const string markdown = "[link](a\uDC16b)";
+      const string expectedHtml = """<p><a href="a%EF%BF%BDb">link</a></p>""";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task LinkWithLoneHighSurrogateInDestination()
+   {
+      const string markdown = "[link](a\uD800b)";
+      const string expectedHtml = """<p><a href="a%EF%BF%BDb">link</a></p>""";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
    public Task NestedLinksNotAllowed()
    {
       const string markdown = "[outer [inner](url1)](url2)";
       const string expectedHtml = """<p>[outer <a href="url1">inner</a>](url2)</p>""";
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml);
+   }
+
+   [Test]
+   public Task DeepBracketRunDoesNotExplodeNestedLinkDetection()
+   {
+      const string markdown = "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]";
+      const string expectedHtml = """<p>[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]</p>""";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }

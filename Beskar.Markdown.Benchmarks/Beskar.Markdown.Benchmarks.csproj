@@ -22,6 +22,12 @@
      <None Update="spec.md">
        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
      </None>
+     <None Update="test.md">
+       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+     </None>
+     <None Update="test2.md">
+       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+     </None>
    </ItemGroup>
 
 </Project>

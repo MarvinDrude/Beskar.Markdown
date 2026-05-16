@@ -1,5 +1,7 @@
 # Beskar.Markdown
 
+[![NuGet](https://img.shields.io/nuget/v/Beskar.Markdown)](https://www.nuget.org/packages/Beskar.Markdown)
+
 Beskar.Markdown is a high-performance, low-allocation Markdown parser and HTML renderer 
 for .NET. It is built from the ground up to leverage modern C# features like `Span<T>`, 
 `ReadOnlySequence<T>`, and efficient memory management to provide a blazing-fast and lean experience.
@@ -31,6 +33,7 @@ for .NET. It is built from the ground up to leverage modern C# features like `Sp
 - **Low Allocation**: Minimizes pressure on the Garbage Collector by using stack-allocated buffers and pooling where possible.
 - **Modern C#**: Built for modern .NET, taking advantage of the latest language and runtime optimizations.
 - **Simplicity**: A clean, easy-to-use API that gets the job done without unnecessary complexity.
+- **Tests**: 980 passing tests (652 **CommonMark** Spec Tests)
 
 ## Motivation
 
