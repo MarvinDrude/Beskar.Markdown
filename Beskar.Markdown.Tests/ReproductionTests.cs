@@ -936,7 +936,7 @@ public sealed class ReproductionTests
    [Test]
    public Task Links_507()
    {
-      const string markdown = "[link](/url \"title\")\n";
+      const string markdown = "[link](/url\u00A0\"title\")\n";
       const string expectedHtml = "<p><a href=\"/url%C2%A0%22title%22\">link</a></p>\n";
 
       var renderOptions = RenderOptions.HtmlDefault;

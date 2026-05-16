@@ -18,18 +18,10 @@ public sealed class HtmlImageRenderer : INodeRenderer
       RenderOptions options)
    {
       var url = rawText.Slice(current.LinkUrlStart, current.LinkUrlLength);
-      ReadOnlySpan<char> title = [];
-      
-      if (current.FirstChildIndex != -1)
-      {
-         var child = nodes[current.FirstChildIndex];
-         title = child.TextSpan.Slice(rawText);
-      }
-      
       writer.WriteInterpolated($"<img src=\"");
       writer.WriteCommonMarkdownUrlEncoded(url);
       writer.Write("\" alt=\"");
-      writer.WriteHtmlDecodedAndEncoded(title, encodeApostrophe: false);
+      WriteAltText(context, rawText, ref writer, current.FirstChildIndex, nodes, options);
       writer.Write("\" ");
 
       if (current.LinkTitleOffset > 0)
@@ -41,5 +33,40 @@ public sealed class HtmlImageRenderer : INodeRenderer
       }
       
       writer.Write("/>");
+   }
+
+   private static void WriteAltText<TData>(
+      MarkdownContext<TData> context,
+      ReadOnlySpan<char> rawText,
+      ref TextWriterIndentSlim writer,
+      int childIndex,
+      ReadOnlySpan<MarkdownNode> nodes,
+      RenderOptions options)
+   {
+      while (childIndex != -1)
+      {
+         var child = nodes[childIndex];
+
+         switch (child.Type)
+         {
+            case NodeType.Text:
+            case NodeType.InlineHtml:
+            case NodeType.Autolink:
+               writer.WriteHtmlDecodedAndEncoded(child.TextSpan.Slice(rawText), encodeApostrophe: false);
+               break;
+            case NodeType.InlineCode:
+               writer.WriteHtmlDecodedAndEncoded(child.TextSpan.Slice(rawText).Trim(), encodeApostrophe: false);
+               break;
+            case NodeType.SoftBreak:
+            case NodeType.LineBreak:
+               writer.Write("\n");
+               break;
+            default:
+               WriteAltText(context, rawText, ref writer, child.FirstChildIndex, nodes, options);
+               break;
+         }
+
+         childIndex = child.NextSiblingIndex;
+      }
    }
 }

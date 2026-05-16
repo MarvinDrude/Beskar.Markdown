@@ -22,8 +22,12 @@ public ref struct InlineState<TData>(
    {
       if (length >= RemainingText.Length)
       {
+         var crossedCurrentSpan = length > RemainingText.Length;
          GlobalOffset += length;
-         RemainingText = ReadOnlySpan<char>.Empty;
+         
+         RemainingText = crossedCurrentSpan && GlobalOffset < BlockEnd
+            ? RawText[GlobalOffset..BlockEnd]
+            : ReadOnlySpan<char>.Empty;
       }
       else
       {

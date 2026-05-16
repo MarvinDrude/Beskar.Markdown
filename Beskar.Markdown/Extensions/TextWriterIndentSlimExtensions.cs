@@ -9,7 +9,7 @@ namespace Beskar.Markdown.Extensions;
 public static class TextWriterIndentSlimExtensions
 {
    private static readonly SearchValues<char> UrlSearchValues =
-      SearchValues.Create(' ', '"', '\'', '<', '>', '(', ')', '[', ']', '\\', '`', '&');
+      SearchValues.Create(' ', '"', '\'', '<', '>', '[', ']', '\\', '`', '&');
 
    extension(ref TextWriterIndentSlim writer)
    {
@@ -103,7 +103,7 @@ public static class TextWriterIndentSlimExtensions
       {
          if (text.IsEmpty) return;
 
-         var firstIndex = FindFirstUrlEncodingIndex(text);
+         var firstIndex = TextWriterIndentSlim.FindFirstUrlEncodingIndex(text);
          if (firstIndex == -1)
          {
             writer.Write(text, multiLine);
@@ -111,8 +111,6 @@ public static class TextWriterIndentSlimExtensions
          }
 
          var lastIndex = 0;
-         var parenDepth = 0;
-
          for (var i = 0; i < text.Length; i++)
          {
             var c = text[i];
@@ -144,28 +142,11 @@ public static class TextWriterIndentSlimExtensions
                      writer.Write(text[lastIndex..i]);
                   }
 
-                  WriteUrlEncodedChar(ref writer, decodedChar);
+                  TextWriterIndentSlim.WriteUrlEncodedChar(ref writer, decodedChar);
                   i += consumed - 1;
                   lastIndex = i + 1;
 
                   continue;
-               }
-            }
-
-            var shouldEncodeParen = false;
-            if (c == '(')
-            {
-               parenDepth++;
-            }
-            else if (c == ')')
-            {
-               if (parenDepth > 0)
-               {
-                  parenDepth--;
-               }
-               else
-               {
-                  shouldEncodeParen = true;
                }
             }
 
@@ -176,8 +157,6 @@ public static class TextWriterIndentSlimExtensions
                '\'' => "%27",
                '<' => "%3C",
                '>' => "%3E",
-               '(' when shouldEncodeParen => "%28",
-               ')' when shouldEncodeParen => "%29",
                '[' => "%5B",
                ']' => "%5D",
                '\\' => "%5C",
@@ -196,12 +175,12 @@ public static class TextWriterIndentSlimExtensions
 
                   if (char.IsHighSurrogate(c) && i + 1 < text.Length && char.IsLowSurrogate(text[i + 1]))
                   {
-                     WriteUrlEncodedCodePoint(ref writer, char.ConvertToUtf32(c, text[i + 1]));
+                     TextWriterIndentSlim.WriteUrlEncodedCodePoint(ref writer, char.ConvertToUtf32(c, text[i + 1]));
                      i++;
                   }
                   else
                   {
-                     WriteUrlEncodedChar(ref writer, c);
+                     TextWriterIndentSlim.WriteUrlEncodedChar(ref writer, c);
                   }
 
                   lastIndex = i + 1;
@@ -246,7 +225,7 @@ public static class TextWriterIndentSlimExtensions
 
       private static void WriteUrlEncodedChar(ref TextWriterIndentSlim output, char c)
       {
-         WriteUrlEncodedCodePoint(ref output, c);
+         TextWriterIndentSlim.WriteUrlEncodedCodePoint(ref output, c);
       }
 
       private static void WriteUrlEncodedCodePoint(ref TextWriterIndentSlim output, int codePoint)

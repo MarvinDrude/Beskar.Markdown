@@ -62,7 +62,7 @@ public sealed class LinkHtmlTests
    public Task NestedLinksNotAllowed()
    {
       const string markdown = "[outer [inner](url1)](url2)";
-      const string expectedHtml = """<p><a href="url2">outer <a href="url1">inner</a></a></p>""";
+      const string expectedHtml = """<p>[outer <a href="url1">inner</a>](url2)</p>""";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }

@@ -4040,7 +4040,7 @@
     "section": "Links"
   },
   {
-    "markdown": "[link](/url \"title\")\n",
+    "markdown": "[link](/url\u00A0\"title\")\n",
     "html": "<p><a href=\"/url%C2%A0%22title%22\">link</a></p>\n",
     "example": 507,
     "start_line": 7776,

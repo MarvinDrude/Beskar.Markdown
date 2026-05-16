@@ -10,6 +10,8 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
 {
    public int Priority => 100;
    public int SupportedTypeValue => (int)NodeType.LinkReferenceDefinition;
+   
+   private const int PendingMultilineDefinitionMarker = -2;
 
    public int TryMatch<TData>(
       ref LineState<TData> state, 
@@ -23,7 +25,20 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
       var i = state.FirstNonSpaceIndex;
 
       if (!TryParseLabel(line, i, out var labelEndIndex))
+      {
+         if (TryParseMultilineDefinition(ref state, i, out var multilineNode, out var multilineNormalizedLabel))
+         {
+            var multilineNodeIndex = writer.WrittenSpan.Length;
+            writer.Add(multilineNode);
+            
+            state.Context.ReferenceDefinitions.TryAdd(multilineNormalizedLabel, multilineNodeIndex);
+            state.ConsumeRest();
+            
+            return multilineNodeIndex;
+         }
+
          return -1;
+      }
 
       var labelStart = i + 1;
       var labelLength = labelEndIndex - labelStart;
@@ -57,6 +72,26 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
    public bool CanContinue<TData>(ref MarkdownNode node, ref LineState<TData> state, 
       ref BufferWriter<MarkdownNode> writer)
    {
+      if (node.FirstChildIndex == PendingMultilineDefinitionMarker)
+      {
+         var endOffset = node.LastChildIndex;
+         var lineEnd = state.GlobalOffset + state.RawLine.Length;
+
+         if (lineEnd < endOffset)
+         {
+            state.ConsumeRest();
+            return true;
+         }
+
+         var consumeLength = Math.Max(0, Math.Min(state.RawLine.Length, endOffset - state.GlobalOffset));
+         state.Slice(consumeLength);
+         
+         node.FirstChildIndex = -1;
+         node.LastChildIndex = -1;
+         
+         return false;
+      }
+
       if (state.IsBlank)
          return false;
 
@@ -64,6 +99,107 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
          return false;
 
       return ContinueParsing(ref node, ref state);
+   }
+
+   private static bool TryParseMultilineDefinition<TData>(
+      ref LineState<TData> state,
+      int start,
+      out MarkdownNode node,
+      out string normalizedLabel)
+   {
+      node = default;
+      normalizedLabel = string.Empty;
+
+      var definitionStart = state.GlobalOffset + start;
+      var full = state.FullText[definitionStart..];
+      
+      if (full.Length == 0 || full[0] != '[')
+      {
+         return false;
+      }
+
+      if (!TryParseMultilineLabel(full, out var labelEndIndex)
+          || !full[..labelEndIndex].Contains('\n'))
+      {
+         return false;
+      }
+
+      var i = labelEndIndex + 1;
+      if (i >= full.Length || full[i] != ':')
+      {
+         return false;
+      }
+
+      i++;
+      SkipSpacesAndTabs(full, ref i);
+
+      if (i < full.Length && full[i] is '\r' or '\n')
+      {
+         i += full[i] == '\r' && i + 1 < full.Length && full[i + 1] == '\n' ? 2 : 1;
+         var lineIndent = 0;
+         while (i < full.Length && lineIndent < 4 && full[i] == ' ')
+         {
+            i++;
+            lineIndent++;
+         }
+      }
+
+      if (!TryParseDestination(full, i, out var urlEnd))
+      {
+         return false;
+      }
+
+      var urlStart = definitionStart + i;
+      var urlLength = urlEnd - i;
+      if (full[i] == '<')
+      {
+         urlStart++;
+         urlLength -= 2;
+      }
+
+      i = urlEnd;
+      SkipSpacesAndTabs(full, ref i);
+
+      var titleStart = -1;
+      var titleLength = 0;
+
+      if (i < full.Length && full[i] is '"' or '\'' or '(')
+      {
+         if (!TryParseTitle(full, i, out var titleEnd, out var titleClosed) || !titleClosed)
+         {
+            return false;
+         }
+
+         titleStart = definitionStart + i + 1;
+         titleLength = titleEnd - i - 2;
+         i = titleEnd;
+         SkipSpacesAndTabs(full, ref i);
+      }
+
+      if (i < full.Length && full[i] is not ('\r' or '\n'))
+      {
+         return false;
+      }
+
+      var label = state.FullText.Slice(definitionStart + 1, labelEndIndex - 1);
+      normalizedLabel = LinkUtils.NormalizeLabel(label);
+      if (normalizedLabel.Length == 0)
+      {
+         return false;
+      }
+
+      node = new MarkdownNode
+      {
+         Type = NodeType.LinkReferenceDefinition,
+         TextSpan = new TextSpan(urlStart, urlLength),
+         TitleSpanStart = titleStart,
+         TitleSpanLength = titleLength,
+         FirstChildIndex = PendingMultilineDefinitionMarker,
+         LastChildIndex = definitionStart + i,
+         NextSiblingIndex = -1
+      };
+
+      return true;
    }
 
    private static bool ContinueParsing<TData>(ref MarkdownNode node, ref LineState<TData> state)
@@ -261,6 +397,61 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
       }
       
       return false;
+   }
+
+   private static bool TryParseMultilineLabel(ReadOnlySpan<char> text, out int endIndex)
+   {
+      endIndex = -1;
+      if (text.Length == 0 || text[0] != '[')
+      {
+         return false;
+      }
+
+      var foundContent = false;
+
+      for (var i = 1; i < text.Length; i++)
+      {
+         var c = text[i];
+
+         if (c == '\\')
+         {
+            if (i + 1 < text.Length
+                && LinkUtils.IsAsciiPunctuation(text[i + 1]))
+            {
+               i++;
+               foundContent = true;
+               continue;
+            }
+         }
+
+         if (c == '[')
+            return false;
+
+         if (c == ']')
+         {
+            if (!foundContent)
+               return false;
+
+            if (i > 1000)
+               return false;
+
+            endIndex = i;
+            return true;
+         }
+
+         if (!char.IsWhiteSpace(c))
+            foundContent = true;
+      }
+
+      return false;
+   }
+
+   private static void SkipSpacesAndTabs(ReadOnlySpan<char> text, ref int index)
+   {
+      while (index < text.Length && text[index] is ' ' or '\t')
+      {
+         index++;
+      }
    }
 
    private static bool TryParseDestination(ReadOnlySpan<char> line, int start, out int endIndex)
