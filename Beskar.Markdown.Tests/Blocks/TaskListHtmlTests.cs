@@ -104,7 +104,7 @@ public sealed class TaskListHtmlTests
          
            foo
          """;
-      const string expectedHtml = "<ul><li><input disabled=\"\" type=\"checkbox\"> foo</li></ul>";
+      const string expectedHtml = "<ul><li><input disabled=\"\" type=\"checkbox\"> <p></p><p>foo</p></li></ul>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }

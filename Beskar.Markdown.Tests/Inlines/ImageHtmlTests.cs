@@ -17,7 +17,7 @@ public sealed class ImageHtmlTests
    public Task ImageWithComplexAltText()
    {
       const string markdown = "![alt with *emphasis* and `code`](https://example.com/image.png)";
-      const string expectedHtml = """<p><img src="https://example.com/image.png" alt="alt with *emphasis* and `code`" /></p>""";
+      const string expectedHtml = """<p><img src="https://example.com/image.png" alt="alt with emphasis and code" /></p>""";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }

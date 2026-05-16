@@ -17,7 +17,8 @@ public sealed class ImageParser : IInlineParser
       ref BufferWriter<MarkdownNode> writer, scoped ref InlineParser<TData> parser,
       ParserOptions options)
    {
-      var text = state.RemainingText;
+      var text = state.RawText[state.GlobalOffset..state.BlockEnd];
+      
       if (text.Length < 2 || text[1] != '[')
       {
          return false;
@@ -48,7 +49,7 @@ public sealed class ImageParser : IInlineParser
       var urlStartIdx = closeBracketIndex + 2;
       var currentIndex = urlStartIdx;
       
-      while (currentIndex < text.Length && char.IsWhiteSpace(text[currentIndex])) 
+      while (currentIndex < text.Length && IsLinkWhitespace(text[currentIndex])) 
       {
          currentIndex++;
       }
@@ -60,7 +61,25 @@ public sealed class ImageParser : IInlineParser
       {
          actualUrlStart++;
          currentIndex++;
-         while (currentIndex < text.Length && text[currentIndex] != '>') currentIndex++;
+         while (currentIndex < text.Length)
+         {
+            if (text[currentIndex] == '\\'
+                && currentIndex + 1 < text.Length
+                && LinkUtils.IsAsciiPunctuation(text[currentIndex + 1]))
+            {
+               currentIndex += 2;
+               continue;
+            }
+
+            if (text[currentIndex] is '\n' or '\r')
+               return false;
+
+            if (text[currentIndex] == '>')
+               break;
+
+            currentIndex++;
+         }
+
          if (currentIndex >= text.Length) return false;
          currentIndex++;
       }
@@ -70,9 +89,18 @@ public sealed class ImageParser : IInlineParser
          while (currentIndex < text.Length)
          {
             var c = text[currentIndex];
+            if (c == '\\'
+                && currentIndex + 1 < text.Length
+                && LinkUtils.IsAsciiPunctuation(text[currentIndex + 1]))
+            {
+               currentIndex += 2;
+               continue;
+            }
+
             if (c == '(') parenDepth++;
             else if (c == ')') { if (parenDepth == 0) break; parenDepth--; }
-            else if (char.IsWhiteSpace(c)) break;
+            else if (IsLinkWhitespace(c)) break;
+            
             currentIndex++;
          }
       }
@@ -80,7 +108,7 @@ public sealed class ImageParser : IInlineParser
       var actualUrlLength = currentIndex - actualUrlStart;
       if (isAngleBracketUrl) actualUrlLength--;
 
-      while (currentIndex < text.Length && char.IsWhiteSpace(text[currentIndex])) 
+      while (currentIndex < text.Length && IsLinkWhitespace(text[currentIndex])) 
          currentIndex++;
       
       short titleOffset = -1;
@@ -92,8 +120,21 @@ public sealed class ImageParser : IInlineParser
          var closeQuote = openQuote == '(' ? ')' : openQuote;
          var titleStartIndex = currentIndex;
          
-         while (currentIndex < text.Length && text[currentIndex] != closeQuote) 
+         while (currentIndex < text.Length)
+         {
+            if (text[currentIndex] == '\\'
+                && currentIndex + 1 < text.Length
+                && LinkUtils.IsAsciiPunctuation(text[currentIndex + 1]))
+            {
+               currentIndex += 2;
+               continue;
+            }
+
+            if (text[currentIndex] == closeQuote)
+               break;
+
             currentIndex++;
+         }
          
          if (currentIndex < text.Length) 
          {
@@ -105,7 +146,7 @@ public sealed class ImageParser : IInlineParser
          }
          
          while (currentIndex < text.Length 
-            && char.IsWhiteSpace(text[currentIndex])) 
+            && IsLinkWhitespace(text[currentIndex])) 
             currentIndex++;
       }
       
@@ -130,7 +171,7 @@ public sealed class ImageParser : IInlineParser
       });
 
       parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
-      parser.AddInlineNode(ref writer, nodeIndex, NodeType.Text, contentStart, contentLength);
+      parser.ParseInnerContent(state.Context, ref writer, nodeIndex, contentStart, contentLength, options);
       
       state.Advance(currentIndex + 1);
       return true;
@@ -192,7 +233,7 @@ public sealed class ImageParser : IInlineParser
       });
 
       parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
-      parser.AddInlineNode(ref writer, nodeIndex, NodeType.Text, state.GlobalOffset + 2, closeBracketIndex - 2);
+      parser.ParseInnerContent(state.Context, ref writer, nodeIndex, state.GlobalOffset + 2, closeBracketIndex - 2, options);
 
       state.Advance(nextIndex);
       return true;
@@ -204,6 +245,19 @@ public sealed class ImageParser : IInlineParser
       for (var i = 0; i < text.Length; i++)
       {
          if (text[i] == '\\') { i++; continue; }
+
+         if (text[i] == '`')
+         {
+            i = SkipCodeSpan(text, i);
+            continue;
+         }
+
+         if (text[i] == '<' 
+             && TrySkipAngleInline(text[i..], out var angleLength))
+         {
+            i += angleLength - 1;
+            continue;
+         }
          
          if (text[i] == '[') depth++;
          else if (text[i] == ']')
@@ -213,5 +267,147 @@ public sealed class ImageParser : IInlineParser
          }
       }
       return -1;
+   }
+
+   private static int SkipCodeSpan(ReadOnlySpan<char> text, int start)
+   {
+      var markerLen = 1;
+      while (start + markerLen < text.Length && text[start + markerLen] == '`') markerLen++;
+
+      for (var j = start + markerLen; j < text.Length; j++)
+      {
+         if (text[j] != '`') continue;
+
+         var endMarkerLen = 0;
+         while (j + endMarkerLen < text.Length && text[j + endMarkerLen] == '`')
+            endMarkerLen++;
+
+         if (endMarkerLen == markerLen)
+         {
+            return j + markerLen - 1;
+         }
+
+         j += endMarkerLen - 1;
+      }
+
+      return start + markerLen - 1;
+   }
+
+   private static bool TrySkipAngleInline(ReadOnlySpan<char> text, out int length)
+   {
+      length = 0;
+      if (text.Length < 3 || text[0] != '<')
+      {
+         return false;
+      }
+
+      return HtmlTagUtils.TryParseOpenTag(text, out length)
+             || HtmlTagUtils.TryParseClosingTag(text, out length)
+             || TryScanAutolink(text, out length);
+   }
+
+   private static bool TryScanAutolink(ReadOnlySpan<char> text, out int length)
+   {
+      length = 0;
+      var closeIdx = -1;
+
+      for (var i = 1; i < text.Length; i++)
+      {
+         var c = text[i];
+         if (c == '<' || IsLinkWhitespace(c))
+         {
+            return false;
+         }
+
+         if (c == '>')
+         {
+            closeIdx = i;
+            break;
+         }
+      }
+
+      if (closeIdx == -1) return false;
+
+      var content = text[1..closeIdx];
+      if (!IsUriAutolink(content) && !IsEmailAutolink(content))
+      {
+         return false;
+      }
+
+      length = closeIdx + 1;
+      return true;
+   }
+
+   private static bool IsUriAutolink(ReadOnlySpan<char> content)
+   {
+      var colonIdx = content.IndexOf(':');
+
+      if (colonIdx is < 2 or > 32) return false;
+      if (!char.IsAsciiLetter(content[0])) return false;
+
+      for (var i = 1; i < colonIdx; i++)
+      {
+         var c = content[i];
+         if (!char.IsAsciiLetterOrDigit(c)
+             && c != '+' && c != '-' && c != '.')
+         {
+            return false;
+         }
+      }
+
+      return content.Length > colonIdx + 1;
+   }
+
+   private static bool IsEmailAutolink(ReadOnlySpan<char> content)
+   {
+      var atIdx = content.IndexOf('@');
+      if (atIdx <= 0 || atIdx >= content.Length - 1) return false;
+
+      var localPart = content[..atIdx];
+      foreach (var c in localPart)
+      {
+         if (!char.IsAsciiLetterOrDigit(c) 
+             && !IsEmailLocalPartPunctuation(c))
+            return false;
+      }
+
+      var domainPart = content[(atIdx + 1)..];
+      if (domainPart.Length < 3) return false;
+
+      var lastDotIdx = -1;
+
+      for (var i = 0; i < domainPart.Length; i++)
+      {
+         var c = domainPart[i];
+         if (char.IsAsciiLetterOrDigit(c)) continue;
+
+         if (c == '.')
+         {
+            if (i == 0 || i == domainPart.Length - 1 || domainPart[i - 1] == '.')
+               return false;
+            lastDotIdx = i;
+
+            continue;
+         }
+
+         if (c != '-')
+            return false;
+
+         if (i == 0 || i == domainPart.Length - 1 || domainPart[i - 1] == '.')
+            return false;
+      }
+
+      return lastDotIdx != -1;
+   }
+
+   private static bool IsEmailLocalPartPunctuation(char c)
+   {
+      return c is '.' or '!' or '#' or '$' or '%' or '&' or '\'' or '*' or '+'
+         or '/' or '=' or '?' or '^' or '_' or '`' or '{' or '|' or '}' or '~' or '-';
+   }
+
+   private static bool IsLinkWhitespace(char c)
+   {
+      return c is ' ' or '\t' or '\n' or '\r';
    }
 }

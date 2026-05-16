@@ -30,6 +30,8 @@ public struct MarkdownNode
    public int CodeLangSpanStart;
    [FieldOffset(24)] // NodeType.ListItem
    public int ListIndent;
+   [FieldOffset(24)] // NodeType.IndentedCodeFragment
+   public byte LeadingVirtualSpaces;
    [FieldOffset(24)] // NodeType.Link / NodeType.Image
    public int LinkUrlStart;
    [FieldOffset(24)] // NodeType.AutoLink
@@ -57,15 +59,17 @@ public struct MarkdownNode
    [FieldOffset(28)] // NodeType.ListItem
    public byte TaskListStatus; // 0: none, 1: unchecked, 2: checked
    [FieldOffset(28)] // NodeType.CodeBlock (length of lang string)
-   public int CodeLangSpanLength;
+   public ushort CodeLangSpanLength;
    [FieldOffset(28)] // NodeType.Link / NodeType.Image
    public int LinkUrlLength;
    [FieldOffset(28)] // NodeType.LinkReferenceDefinition
    public int TitleSpanLength;
    
    // --- Third offset Metadata
-   [FieldOffset(32)] // NodeType.CodeBlock
+   [FieldOffset(30)] // NodeType.CodeBlock
    public char CodeBlockMarker;
+   [FieldOffset(32)] // NodeType.CodeBlock
+   public ushort CodeBlockIndent;
    [FieldOffset(32)] // NodeType.Image
    public short LinkTitleOffset;
    

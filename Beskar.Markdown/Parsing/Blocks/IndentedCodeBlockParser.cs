@@ -17,6 +17,7 @@ public sealed class IndentedCodeBlockParser : IBlockParser
          return -1;
       }
       
+      state.SliceIndentation(4);
       var nodeIndex = writer.WrittenSpan.Length;
       writer.Add(new MarkdownNode()
       {
@@ -31,11 +32,11 @@ public sealed class IndentedCodeBlockParser : IBlockParser
          CodeLangSpanLength = 0
       });
       
-      var skipAmount = CalculatePhysicalSkipAmount(state.RawLine);
       writer.Add(new MarkdownNode()
       {
          Type = NodeType.IndentedCodeFragment,
-         TextSpan = new TextSpan(state.GlobalOffset + skipAmount, state.RawLine.Length - skipAmount),
+         LeadingVirtualSpaces = (byte)state.VirtualSpaces,
+         TextSpan = new TextSpan(state.GlobalOffset, state.RawLine.Length),
          FirstChildIndex = -1,
          NextSiblingIndex = -1
       });
@@ -52,7 +53,8 @@ public sealed class IndentedCodeBlockParser : IBlockParser
       
       var newLength = (state.GlobalOffset - node.TextSpan.Start) + state.RawLine.Length;
       node.TextSpan = node.TextSpan with { Length = newLength };
-      var skipAmount = CalculatePhysicalSkipAmount(state.RawLine);
+
+      state.SliceIndentation(4);
       
       var newLineIndex = writer.WrittenSpan.Length;
        
@@ -60,7 +62,8 @@ public sealed class IndentedCodeBlockParser : IBlockParser
       writer.Add(new MarkdownNode()
       {
          Type = NodeType.IndentedCodeFragment,
-         TextSpan = new TextSpan(state.GlobalOffset + skipAmount, state.RawLine.Length - skipAmount),
+         LeadingVirtualSpaces = (byte)state.VirtualSpaces,
+         TextSpan = new TextSpan(state.GlobalOffset, state.RawLine.Length),
          FirstChildIndex = -1,
          NextSiblingIndex = -1
       });

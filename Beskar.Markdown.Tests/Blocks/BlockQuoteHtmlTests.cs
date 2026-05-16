@@ -53,7 +53,7 @@ public sealed class BlockQuoteHtmlTests
          > first line
          continuation line
          """;
-      const string expectedHtml = "<blockquote>\n<p>first line</p></blockquote><p>continuation line</p>";
+      const string expectedHtml = "<blockquote>\n<p>first line\ncontinuation line</p></blockquote>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }

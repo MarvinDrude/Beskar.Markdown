@@ -148,7 +148,7 @@ public sealed class InlineNodeHtmlTests
          beta
          """;
 
-      const string expectedHtml = "<p>alpha<br />beta</p>";
+      const string expectedHtml = "<p>alpha<br />\nbeta</p>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }

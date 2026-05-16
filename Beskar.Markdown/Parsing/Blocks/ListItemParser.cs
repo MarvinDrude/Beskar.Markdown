@@ -13,41 +13,38 @@ public sealed class ListItemParser : IBlockParser
    public int TryMatch<TData>(ref LineState<TData> state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
    {
       if (parentIndex == -1) return -1;
+      if (state.LeadingSpaces >= 4) return -1;
       
       var parent = writer.WrittenSpan[parentIndex];
       if (parent.Type is not NodeType.List) return -1;
 
-      if (!ListUtils.IsListMarker(ref state, out _, out var markerLength, out _))
+      if (!ListUtils.IsListMarker(ref state, out var listChar, out var markerLength, out _)
+          || parent.ListMarker != listChar)
       {
          return -1;
       }
 
       var nodeIndex = writer.WrittenSpan.Length;
       var markerStartOffset = state.GlobalOffset + state.FirstNonSpaceIndex;
-      var originalLeadingSpaces = state.LeadingSpaces;
       var visibleMarkerLength = 0;
-      
+      var baseColumn = state.Column;
+
       for (var i = state.FirstNonSpaceIndex; i < state.RawLine.Length; i++)
       {
          if (state.RawLine[i] == ' ' || state.RawLine[i] == '\t') break;
          visibleMarkerLength++;
       }
-      
-      state.Slice(state.FirstNonSpaceIndex + markerLength);
-      
-      var spacesAfterMarker = 0;
-      while (spacesAfterMarker < state.RawLine.Length && state.RawLine[spacesAfterMarker] == ' ')
+
+      state.Slice(markerLength);
+
+      var paddingAfterMarker = state.LeadingSpaces;
+      if (state.IsBlank || paddingAfterMarker > 4)
       {
-         spacesAfterMarker++;
-      }
-      
-      if (spacesAfterMarker == 0 && state.IsBlank || spacesAfterMarker > 4)
-      {
-         spacesAfterMarker = 1;
+         paddingAfterMarker = 1;
       }
 
-      var contentIndent = originalLeadingSpaces + markerLength + spacesAfterMarker;
-      state.Slice(spacesAfterMarker);
+      var contentIndent = state.Column - baseColumn + paddingAfterMarker;
+      state.SliceIndentation(paddingAfterMarker);
 
       writer.Add(new MarkdownNode()
       {
@@ -66,35 +63,12 @@ public sealed class ListItemParser : IBlockParser
       ref BufferWriter<MarkdownNode> writer)
    {
       if (state.IsBlank) 
-         return true;
+         return node.FirstChildIndex != -1;
 
       if (state.LeadingSpaces < node.ListIndent) 
          return false;
       
-      var charsToSlice = 0;
-      var currentIndent = 0;
-         
-      for (var i = 0; i < state.RawLine.Length; i++)
-      {
-         if (currentIndent >= node.ListIndent) break;
-         
-         if (state.RawLine[i] == ' ')
-         {
-            currentIndent++;
-            charsToSlice++;
-         }
-         else if (state.RawLine[i] == '\t')
-         {
-            currentIndent += 4;
-            charsToSlice++;
-         }
-         else
-         {
-            break;
-         }
-      }
-         
-      state.Slice(charsToSlice);
+      state.SliceIndentation(node.ListIndent);
       return true;
 
    }

@@ -1,5 +1,6 @@
 ﻿using Beskar.Markdown.Parsing.Interfaces;
 using Beskar.Markdown.Parsing.Models;
+using Beskar.Markdown.Parsing.Utils;
 using Me.Memory.Buffers;
 
 namespace Beskar.Markdown.Parsing.Blocks;
@@ -24,6 +25,13 @@ public sealed class HtmlParser : IBlockParser
 
       var type = GetHtmlBlockType(line);
       if (type == -1 || IsAutolink(line))
+      {
+         return -1;
+      }
+
+      if ((type == 7 || (type == 6 && line.StartsWith("</pre", StringComparison.OrdinalIgnoreCase)))
+          && parentIndex != -1
+          && IsInterruptingParagraph(ref state, parentIndex, ref writer))
       {
          return -1;
       }
@@ -86,9 +94,16 @@ public sealed class HtmlParser : IBlockParser
 
       if (line.StartsWith("<script", StringComparison.OrdinalIgnoreCase) || 
           line.StartsWith("<pre", StringComparison.OrdinalIgnoreCase) || 
-          line.StartsWith("<style", StringComparison.OrdinalIgnoreCase))
+          line.StartsWith("<style", StringComparison.OrdinalIgnoreCase) ||
+          line.StartsWith("<textarea", StringComparison.OrdinalIgnoreCase))
       {
-         var len = line.StartsWith("<script", StringComparison.OrdinalIgnoreCase) ? 7 : (line.StartsWith("<pre", StringComparison.OrdinalIgnoreCase) ? 4 : 6);
+         var len = line.StartsWith("<script", StringComparison.OrdinalIgnoreCase)
+            ? 7
+            : line.StartsWith("<pre", StringComparison.OrdinalIgnoreCase)
+               ? 4
+               : line.StartsWith("<style", StringComparison.OrdinalIgnoreCase)
+                  ? 6
+                  : 9;
          if (line.Length == len || char.IsWhiteSpace(line[len]) || line[len] == '>')
          {
             return 1;
@@ -102,11 +117,17 @@ public sealed class HtmlParser : IBlockParser
       }
 
       var nameStart = i;
-      while (i < line.Length && char.IsAsciiLetterOrDigit(line[i])) i++;
+      while (i < line.Length && (char.IsAsciiLetterOrDigit(line[i]) || line[i] == '-')) i++;
 
       if (i <= nameStart) return -1;
       
       var tagName = line.Slice(nameStart, i - nameStart);
+
+      if (i < line.Length && line[i] != ' ' && line[i] != '>' && line[i] != '/' && !char.IsWhiteSpace(line[i]))
+      {
+         return -1;
+      }
+
       var isBlockTag = IsBlockTag(tagName);
       
       if (isBlockTag)
@@ -118,29 +139,18 @@ public sealed class HtmlParser : IBlockParser
       }
       else
       {
-         if (tagName.Length == 1
-             && char.ToLowerInvariant(tagName[0]) == 'a')
+         // Type 7: not a block tag, but must be a complete tag followed only by whitespace
+         if (!HtmlTagUtils.TryParseCompleteTag(line, out var tagLength))
          {
             return -1;
          }
-         
-         // Type 7: not a block tag, but must be a complete tag followed only by whitespace
-         var closeBracket = -1;
-         for (var j = i; j < line.Length; j++)
+
+         for (var j = tagLength; j < line.Length; j++)
          {
-            if (line[j] != '>') continue;
-            closeBracket = j;
-            break;
+            if (!HtmlTagUtils.IsHtmlWhitespace(line[j])) return -1;
          }
 
-         if (closeBracket != -1)
-         {
-            for (var j = closeBracket + 1; j < line.Length; j++)
-            {
-               if (!char.IsWhiteSpace(line[j])) return -1;
-            }
-            return 7;
-         }
+         return 7;
       }
 
       return -1;
@@ -152,13 +162,91 @@ public sealed class HtmlParser : IBlockParser
       {
          1 => line.Contains("</script>", StringComparison.OrdinalIgnoreCase) || 
               line.Contains("</pre>", StringComparison.OrdinalIgnoreCase) || 
-              line.Contains("</style>", StringComparison.OrdinalIgnoreCase),
+              line.Contains("</style>", StringComparison.OrdinalIgnoreCase) ||
+              line.Contains("</textarea>", StringComparison.OrdinalIgnoreCase),
          2 => line.Contains("-->", StringComparison.Ordinal),
          3 => line.Contains("?>", StringComparison.Ordinal),
          4 => line.Contains(">", StringComparison.Ordinal),
          5 => line.Contains("]]>", StringComparison.Ordinal),
          _ => false
       };
+   }
+
+   private static bool IsInterruptingParagraph<TData>(
+      ref LineState<TData> state,
+      int parentIndex,
+      ref BufferWriter<MarkdownNode> writer)
+   {
+      var parent = writer.WrittenSpan[parentIndex];
+      if (parent.LastChildIndex == -1)
+      {
+         return false;
+      }
+
+      var lastChildIndex = parent.LastChildIndex;
+      var lastChild = writer.WrittenSpan[lastChildIndex];
+      if (lastChild.Type != NodeType.Paragraph)
+      {
+         return false;
+      }
+
+      var paragraphEnd = GetNodeEnd(lastChildIndex, writer.WrittenSpan);
+      if (paragraphEnd < 0 || paragraphEnd >= state.GlobalOffset)
+      {
+         return true;
+      }
+
+      return !ContainsBlankLine(state.FullText[paragraphEnd..state.GlobalOffset]);
+   }
+
+   private static int GetNodeEnd(int nodeIndex, ReadOnlySpan<MarkdownNode> nodes)
+   {
+      var node = nodes[nodeIndex];
+      var end = node.TextSpan.Start >= 0
+         ? node.TextSpan.Start + node.TextSpan.Length
+         : -1;
+
+      var childIndex = node.FirstChildIndex;
+      while (childIndex != -1)
+      {
+         var childEnd = GetNodeEnd(childIndex, nodes);
+         if (childEnd > end)
+         {
+            end = childEnd;
+         }
+
+         childIndex = nodes[childIndex].NextSiblingIndex;
+      }
+
+      return end;
+   }
+
+   private static bool ContainsBlankLine(ReadOnlySpan<char> text)
+   {
+      var lineHasContent = true;
+      for (var i = 0; i < text.Length; i++)
+      {
+         var c = text[i];
+         if (c is '\r' or '\n')
+         {
+            if (!lineHasContent)
+            {
+               return true;
+            }
+
+            lineHasContent = false;
+            if (c == '\r' && i + 1 < text.Length && text[i + 1] == '\n')
+            {
+               i++;
+            }
+         }
+         else if (c is not (' ' or '\t'))
+         {
+            lineHasContent = true;
+         }
+      }
+
+      return false;
    }
    
    private static bool IsAutolink(ReadOnlySpan<char> line)

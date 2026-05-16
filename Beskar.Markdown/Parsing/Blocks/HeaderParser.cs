@@ -28,18 +28,22 @@ public sealed class HeaderParser : IBlockParser
 
       if (level > 6) return -1;
       
-      var hasSpaceAfter = level < line.Length && line[level] == ' ';
+      var hasSeparatorAfter = level < line.Length && (line[level] == ' ' || line[level] == '\t');
       var isEndOfLine = level == line.Length;
       
-      if (!hasSpaceAfter && !isEndOfLine)
+      if (!hasSeparatorAfter && !isEndOfLine)
       {
          return -1;
       }
 
       var nodeIndex = writer.WrittenSpan.Length;
-      var offset = (hasSpaceAfter ? 1 : 0);
+      var contentStart = state.FirstNonSpaceIndex + level;
 
-      var contentStart = state.FirstNonSpaceIndex + level + offset;
+      while (contentStart < state.RawLine.Length && (state.RawLine[contentStart] == ' ' || state.RawLine[contentStart] == '\t'))
+      {
+         contentStart++;
+      }
+
       var contentEnd = state.RawLine.Length;
 
       while (contentEnd > contentStart && (state.RawLine[contentEnd - 1] == ' ' || state.RawLine[contentEnd - 1] == '\t'))

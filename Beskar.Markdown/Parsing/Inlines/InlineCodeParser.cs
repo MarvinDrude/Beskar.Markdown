@@ -29,15 +29,54 @@ public sealed class InlineCodeParser : IInlineParser
          return false;
       }
       
+      var rawText = state.RawText;
+      var rawBase = state.GlobalOffset;
+      var scanBound = state.BlockEnd;
+
       var closeIndex = -1;
       var scanIndex = markerLength;
 
-      while (scanIndex < text.Length)
+      while (rawBase + scanIndex < scanBound)
       {
-         if (text[scanIndex] == '`')
+         var c = rawText[rawBase + scanIndex];
+
+         if (c is '\n' or '\r')
+         {
+            var afterNewline = scanIndex + 1;
+            
+            if (c == '\r' && rawBase + afterNewline < scanBound
+                  && rawText[rawBase + afterNewline] == '\n')
+               afterNewline++;
+
+            var lineCheck = rawBase + afterNewline;
+            var lineIsBlank = true;
+
+            while (lineCheck < scanBound
+                   && rawText[lineCheck] != '\n'
+                   && rawText[lineCheck] != '\r')
+            {
+               if (rawText[lineCheck] != ' ' 
+                   && rawText[lineCheck] != '\t')
+               {
+                  lineIsBlank = false;
+                  break;
+               }
+               
+               lineCheck++;
+            }
+
+            if (lineIsBlank)
+               break;
+
+            scanIndex++;
+            continue;
+         }
+
+         if (c == '`')
          {
             var streak = 0;
-            while (scanIndex + streak < text.Length && text[scanIndex + streak] == '`')
+            while (rawBase + scanIndex + streak < scanBound
+                   && rawText[rawBase + scanIndex + streak] == '`')
             {
                streak++;
             }
@@ -47,7 +86,7 @@ public sealed class InlineCodeParser : IInlineParser
                closeIndex = scanIndex;
                break;
             }
-            
+
             scanIndex += streak;
          }
          else
@@ -58,18 +97,36 @@ public sealed class InlineCodeParser : IInlineParser
       
       if (closeIndex == -1)
       {
-         return false; 
+         var literalIndex = writer.WrittenSpan.Length;
+         writer.Add(new MarkdownNode()
+         {
+            Type = NodeType.Text,
+            TextSpan = new TextSpan(state.GlobalOffset, markerLength),
+            FirstChildIndex = -1,
+            NextSiblingIndex = -1
+         });
+
+         parser.LinkInlineNode(ref writer, parentIndex, literalIndex);
+         
+         state.Advance(markerLength);
+         return true;
       }
       
       var contentStart = state.GlobalOffset + markerLength;
       var contentLength = closeIndex - markerLength;
 
-      if (contentLength >= 2 && text[markerLength] == ' ' && text[closeIndex - 1] == ' ')
+      if (contentLength >= 2 
+         && IsSpaceOrLineEnding(rawText[rawBase + markerLength]) 
+         && IsSpaceOrLineEnding(rawText[rawBase + closeIndex - 1]))
       {
          var allSpaces = true;
-         for (var k = markerLength; k < closeIndex; k++)
+         for (var k = rawBase + markerLength; k < rawBase + closeIndex; k++)
          {
-            if (text[k] != ' ') { allSpaces = false; break; }
+            if (!IsSpaceOrLineEnding(rawText[k]))
+            {
+               allSpaces = false;
+               break;
+            }
          }
 
          if (!allSpaces)
@@ -90,8 +147,10 @@ public sealed class InlineCodeParser : IInlineParser
       });
 
       parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
-      
+
       state.Advance(closeIndex + markerLength);
       return true;
    }
+
+   private static bool IsSpaceOrLineEnding(char c) => c is ' ' or '\n' or '\r';
 }

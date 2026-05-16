@@ -44,7 +44,7 @@ public sealed class LinkHtmlTests
    public Task LinkWithSpacesInDestination()
    {
       const string markdown = "[link](<my url>)";
-      const string expectedHtml = """<p><a href="my url">link</a></p>""";
+      const string expectedHtml = """<p><a href="my%20url">link</a></p>""";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
@@ -62,7 +62,7 @@ public sealed class LinkHtmlTests
    public Task NestedLinksNotAllowed()
    {
       const string markdown = "[outer [inner](url1)](url2)";
-      const string expectedHtml = """<p><a href="url2">outer <a href="url1">inner</a></a></p>""";
+      const string expectedHtml = """<p>[outer <a href="url1">inner</a>](url2)</p>""";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
@@ -79,7 +79,7 @@ public sealed class LinkHtmlTests
    public Task LinkWithAngleBracketsAndEscapes()
    {
       const string markdown = "[link](<url\\>>)";
-      const string expectedHtml = """<p><a href="url&gt;">link</a></p>""";
+      const string expectedHtml = """<p><a href="url>">link</a></p>""";
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 }

@@ -21,7 +21,7 @@ public sealed class HtmlListRenderer : INodeRenderer
       
       writer.WriteInterpolated($"<{type}");
 
-      if (current.ListStartNumber > 1)
+      if (type == "ol" && current.ListStartNumber != 1)
       {
          writer.WriteInterpolated($" start=\"{current.ListStartNumber}\"");
       }

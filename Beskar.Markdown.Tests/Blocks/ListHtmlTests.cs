@@ -79,7 +79,7 @@ public sealed class ListHtmlTests
 
          - b
          """;
-      const string expectedHtml = "<ul><li>a</li><li>b</li></ul>";
+      const string expectedHtml = "<ul><li><p>a</p></li><li><p>b</p></li></ul>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
@@ -94,7 +94,7 @@ public sealed class ListHtmlTests
            item 1, para 2
          - item 2
          """;
-      const string expectedHtml = "<ul><li>item 1, para 1item 1, para 2</li><li>item 2</li></ul>";
+      const string expectedHtml = "<ul><li><p>item 1, para 1</p><p>item 1, para 2</p></li><li><p>item 2</p></li></ul>";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
@@ -137,7 +137,7 @@ public sealed class ListHtmlTests
    public Task ListWithBlankLineAndIndentedCode()
    {
       const string markdown = "- item 1\n\n      code";
-      const string expectedHtml = "<ul><li><p>item 1</p>\n<pre><code>code\n</code></pre>\n</li>\n</ul>";
+      const string expectedHtml = "<ul><li><p>item 1</p><pre><code>code\n</code></pre></li></ul>";
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 
@@ -151,7 +151,7 @@ public sealed class ListHtmlTests
            
            para
          """;
-      const string expectedHtml = "<ul><li>item 1<blockquote>\n<p>quote</p></blockquote><p>para</p></li></ul>";
+      const string expectedHtml = "<ul><li><p>item 1</p><blockquote>\n<p>quote</p></blockquote><p>para</p></li></ul>";
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 
@@ -159,7 +159,8 @@ public sealed class ListHtmlTests
    public Task ListStartingWithBlankLine()
    {
       const string markdown = "- \n  foo";
-      const string expectedHtml = "<ul><li><p>foo</p></li></ul>";
+      const string expectedHtml = "<ul><li>foo</li></ul>";
+      
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }
 

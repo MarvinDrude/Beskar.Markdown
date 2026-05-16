@@ -81,8 +81,9 @@ public sealed class CodeBlockParser : IBlockParser
          NextSiblingIndex = -1,
          CodeBlockMarker = marker,
          CodeBlockFenceCount = (ushort)count,
+         CodeBlockIndent = (ushort)state.LeadingSpaces,
          CodeLangSpanStart = langStart != -1 ? state.GlobalOffset + langStart : 0,
-         CodeLangSpanLength = langLength
+         CodeLangSpanLength = (ushort)langLength
       });
 
       state.ConsumeRest();
@@ -125,7 +126,19 @@ public sealed class CodeBlockParser : IBlockParser
                // Correctly get the last new line in the code block
                if (node.TextSpan.Start != -1)
                {
-                  var newLength = state.GlobalOffset - node.TextSpan.Start;
+                  var closingLineStart = state.GlobalOffset;
+                  while (closingLineStart > node.TextSpan.Start)
+                  {
+                     var previous = state.FullText[closingLineStart - 1];
+                     if (previous is '\n' or '\r')
+                     {
+                        break;
+                     }
+
+                     closingLineStart--;
+                  }
+
+                  var newLength = closingLineStart - node.TextSpan.Start;
                   node.TextSpan = node.TextSpan with { Length = newLength };
                }
             }

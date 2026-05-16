@@ -1,5 +1,6 @@
 ﻿using Beskar.Markdown.Extensions;
 using Beskar.Markdown.Parsing.Models;
+using Beskar.Markdown.Parsing.Utils;
 using Beskar.Markdown.Rendering.Interfaces;
 using Me.Memory.Buffers;
 
@@ -20,58 +21,19 @@ public sealed class HtmlLinkRenderer : INodeRenderer
       var url = rawText.Slice(current.LinkUrlStart, current.LinkUrlLength);
       
       writer.Write("<a href=\"");
-      WriteUnescapedHtmlEncoded(ref writer, url);
+      writer.WriteCommonMarkdownUrlEncoded(url);
       writer.Write("\"");
 
       if (current.LinkTitleOffset > -1)
       {
          var startIndex = current.LinkUrlStart + current.LinkUrlLength + current.LinkTitleOffset;
          writer.Write(" title=\"");
-         WriteUnescapedHtmlEncoded(ref writer, rawText.Slice(startIndex, current.LinkTitleLength));
+         writer.WriteHtmlDecodedAndEncoded(rawText.Slice(startIndex, current.LinkTitleLength), encodeApostrophe: false);
          writer.Write("\"");
       }
       
       writer.Write(">");
       current.RenderChildren(context, rawText, nodes, ref writer, options);
       writer.Write("</a>");
-   }
-   
-   private static void WriteUnescapedHtmlEncoded(ref TextWriterIndentSlim writer, ReadOnlySpan<char> text)
-   {
-      var currentIndex = 0;
-      var chunkStart = 0;
-
-      while (currentIndex < text.Length)
-      {
-         if (text[currentIndex] == '\\' && currentIndex + 1 < text.Length && IsAsciiPunctuation(text[currentIndex + 1]))
-         {
-            if (currentIndex > chunkStart)
-            {
-               writer.WriteHtmlEncoded(text.Slice(chunkStart, currentIndex - chunkStart), encodeApostrophe: false);
-            }
-            
-            writer.WriteHtmlEncoded(text.Slice(currentIndex + 1, 1), encodeApostrophe: false);
-            
-            currentIndex += 2;
-            chunkStart = currentIndex;
-         }
-         else
-         {
-            currentIndex++;
-         }
-      }
-
-      if (chunkStart < text.Length)
-      {
-         writer.WriteHtmlEncoded(text[chunkStart..], encodeApostrophe: false);
-      }
-   }
-
-   private static bool IsAsciiPunctuation(char c)
-   {
-      return c is >= '!' and <= '/' 
-         or >= ':' and <= '@' 
-         or >= '[' and <= '`' 
-         or >= '{' and <= '~';
    }
 }

@@ -79,11 +79,48 @@ public sealed class ListParser : IBlockParser
          return true;
       }
 
+      if (IsThematicBreakLine(ref state))
+      {
+         return false;
+      }
+
       if (ListUtils.IsListMarker(ref state, out var listChar, out _, out _))
       {
          return node.ListMarker == listChar;
       }
 
       return false;
+   }
+
+   private static bool IsThematicBreakLine<TData>(ref LineState<TData> state)
+   {
+      if (state.LeadingSpaces >= 4)
+      {
+         return false;
+      }
+
+      var marker = state.FirstChar;
+      if (marker is not ('*' or '-' or '_'))
+      {
+         return false;
+      }
+
+      var count = 0;
+      var rawLine = state.RawLine;
+      
+      for (var i = state.FirstNonSpaceIndex; i < rawLine.Length; i++)
+      {
+         var c = rawLine[i];
+         if (c == marker)
+         {
+            count++;
+         }
+         else if (c is not (' ' or '\t'))
+         {
+            return false;
+         }
+      }
+
+      return count >= 3;
    }
 }

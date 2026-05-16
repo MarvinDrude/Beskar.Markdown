@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Beskar.Markdown.Extensions;
 using Beskar.Markdown.Parsing.Models;
+using Beskar.Markdown.Utils;
 using Me.Memory.Buffers;
 
 namespace Beskar.Markdown.Parsing;
@@ -13,6 +14,8 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
    private BufferWriter<Delimiter> _delimiters;
    
    private bool _hasDelimiterBuffer;
+
+   private ushort _nestingLevel;
 
    public void Parse(ref BufferWriter<MarkdownNode> writer, 
       MarkdownContext<TData> context, ParserOptions options)
@@ -47,14 +50,18 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
          _delimiters.Position = 0;
       }
 
+      var blockEnd = currentChildIndex != -1
+         ? writer.WrittenSpan[parent.LastChildIndex].TextSpan.Start + writer.WrittenSpan[parent.LastChildIndex].TextSpan.Length
+         : parent.TextSpan.Start + parent.TextSpan.Length;
+
       parent.FirstChildIndex = -1;
       parent.LastChildIndex = -1;
-      
+
       if (currentChildIndex != -1)
       {
          var nextNode = currentChildIndex;
          var lastProcessedOffset = -1;
-         
+
          while (nextNode != -1)
          {
             var oldNode = writer.WrittenSpan[nextNode];
@@ -67,7 +74,10 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
             var isLastLine = oldNode.NextSiblingIndex == -1;
             var span = _rawText.Slice(oldNode.TextSpan.Start, oldNode.TextSpan.Length);
 
-            var state = new InlineState<TData>(context, _rawText, span, oldNode.TextSpan.Start);
+            var state = new InlineState<TData>(context, _rawText, span, oldNode.TextSpan.Start)
+            {
+               BlockEnd = blockEnd
+            };
             ProcessState(ref state, parentIndex, ref writer, options, isLastLine);
             lastProcessedOffset = state.GlobalOffset;
 
@@ -88,7 +98,10 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
       {
          // header, for example, has its text inside itself
          var span = _rawText.Slice(parent.TextSpan.Start, parent.TextSpan.Length);
-         var state = new InlineState<TData>(context, _rawText, span, parent.TextSpan.Start);
+         var state = new InlineState<TData>(context, _rawText, span, parent.TextSpan.Start)
+         {
+            BlockEnd = parent.TextSpan.Start + parent.TextSpan.Length
+         };
 
          ProcessState(ref state, parentIndex, ref writer, options, isLastLine: true);
       }
@@ -145,23 +158,38 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
       // Flush any leftover text at the end of the line
       if (plainTextLength > 0)
       {
-         if (!isLastLine && plainTextLength >= 2)
+         var lineSpan = state.RawText.Slice(plainTextStart, plainTextLength);
+         var trailingSpaces = 0;
+         while (trailingSpaces < plainTextLength)
          {
-            var trailingSpaces = 0;
-            while (trailingSpaces < plainTextLength &&
-                   state.RawText[plainTextStart + plainTextLength - 1 - trailingSpaces] == ' ')
-            {
+            var c = lineSpan[plainTextLength - 1 - trailingSpaces];
+            if (c is ' ' or '\t')
                trailingSpaces++;
-            }
+            else
+               break;
+         }
 
-            if (trailingSpaces >= 2)
+         if (!isLastLine)
+         {
+            if (trailingSpaces > 0)
             {
-               var textLen = plainTextLength - trailingSpaces;
-               if (textLen > 0)
-                  AddInlineNode(ref writer, parentIndex, NodeType.Text, plainTextStart, textLen);
-               AddInlineNode(ref writer, parentIndex, NodeType.LineBreak, plainTextStart + textLen, trailingSpaces);
-               return;
+               var subSpan = lineSpan[..plainTextLength];
+               if (SpanUtils.IsHardBreak(subSpan))
+               {
+                  var textLen = plainTextLength - trailingSpaces;
+                  if (textLen > 0)
+                     AddInlineNode(ref writer, parentIndex, NodeType.Text, plainTextStart, textLen);
+                  AddInlineNode(ref writer, parentIndex, NodeType.LineBreak, plainTextStart + textLen, trailingSpaces);
+                  return;
+               }
             }
+         }
+         else if (trailingSpaces > 0)
+         {
+            var textLen = plainTextLength - trailingSpaces;
+            if (textLen > 0)
+               AddInlineNode(ref writer, parentIndex, NodeType.Text, plainTextStart, textLen);
+            return;
          }
 
          AddInlineNode(ref writer, parentIndex, NodeType.Text, plainTextStart, plainTextLength);
@@ -184,10 +212,10 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
          {
             ref var opener = ref _delimiters.GetReference(j);
 
-            if (!opener.Active || !opener.CanOpen || opener.Marker != closer.Marker)
+            if (!opener.Active || !opener.CanOpen || opener.Marker != closer.Marker || opener.NestingLevel != closer.NestingLevel)
                continue;
 
-            if ((opener.CanOpen || opener.CanClose) && (closer.CanOpen || closer.CanClose))
+            if (opener is { CanOpen: true, CanClose: true } || closer is { CanOpen: true, CanClose: true })
             {
                if ((opener.Length + closer.Length) % 3 == 0 && (opener.Length % 3 != 0 || closer.Length % 3 != 0))
                {
@@ -210,18 +238,16 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
             {
                firstChildIdx = -1;
             }
-            else if (closer.PreviousNodeIndex != -1 &&
-                     writer.WrittenSpan[closer.PreviousNodeIndex].NextSiblingIndex == closerNodeIdx)
-            {
-               writer.GetReference(closer.PreviousNodeIndex).NextSiblingIndex = -1;
-            }
             else
             {
                var current = firstChildIdx;
                while (current != -1 && writer.WrittenSpan[current].NextSiblingIndex != closerNodeIdx)
                   current = writer.WrittenSpan[current].NextSiblingIndex;
+               
                if (current != -1)
+               {
                   writer.GetReference(current).NextSiblingIndex = -1;
+               }
             }
 
             var openerFullyConsumed = opener.Length <= consumed;
@@ -320,10 +346,15 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
    {
       if (length <= 0) return;
       
+      _nestingLevel++;
       var span = _rawText.Slice(start, length);
-      var state = new InlineState<TData>(context, _rawText, span, start);
-      
-      ProcessState(ref state, parentIndex, ref writer, options, isLastLine: true);
+      var state = new InlineState<TData>(context, _rawText, span, start)
+      {
+         BlockEnd = start + length
+      };
+
+      ProcessState(ref state, parentIndex, ref writer, options, isLastLine: false);
+      _nestingLevel--;
    }
    
    public void AddDelimiter(scoped in Delimiter delimiter)
@@ -334,7 +365,9 @@ public ref struct InlineParser<TData>(ReadOnlySpan<char> rawText)
          _hasDelimiterBuffer = true;
       }
 
-      _delimiters.Add(delimiter);
+      var d = delimiter;
+      d.NestingLevel = _nestingLevel;
+      _delimiters.Add(d);
    }
 
    public void Dispose()
