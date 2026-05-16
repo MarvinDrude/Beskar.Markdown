@@ -18,28 +18,17 @@ public sealed class HtmlAutolinkRenderer : INodeRenderer
       RenderOptions options)
    {
       var url = current.TextSpan.Slice(rawText);
-      ReadOnlySpan<char> preamble = [];
 
-      if (IsEmailAutolink(url))
+      writer.Write("<a href=\"");
+      if (current.IsEmail != 0)
       {
-         preamble = "mailto:";
+         writer.Write("mailto:");
       }
       
-      writer.Write("<a href=\"");
-      writer.WriteHtmlEncoded(preamble, encodeApostrophe: false);
-      writer.WriteHtmlEncoded(url, encodeApostrophe: false);
+      writer.WriteCommonMarkdownUrlEncoded(url);
       writer.Write("\">");
       
-      if (url.Length > 0)
-      {
-         writer.WriteHtmlEncoded(url, encodeApostrophe: false);
-      }
+      writer.WriteHtmlEncoded(url, encodeApostrophe: false);
       writer.Write("</a>");
-   }
-   
-   private static bool IsEmailAutolink(ReadOnlySpan<char> content)
-   {
-      var atIdx = content.IndexOf('@');
-      return atIdx > 0 && atIdx < content.Length - 1;
    }
 }

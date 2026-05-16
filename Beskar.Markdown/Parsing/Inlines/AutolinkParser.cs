@@ -39,27 +39,27 @@ public sealed class AutolinkParser : IInlineParser
       if (closeIdx == -1) return false;
 
       var content = text[1..closeIdx];
-      var isEmail = IsEmailAutolink(content);
       
-      if (isEmail || IsUriAutolink(content))
+      var isUri = IsUriAutolink(content);
+      var isEmail = !isUri && IsEmailAutolink(content);
+
+      if (!isEmail && !isUri) return false;
+      
+      var nodeIndex = writer.WrittenSpan.Length;
+      writer.Add(new MarkdownNode()
       {
-         var nodeIndex = writer.WrittenSpan.Length;
-         writer.Add(new MarkdownNode()
-         {
-            Type = NodeType.Autolink, 
-            TextSpan = new TextSpan(state.GlobalOffset + 1, closeIdx - 1),
-            FirstChildIndex = -1,
-            NextSiblingIndex = -1,
-            IsEmail = (byte)(isEmail ? 1 : 0)
-         });
+         Type = NodeType.Autolink, 
+         TextSpan = new TextSpan(state.GlobalOffset + 1, closeIdx - 1),
+         FirstChildIndex = -1,
+         NextSiblingIndex = -1,
+         IsEmail = (byte)(isEmail ? 1 : 0)
+      });
 
-         parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
-         state.Advance(closeIdx + 1);
+      parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
+      state.Advance(closeIdx + 1);
          
-         return true;
-      }
+      return true;
 
-      return false;
    }
    
    private bool IsUriAutolink(ReadOnlySpan<char> content)
@@ -85,6 +85,41 @@ public sealed class AutolinkParser : IInlineParser
    private static bool IsEmailAutolink(ReadOnlySpan<char> content)
    {
       var atIdx = content.IndexOf('@');
-      return atIdx > 0 && atIdx < content.Length - 1;
+      if (atIdx <= 0 || atIdx >= content.Length - 1) return false;
+
+      var localPart = content[..atIdx];
+      foreach (var c in localPart)
+      {
+         if (!char.IsAsciiLetterOrDigit(c) && !".!#$%&'*+/=?^_`{|}~-".Contains(c))
+            return false;
+      }
+
+      var domainPart = content[(atIdx + 1)..];
+      if (domainPart.Length < 3) return false;
+      
+      var lastDotIdx = -1;
+      
+      for (var i = 0; i < domainPart.Length; i++)
+      {
+         var c = domainPart[i];
+         if (char.IsAsciiLetterOrDigit(c)) continue;
+         
+         if (c == '.')
+         {
+            if (i == 0 || i == domainPart.Length - 1 || domainPart[i - 1] == '.')
+               return false;
+            lastDotIdx = i;
+            
+            continue;
+         }
+
+         if (c != '-') 
+            return false;
+         
+         if (i == 0 || i == domainPart.Length - 1 || domainPart[i - 1] == '.')
+            return false;
+      }
+
+      return lastDotIdx != -1;
    }
 }
