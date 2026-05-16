@@ -11,8 +11,6 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
    public int Priority => 100;
    public int SupportedTypeValue => (int)NodeType.LinkReferenceDefinition;
    
-   private const int PendingMultilineDefinitionMarker = -2;
-
    public int TryMatch<TData>(
       ref LineState<TData> state, 
       int parentIndex, 
@@ -38,6 +36,23 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
          }
 
          return -1;
+      }
+
+      var colonIndex = labelEndIndex + 1;
+      if (colonIndex < line.Length && line[colonIndex] == ':')
+      {
+         if (!TryParseMultilineDefinition(ref state, i, out var fullNode, out var fullNormalizedLabel))
+         {
+            return -1;
+         }
+
+         var fullNodeIndex = writer.WrittenSpan.Length;
+         writer.Add(fullNode);
+         
+         state.Context.ReferenceDefinitions.TryAdd(fullNormalizedLabel, fullNodeIndex);
+         state.ConsumeRest();
+         
+         return fullNodeIndex;
       }
 
       var labelStart = i + 1;
@@ -72,7 +87,7 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
    public bool CanContinue<TData>(ref MarkdownNode node, ref LineState<TData> state, 
       ref BufferWriter<MarkdownNode> writer)
    {
-      if (node.FirstChildIndex == PendingMultilineDefinitionMarker)
+      if (node.LastChildIndex > 0)
       {
          var endOffset = node.LastChildIndex;
          var lineEnd = state.GlobalOffset + state.RawLine.Length;
@@ -86,7 +101,6 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
          var consumeLength = Math.Max(0, Math.Min(state.RawLine.Length, endOffset - state.GlobalOffset));
          state.Slice(consumeLength);
          
-         node.FirstChildIndex = -1;
          node.LastChildIndex = -1;
          
          return false;
@@ -118,8 +132,7 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
          return false;
       }
 
-      if (!TryParseMultilineLabel(full, out var labelEndIndex)
-          || !full[..labelEndIndex].Contains('\n'))
+      if (!TryParseMultilineLabel(full, out var labelEndIndex))
       {
          return false;
       }
@@ -135,13 +148,7 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
 
       if (i < full.Length && full[i] is '\r' or '\n')
       {
-         i += full[i] == '\r' && i + 1 < full.Length && full[i + 1] == '\n' ? 2 : 1;
-         var lineIndent = 0;
-         while (i < full.Length && lineIndent < 4 && full[i] == ' ')
-         {
-            i++;
-            lineIndent++;
-         }
+         SkipLineEndingAndIndent(full, ref i);
       }
 
       if (!TryParseDestination(full, i, out var urlEnd))
@@ -158,14 +165,43 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
       }
 
       i = urlEnd;
-      SkipSpacesAndTabs(full, ref i);
+      var skippedTitleSeparator = SkipSpacesAndTabs(full, ref i);
+
+      if (i < full.Length && full[i] is '\r' or '\n')
+      {
+         var titleLineStart = i;
+         SkipLineEndingAndIndent(full, ref titleLineStart);
+
+         if (titleLineStart < full.Length && full[titleLineStart] is '"' or '\'' or '(')
+         {
+            if (TryParseTitle(full, titleLineStart, out var continuationTitleEnd, out var continuationTitleClosed)
+                && continuationTitleClosed
+                && !ContainsBlankLine(full[titleLineStart..continuationTitleEnd]))
+            {
+               var afterTitle = continuationTitleEnd;
+               SkipSpacesAndTabs(full, ref afterTitle);
+               
+               if (afterTitle >= full.Length || full[afterTitle] is '\r' or '\n')
+               {
+                  skippedTitleSeparator = true;
+                  i = titleLineStart;
+               }
+            }
+         }
+      }
 
       var titleStart = -1;
       var titleLength = 0;
 
-      if (i < full.Length && full[i] is '"' or '\'' or '(')
+      if (skippedTitleSeparator && i < full.Length 
+            && full[i] is '"' or '\'' or '(')
       {
          if (!TryParseTitle(full, i, out var titleEnd, out var titleClosed) || !titleClosed)
+         {
+            return false;
+         }
+
+         if (ContainsBlankLine(full[i..titleEnd]))
          {
             return false;
          }
@@ -173,6 +209,7 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
          titleStart = definitionStart + i + 1;
          titleLength = titleEnd - i - 2;
          i = titleEnd;
+         
          SkipSpacesAndTabs(full, ref i);
       }
 
@@ -194,7 +231,7 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
          TextSpan = new TextSpan(urlStart, urlLength),
          TitleSpanStart = titleStart,
          TitleSpanLength = titleLength,
-         FirstChildIndex = PendingMultilineDefinitionMarker,
+         FirstChildIndex = -1,
          LastChildIndex = definitionStart + i,
          NextSiblingIndex = -1
       };
@@ -446,12 +483,65 @@ public sealed class LinkReferenceDefinitionParser : IBlockParser
       return false;
    }
 
-   private static void SkipSpacesAndTabs(ReadOnlySpan<char> text, ref int index)
+   private static bool SkipSpacesAndTabs(ReadOnlySpan<char> text, ref int index)
    {
+      var start = index;
       while (index < text.Length && text[index] is ' ' or '\t')
       {
          index++;
       }
+
+      return index > start;
+   }
+
+   private static void SkipLineEndingAndIndent(ReadOnlySpan<char> text, ref int index)
+   {
+      if (index < text.Length && text[index] == '\r')
+      {
+         index++;
+         if (index < text.Length && text[index] == '\n')
+         {
+            index++;
+         }
+      }
+      else if (index < text.Length && text[index] == '\n')
+      {
+         index++;
+      }
+
+      while (index < text.Length && text[index] is ' ' or '\t')
+      {
+         index++;
+      }
+   }
+
+   private static bool ContainsBlankLine(ReadOnlySpan<char> text)
+   {
+      var lineHasContent = true;
+      for (var i = 0; i < text.Length; i++)
+      {
+         var c = text[i];
+         if (c is '\r' or '\n')
+         {
+            if (!lineHasContent)
+            {
+               return true;
+            }
+
+            lineHasContent = false;
+            if (c == '\r' && i + 1 < text.Length 
+               && text[i + 1] == '\n')
+            {
+               i++;
+            }
+         }
+         else if (c is not (' ' or '\t'))
+         {
+            lineHasContent = true;
+         }
+      }
+
+      return false;
    }
 
    private static bool TryParseDestination(ReadOnlySpan<char> line, int start, out int endIndex)

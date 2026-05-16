@@ -437,9 +437,13 @@ public ref struct MarkdownParser<TData>(
          {
             var childEnd = GetNodeEnd(childIndex);
             var nextChildStart = GetNodeStart(nextChildIndex);
+            var nextChild = _writer.WrittenSpan[nextChildIndex];
+            
             if (childEnd >= 0
                 && nextChildStart > childEnd
-                && ContainsBlankLine(_rawText[childEnd..nextChildStart]))
+                && ContainsBlankLine(
+                   _rawText[childEnd..nextChildStart],
+                   child.Type == NodeType.Paragraph && nextChild.Type == NodeType.Paragraph))
             {
                return true;
             }
@@ -495,7 +499,7 @@ public ref struct MarkdownParser<TData>(
       return start;
    }
 
-   private static bool ContainsBlankLine(ReadOnlySpan<char> text)
+   private static bool ContainsBlankLine(ReadOnlySpan<char> text, bool allowBlockQuoteMarkers = false)
    {
       var lineHasContent = true;
       for (var i = 0; i < text.Length; i++)
@@ -514,7 +518,8 @@ public ref struct MarkdownParser<TData>(
                i++;
             }
          }
-         else if (c is not (' ' or '\t'))
+         else if (c is not (' ' or '\t') 
+            && (!allowBlockQuoteMarkers || c != '>'))
          {
             lineHasContent = true;
          }

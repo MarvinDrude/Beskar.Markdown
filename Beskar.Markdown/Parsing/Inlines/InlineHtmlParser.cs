@@ -44,8 +44,19 @@ public sealed class InlineHtmlParser : IInlineParser
          {
             if (text.StartsWith("<!--", StringComparison.Ordinal))
             {
-               var endIdx = blockText[4..].IndexOf("-->", StringComparison.Ordinal);
-               if (endIdx != -1) closeIdx = endIdx + 4 + 2;
+               if (blockText.StartsWith("<!-->", StringComparison.Ordinal))
+               {
+                  closeIdx = 4;
+               }
+               else if (blockText.StartsWith("<!--->", StringComparison.Ordinal))
+               {
+                  closeIdx = 5;
+               }
+               else
+               {
+                  var endIdx = blockText[4..].IndexOf("-->", StringComparison.Ordinal);
+                  if (endIdx != -1) closeIdx = endIdx + 4 + 2;
+               }
             }
             else if (text.Length > 2 && char.IsAsciiLetterUpper(text[2]))
             {

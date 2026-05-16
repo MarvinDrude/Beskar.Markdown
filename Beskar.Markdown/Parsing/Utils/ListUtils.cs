@@ -18,6 +18,12 @@ public static class ListUtils
       
       if (c is '-' or '*' or '+')
       {
+         if (c == '*' && raw.Length >= 5 
+            && raw[1] is (' ' or '\t') && raw[^1] == '*')
+         {
+            return false;
+         }
+
          if (raw.Length == 1 || raw[1] == ' ' || raw[1] == '\t')
          {
             listChar = c;

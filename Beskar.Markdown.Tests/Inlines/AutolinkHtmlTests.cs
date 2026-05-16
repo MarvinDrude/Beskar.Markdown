@@ -26,7 +26,7 @@ public sealed class AutolinkHtmlTests
    public Task AutolinkWithQueryParameters()
    {
       const string markdown = "<https://example.com/search?q=markdown&lang=en>";
-      const string expectedHtml = """<p><a href="https://example.com/search?q=markdown&lang=en">https://example.com/search?q=markdown&amp;lang=en</a></p>""";
+      const string expectedHtml = """<p><a href="https://example.com/search?q=markdown&amp;lang=en">https://example.com/search?q=markdown&amp;lang=en</a></p>""";
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml);
    }

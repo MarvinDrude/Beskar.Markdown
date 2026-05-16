@@ -36,6 +36,13 @@ public sealed class HtmlCodeBlockRenderer : INodeRenderer
       if (current.CodeBlockIndent <= 0)
       {
          writer.WriteHtmlEncoded(text, encodeApostrophe: false);
+         if (!text.IsEmpty
+             && span.Start + span.Length < rawText.Length
+             && rawText[span.Start + span.Length] is '\r' or '\n'
+             && text[^1] is not ('\r' or '\n'))
+         {
+            writer.WriteLine();
+         }
       }
       else
       {

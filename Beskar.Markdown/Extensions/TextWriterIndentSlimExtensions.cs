@@ -16,9 +16,7 @@ public static class TextWriterIndentSlimExtensions
       public void WriteHtmlDecodedAndEncoded(scoped ReadOnlySpan<char> text, bool encodeApostrophe = true)
       {
          if (text.IsEmpty) return;
-
          var lastIndex = 0;
-         Span<char> decoded = stackalloc char[1];
 
          for (var i = 0; i < text.Length; i++)
          {
@@ -157,6 +155,7 @@ public static class TextWriterIndentSlimExtensions
                '\'' => "%27",
                '<' => "%3C",
                '>' => "%3E",
+               '&' => "&amp;",
                '[' => "%5B",
                ']' => "%5D",
                '\\' => "%5C",
