@@ -1,16 +1,24 @@
 ﻿namespace Beskar.Markdown.Utils;
 
+using System.Text;
+
 public static class SpanUtils
 {
-   public static char TryParseEntity(ReadOnlySpan<char> span, out int consumed)
+   public static bool TryParseEntity(
+      ReadOnlySpan<char> span,
+      Span<char> destination,
+      out ReadOnlySpan<char> decoded,
+      out int consumed)
    {
       consumed = 0;
+      decoded = [];
+      
       if (span.Length < 3) 
-         return '\0';
+         return false;
 
       var semiColonIndex = span.IndexOf(';');
       if (semiColonIndex is -1 or > 32) 
-         return '\0';
+         return false;
 
       var content = span[1..semiColonIndex];
 
@@ -26,12 +34,46 @@ public static class SpanUtils
       
          if (uint.TryParse(numberSpan, style, null, out var codePoint))
          {
-            if (codePoint > 0x10FFFF) return '\0';
+            if (codePoint > 0x10FFFF) 
+               return false;
 
             consumed = semiColonIndex + 1;
-            if (codePoint == 0) return '\uFFFD';
-            return (char)codePoint; 
+            if (codePoint is 0 or >= 0xD800 and <= 0xDFFF)
+            {
+               if (destination.IsEmpty) 
+                  return false;
+
+               destination[0] = '\uFFFD';
+               decoded = destination[..1];
+               
+               return true;
+            }
+
+            if (codePoint <= char.MaxValue)
+            {
+               if (destination.IsEmpty) return false;
+
+               destination[0] = (char)codePoint;
+               decoded = destination[..1];
+               
+               return true;
+            }
+
+            if (destination.Length < 2) return false;
+
+            var charsWritten = new Rune((int)codePoint).EncodeToUtf16(destination);
+            decoded = destination[..charsWritten];
+            
+            return true;
          }
+      }
+
+      if (content is "ngE")
+      {
+         consumed = semiColonIndex + 1;
+         decoded = "\u2267\u0338";
+         
+         return true;
       }
    
       var named = content switch
@@ -44,7 +86,7 @@ public static class SpanUtils
          "apos"     => '\'',
          
          // Controls and Basic Symbols
-         "nbsp"     => (char)160,
+         "nbsp"     => ' ',
          "iexcl"    => '¡',
          "cent"     => '¢',
          "pound"    => '£',
@@ -315,11 +357,17 @@ public static class SpanUtils
 
       if (named != 0)
       {
+         if (destination.IsEmpty) 
+            return false;
+
          consumed = semiColonIndex + 1;
-         return named;
+         destination[0] = named;
+         decoded = destination[..1];
+         
+         return true;
       }
 
-      return '\0';
+      return false;
    }
 
    public static int CountTrailingSpaces(ReadOnlySpan<char> span)

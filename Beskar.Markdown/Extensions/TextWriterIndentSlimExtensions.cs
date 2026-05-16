@@ -17,6 +17,7 @@ public static class TextWriterIndentSlimExtensions
       {
          if (text.IsEmpty) return;
          var lastIndex = 0;
+         Span<char> decodedBuffer = stackalloc char[2];
 
          for (var i = 0; i < text.Length; i++)
          {
@@ -38,13 +39,12 @@ public static class TextWriterIndentSlimExtensions
             }
             else if (c == '&')
             {
-               var decodedChar = SpanUtils.TryParseEntity(text[i..], out var consumed);
-               if (consumed > 0)
+               if (SpanUtils.TryParseEntity(text[i..], decodedBuffer, out var decoded, out var consumed))
                {
                   if (i > lastIndex)
                      writer.Write(text[lastIndex..i]);
 
-                  writer.WriteCharHtmlEncoded(decodedChar);
+                  writer.WriteHtmlDecodedEntityEncoded(decoded);
 
                   i += consumed - 1;
                   lastIndex = i + 1;
@@ -96,10 +96,19 @@ public static class TextWriterIndentSlimExtensions
          }
       }
 
+      private void WriteHtmlDecodedEntityEncoded(scoped ReadOnlySpan<char> text)
+      {
+         foreach (var c in text)
+         {
+            writer.WriteCharHtmlEncoded(c);
+         }
+      }
+
       public void WriteCommonMarkdownUrlEncoded(
          scoped ReadOnlySpan<char> text, bool processEscapes = true, bool multiLine = false)
       {
          if (text.IsEmpty) return;
+         Span<char> decodedBuffer = stackalloc char[2];
 
          var firstIndex = TextWriterIndentSlim.FindFirstUrlEncodingIndex(text);
          if (firstIndex == -1)
@@ -132,15 +141,14 @@ public static class TextWriterIndentSlimExtensions
             }
             else if (c == '&')
             {
-               var decodedChar = SpanUtils.TryParseEntity(text[i..], out var consumed);
-               if (consumed > 0)
+               if (SpanUtils.TryParseEntity(text[i..], decodedBuffer, out var decoded, out var consumed))
                {
                   if (i > lastIndex)
                   {
                      writer.Write(text[lastIndex..i]);
                   }
 
-                  TextWriterIndentSlim.WriteUrlEncodedChar(ref writer, decodedChar);
+                  TextWriterIndentSlim.WriteUrlEncoded(ref writer, decoded);
                   i += consumed - 1;
                   lastIndex = i + 1;
 
@@ -225,6 +233,23 @@ public static class TextWriterIndentSlimExtensions
       private static void WriteUrlEncodedChar(ref TextWriterIndentSlim output, char c)
       {
          TextWriterIndentSlim.WriteUrlEncodedCodePoint(ref output, c);
+      }
+
+      private static void WriteUrlEncoded(ref TextWriterIndentSlim output, scoped ReadOnlySpan<char> text)
+      {
+         var i = 0;
+         while (i < text.Length)
+         {
+            if (Rune.DecodeFromUtf16(text[i..], out var rune, out var charsConsumed) == OperationStatus.Done)
+            {
+               TextWriterIndentSlim.WriteUrlEncodedCodePoint(ref output, rune.Value);
+               i += charsConsumed;
+               continue;
+            }
+
+            TextWriterIndentSlim.WriteUrlEncodedCodePoint(ref output, text[i]);
+            i++;
+         }
       }
 
       private static void WriteUrlEncodedCodePoint(ref TextWriterIndentSlim output, int codePoint)

@@ -61,7 +61,7 @@ Console.WriteLine(html);
 - **Easy to Use**: A clean, intuitive API that makes Markdown processing straightforward.
 - **Extensible**: Easily add support for new Markdown features or extensions.
 - **Advanced**: Supports contextual rendering
-- **Tests**: 980 passing tests (651 **CommonMark** Spec Tests)
+- **Tests**: 980 passing tests (652 **CommonMark** Spec Tests)
 
 ### Currently Supported Blocks & Inlines
 - **Blocks**:
