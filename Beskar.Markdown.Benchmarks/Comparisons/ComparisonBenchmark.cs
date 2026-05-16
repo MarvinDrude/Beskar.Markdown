@@ -9,11 +9,71 @@ namespace Beskar.Markdown.Benchmarks.Comparisons;
 public class ComparisonBenchmark
 {
    private string _markdown = string.Empty;
+   private string _test = string.Empty;
+   private string _test2 = string.Empty;
    
    [GlobalSetup]
    public void Setup()
    {
       _markdown = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "spec.md"));
+      _test = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "test.md"));
+      _test2 = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "test2.md"));
+   }
+   
+   [Benchmark(Description = "Markdig")]
+   [BenchmarkCategory("Test 1")]
+   public string Test1Markdig()
+   {
+      return Markdig.Markdown.ToHtml(_test);
+   }
+
+   [Benchmark(Description = "Beskar.Markdown")]
+   [BenchmarkCategory("Test 1")]
+   public string Test1BeMarkdown()
+   {
+      return BeMarkdown.ToHtml(_test);
+   }
+
+   [Benchmark(Description = "CommonMark.Net")]
+   [BenchmarkCategory("Test 1")]
+   public string Test1CommonMarkNet()
+   {
+      return CommonMark.CommonMarkConverter.Convert(_test);
+   }
+
+   [Benchmark(Description = "MarkdownSharp")]
+   [BenchmarkCategory("Test 1")]
+   public string Test1MarkdownSharp()
+   {
+      return new MarkdownSharp.Markdown().Transform(_test);
+   }
+
+   [Benchmark(Description = "Markdig")]
+   [BenchmarkCategory("Test 2")]
+   public string Test2Markdig()
+   {
+      return Markdig.Markdown.ToHtml(_test2);
+   }
+
+   [Benchmark(Description = "Beskar.Markdown")]
+   [BenchmarkCategory("Test 2")]
+   public string Test2BeMarkdown()
+   {
+      return BeMarkdown.ToHtml(_test2);
+   }
+
+   [Benchmark(Description = "CommonMark.Net")]
+   [BenchmarkCategory("Test 2")]
+   public string Test2CommonMarkNet()
+   {
+      return CommonMark.CommonMarkConverter.Convert(_test2);
+   }
+
+   [Benchmark(Description = "MarkdownSharp")]
+   [BenchmarkCategory("Test 2")]
+   public string Test2MarkdownSharp()
+   {
+      return new MarkdownSharp.Markdown().Transform(_test2);
    }
    
    [Benchmark(Description = "Markdig")]
