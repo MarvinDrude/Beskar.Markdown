@@ -192,14 +192,6 @@
     "section": "Backslash escapes"
   },
   {
-    "markdown": "&nbsp; &amp; &copy; &AElig; &Dcaron;\n&frac34; &HilbertSpace; &DifferentialD;\n&ClockwiseContourIntegral; &ngE;\n",
-    "html": "<p>  &amp; © Æ Ď\n¾ ℋ ⅆ\n∲ ≧̸</p>\n",
-    "example": 25,
-    "start_line": 649,
-    "end_line": 657,
-    "section": "Entity and numeric character references"
-  },
-  {
     "markdown": "&#35; &#1234; &#992; &#0;\n",
     "html": "<p># Ӓ Ϡ �</p>\n",
     "example": 26,

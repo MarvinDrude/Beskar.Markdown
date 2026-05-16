@@ -28,44 +28,12 @@ public sealed class HtmlLinkRenderer : INodeRenderer
       {
          var startIndex = current.LinkUrlStart + current.LinkUrlLength + current.LinkTitleOffset;
          writer.Write(" title=\"");
-         WriteUnescapedHtmlEncoded(ref writer, rawText.Slice(startIndex, current.LinkTitleLength));
+         writer.WriteHtmlDecodedAndEncoded(rawText.Slice(startIndex, current.LinkTitleLength), encodeApostrophe: false);
          writer.Write("\"");
       }
       
       writer.Write(">");
       current.RenderChildren(context, rawText, nodes, ref writer, options);
       writer.Write("</a>");
-   }
-   
-   private static void WriteUnescapedHtmlEncoded(ref TextWriterIndentSlim writer, ReadOnlySpan<char> text)
-   {
-      var currentIndex = 0;
-      var chunkStart = 0;
-
-      while (currentIndex < text.Length)
-      {
-         if (text[currentIndex] == '\\' && currentIndex + 1 < text.Length 
-            && LinkUtils.IsAsciiPunctuation(text[currentIndex + 1]))
-         {
-            if (currentIndex > chunkStart)
-            {
-               writer.WriteHtmlEncoded(text.Slice(chunkStart, currentIndex - chunkStart));
-            }
-            
-            writer.WriteHtmlEncoded(text.Slice(currentIndex + 1, 1));
-            
-            currentIndex += 2;
-            chunkStart = currentIndex;
-         }
-         else
-         {
-            currentIndex++;
-         }
-      }
-
-      if (chunkStart < text.Length)
-      {
-         writer.WriteHtmlEncoded(text[chunkStart..]);
-      }
    }
 }

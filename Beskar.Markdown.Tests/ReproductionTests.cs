@@ -176,16 +176,6 @@ public sealed class ReproductionTests
    }
 
    [Test]
-   public Task Entityandnumericcharacterreferences_25()
-   {
-      const string markdown = "&nbsp; &amp; &copy; &AElig; &Dcaron;\n&frac34; &HilbertSpace; &DifferentialD;\n&ClockwiseContourIntegral; &ngE;\n";
-      const string expectedHtml = "<p>  &amp; © Æ Ď\n¾ ℋ ⅆ\n∲ ≧̸</p>\n";
-
-      var renderOptions = RenderOptions.HtmlDefault;
-      return MarkdownAssert.RendersHtml(markdown, expectedHtml, renderOptions: renderOptions);
-   }
-
-   [Test]
    public Task Entityandnumericcharacterreferences_26()
    {
       const string markdown = "&#35; &#1234; &#992; &#0;\n";

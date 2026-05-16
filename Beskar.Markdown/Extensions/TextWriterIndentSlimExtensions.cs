@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Text;
 using Beskar.Markdown.Parsing.Utils;
 using Beskar.Markdown.Utils;
 using Me.Memory.Buffers;
@@ -8,7 +9,7 @@ namespace Beskar.Markdown.Extensions;
 public static class TextWriterIndentSlimExtensions
 {
    private static readonly SearchValues<char> UrlSearchValues =
-      SearchValues.Create(' ', '"', '\'', '<', '>', '(', ')', '[', ']', '\\', '`');
+      SearchValues.Create(' ', '"', '\'', '<', '>', '(', ')', '[', ']', '\\', '`', '&');
 
    extension(ref TextWriterIndentSlim writer)
    {
@@ -102,7 +103,7 @@ public static class TextWriterIndentSlimExtensions
       {
          if (text.IsEmpty) return;
 
-         var firstIndex = text.IndexOfAny(UrlSearchValues);
+         var firstIndex = FindFirstUrlEncodingIndex(text);
          if (firstIndex == -1)
          {
             writer.Write(text, multiLine);
@@ -128,6 +129,23 @@ public static class TextWriterIndentSlimExtensions
                   writer.Write(text.Slice(i + 1, 1));
 
                   i++;
+                  lastIndex = i + 1;
+
+                  continue;
+               }
+            }
+            else if (c == '&')
+            {
+               var decodedChar = SpanUtils.TryParseEntity(text[i..], out var consumed);
+               if (consumed > 0)
+               {
+                  if (i > lastIndex)
+                  {
+                     writer.Write(text[lastIndex..i]);
+                  }
+
+                  WriteUrlEncodedChar(ref writer, decodedChar);
+                  i += consumed - 1;
                   lastIndex = i + 1;
 
                   continue;
@@ -167,7 +185,30 @@ public static class TextWriterIndentSlimExtensions
                _ => []
             };
 
-            if (encoded.IsEmpty) continue;
+            if (encoded.IsEmpty)
+            {
+               if (c > 0x7F)
+               {
+                  if (i > lastIndex)
+                  {
+                     writer.Write(text[lastIndex..i]);
+                  }
+
+                  if (char.IsHighSurrogate(c) && i + 1 < text.Length && char.IsLowSurrogate(text[i + 1]))
+                  {
+                     WriteUrlEncodedCodePoint(ref writer, char.ConvertToUtf32(c, text[i + 1]));
+                     i++;
+                  }
+                  else
+                  {
+                     WriteUrlEncodedChar(ref writer, c);
+                  }
+
+                  lastIndex = i + 1;
+               }
+
+               continue;
+            }
 
             if (i > lastIndex)
             {
@@ -182,6 +223,49 @@ public static class TextWriterIndentSlimExtensions
          {
             writer.Write(text[lastIndex..]);
          }
+      }
+
+      private static int FindFirstUrlEncodingIndex(ReadOnlySpan<char> text)
+      {
+         var index = text.IndexOfAny(UrlSearchValues);
+         if (index != -1)
+         {
+            return index;
+         }
+
+         for (var i = 0; i < text.Length; i++)
+         {
+            if (text[i] > 0x7F)
+            {
+               return i;
+            }
+         }
+
+         return -1;
+      }
+
+      private static void WriteUrlEncodedChar(ref TextWriterIndentSlim output, char c)
+      {
+         WriteUrlEncodedCodePoint(ref output, c);
+      }
+
+      private static void WriteUrlEncodedCodePoint(ref TextWriterIndentSlim output, int codePoint)
+      {
+         Span<byte> utf8 = stackalloc byte[4];
+         var byteCount = Encoding.UTF8.GetBytes(char.ConvertFromUtf32(codePoint).AsSpan(), utf8);
+         const string hex = "0123456789ABCDEF";
+         Span<char> encoded = stackalloc char[12];
+         var outputIndex = 0;
+
+         for (var i = 0; i < byteCount; i++)
+         {
+            var b = utf8[i];
+            encoded[outputIndex++] = '%';
+            encoded[outputIndex++] = hex[b >> 4];
+            encoded[outputIndex++] = hex[b & 0x0F];
+         }
+
+         output.Write(encoded[..outputIndex]);
       }
 
       private static bool IsEscapable(char c)
