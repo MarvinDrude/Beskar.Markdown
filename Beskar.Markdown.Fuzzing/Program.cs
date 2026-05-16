@@ -34,7 +34,7 @@ while (true)
 {
    totalIterations++;
 
-   var maxLength = totalIterations % 100 == 0 ? 1_000 : 100;
+   var maxLength = totalIterations % 100 == 0 ? 4_000 : 100;
    var length = Random.Shared.Next(0, maxLength);
    var sb = new StringBuilder(length);
 
@@ -115,7 +115,7 @@ while (true)
       return;
    }
 
-   if (totalIterations % 10 == 0)
+   if (totalIterations % 3 == 0)
    {
       var elapsed = sw.Elapsed.TotalSeconds;
       var ips = totalIterations / elapsed;
