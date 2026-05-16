@@ -25,6 +25,7 @@ public sealed class ListItemParser : IBlockParser
       var nodeIndex = writer.WrittenSpan.Length;
       var markerStartOffset = state.GlobalOffset + state.FirstNonSpaceIndex;
       var visibleMarkerLength = 0;
+      var baseColumn = state.Column;
 
       for (var i = state.FirstNonSpaceIndex; i < state.RawLine.Length; i++)
       {
@@ -34,19 +35,14 @@ public sealed class ListItemParser : IBlockParser
 
       state.Slice(markerLength);
 
-      var spacesAfterMarker = 0;
-      while (spacesAfterMarker < state.RawLine.Length && state.RawLine[spacesAfterMarker] == ' ')
+      var paddingAfterMarker = state.LeadingSpaces;
+      if ((paddingAfterMarker == 0 && state.IsBlank) || paddingAfterMarker > 4)
       {
-         spacesAfterMarker++;
+         paddingAfterMarker = 1;
       }
 
-      if (spacesAfterMarker == 0 && state.IsBlank || spacesAfterMarker > 4)
-      {
-         spacesAfterMarker = 1;
-      }
-
-      var contentIndent = markerLength + spacesAfterMarker;
-      state.Slice(spacesAfterMarker);
+      var contentIndent = state.Column - baseColumn + paddingAfterMarker;
+      state.SliceIndentation(paddingAfterMarker);
 
       writer.Add(new MarkdownNode()
       {

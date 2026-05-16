@@ -20,8 +20,8 @@ public ref struct LineState<TData>
    public char FirstChar;
    public bool IsBlank;
 
-   private int _virtualSpaces;
-   public int VirtualSpaces => _virtualSpaces;
+   public int VirtualSpaces { get; private set; }
+   public int Column { get; private set; }
 
    public LineState(
       MarkdownContext<TData> context,
@@ -43,10 +43,11 @@ public ref struct LineState<TData>
       if (length <= 0) return;
       
       length = Math.Min(length, RawLine.Length);
+      Column = AdvanceColumn(RawLine[..length], Column);
       RawLine = RawLine[length..];
       
       GlobalOffset += length;
-      _virtualSpaces = 0;
+      VirtualSpaces = 0;
       Recalculate();
    }
 
@@ -55,12 +56,14 @@ public ref struct LineState<TData>
       if (amount <= 0) return;
 
       var physicalToSlice = 0;
+      var consumedColumns = 0;
 
-      if (_virtualSpaces > 0)
+      if (VirtualSpaces > 0)
       {
-         var toTake = Math.Min(amount, _virtualSpaces);
-         _virtualSpaces -= toTake;
+         var toTake = Math.Min(amount, VirtualSpaces);
+         VirtualSpaces -= toTake;
          amount -= toTake;
+         consumedColumns += toTake;
       }
 
       while (amount > 0 && physicalToSlice < RawLine.Length)
@@ -75,7 +78,7 @@ public ref struct LineState<TData>
          }
          else if (c == '\t')
          {
-            var tabSpaces = 4 - ((LeadingSpaces - GetRemainingLeadingSpaces()) % 4);
+            var tabSpaces = 4 - ((Column + consumedColumns) % 4);
             currentAmount = tabSpaces;
             physicalToSlice++;
          }
@@ -86,12 +89,14 @@ public ref struct LineState<TData>
 
          if (currentAmount > amount)
          {
-            _virtualSpaces = currentAmount - amount;
+            VirtualSpaces = currentAmount - amount;
+            consumedColumns += amount;
             amount = 0;
          }
          else
          {
             amount -= currentAmount;
+            consumedColumns += currentAmount;
          }
       }
 
@@ -100,23 +105,10 @@ public ref struct LineState<TData>
          RawLine = RawLine[physicalToSlice..];
          GlobalOffset += physicalToSlice;
       }
+
+      Column += consumedColumns;
       
       Recalculate();
-   }
-
-   private int GetRemainingLeadingSpaces()
-   {
-      var spaces = 0;
-      
-      for (var i = 0; i < RawLine.Length; i++)
-      {
-         var c = RawLine[i];
-         if (c == ' ') spaces++;
-         else if (c == '\t') spaces += 4 - (spaces % 4);
-         else break;
-      }
-      
-      return spaces;
    }
 
    public void ConsumeRest()
@@ -125,6 +117,8 @@ public ref struct LineState<TData>
 
       GlobalOffset += RawLine.Length;
       RawLine = default;
+      Column = 0;
+      VirtualSpaces = 0;
       LeadingSpaces = 0;
       FirstNonSpaceIndex = -1;
       FirstChar = '\0';
@@ -134,10 +128,11 @@ public ref struct LineState<TData>
    [MethodImpl(MethodImplOptions.AggressiveInlining)]
    private void Recalculate()
    {
-      LeadingSpaces = _virtualSpaces;
+      LeadingSpaces = VirtualSpaces;
       FirstNonSpaceIndex = -1;
       FirstChar = '\0';
       IsBlank = true;
+      var column = Column + VirtualSpaces;
 
       for (var e = 0; e < RawLine.Length; e++)
       {
@@ -147,9 +142,12 @@ public ref struct LineState<TData>
          {
             case ' ':
                LeadingSpaces++;
+               column++;
                break;
             case '\t':
-               LeadingSpaces += 4 - (LeadingSpaces % 4);
+               var tabSpaces = 4 - (column % 4);
+               LeadingSpaces += tabSpaces;
+               column += tabSpaces;
                break;
             default:
                FirstNonSpaceIndex = e;
@@ -158,5 +156,17 @@ public ref struct LineState<TData>
                return;
          }
       }
+   }
+
+   private static int AdvanceColumn(ReadOnlySpan<char> text, int column)
+   {
+      for (var i = 0; i < text.Length; i++)
+      {
+         column += text[i] == '\t'
+            ? 4 - (column % 4)
+            : 1;
+      }
+
+      return column;
    }
 }

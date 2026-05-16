@@ -18,8 +18,8 @@ public sealed class HtmlListItemRenderer : INodeRenderer
       RenderOptions options)
    {
       var hasBlockChildren = current.FirstChildIndex != -1
-         && nodes[current.FirstChildIndex].Type == NodeType.Paragraph
-         && nodes[current.FirstChildIndex].ParagraphIsWrapped == 1;
+         && (nodes[current.FirstChildIndex].Type != NodeType.Paragraph
+             || nodes[current.FirstChildIndex].ParagraphIsWrapped == 1);
 
       writer.Write("<li>");
 

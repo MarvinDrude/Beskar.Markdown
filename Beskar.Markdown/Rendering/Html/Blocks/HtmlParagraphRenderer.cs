@@ -35,5 +35,9 @@ public sealed class HtmlParagraphRenderer : INodeRenderer
             writer.Write("</p>");
          }
       }
+      else if (options.AddBlockNewLines && current.NextSiblingIndex != -1)
+      {
+         writer.WriteLine();
+      }
    }
 }
