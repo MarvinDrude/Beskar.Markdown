@@ -46,4 +46,28 @@ public class SluggableHeaderTests
 
       await Assert.That(html.Trim()).IsEqualTo("<h1>My Header Text</h1>");
    }
+
+   [Test]
+   public async Task ShouldRenderUniqueSlugsForDuplicateHeaders()
+   {
+      var markdown = """
+                     # Duplicate
+                     # Duplicate
+                     # Duplicate
+                     """;
+
+      var options = MarkdownOptionBuilder.Create()
+         .WithSluggableHeaders()
+         .Build();
+
+      var result = BeMarkdown.Parse(markdown, options);
+
+      await Assert.That(result.Html).Contains("id=\"duplicate\"");
+      await Assert.That(result.Html).Contains("id=\"duplicate-1\"");
+      await Assert.That(result.Html).Contains("id=\"duplicate-2\"");
+
+      await Assert.That(result.Context.SlugToPlainText["duplicate"]).IsEqualTo("Duplicate");
+      await Assert.That(result.Context.SlugToPlainText["duplicate-1"]).IsEqualTo("Duplicate");
+      await Assert.That(result.Context.SlugToPlainText["duplicate-2"]).IsEqualTo("Duplicate");
+   }
 }

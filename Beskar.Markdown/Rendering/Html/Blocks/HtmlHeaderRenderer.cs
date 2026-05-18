@@ -1,4 +1,4 @@
-﻿using Beskar.Markdown.Extensions;
+using Beskar.Markdown.Extensions;
 using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Rendering.Interfaces;
 using Me.Memory.Buffers;
@@ -20,7 +20,7 @@ public sealed class HtmlHeaderRenderer : INodeRenderer
       if (options.EnableSluggableHeaders)
       {
          writer.WriteInterpolated($"<h{current.HeadingLevel} id=\"");
-         WriteSlug(ref writer, current, nodes, rawText);
+         WriteUniqueSlug(context, ref writer, current, nodes, rawText);
          writer.Write("\">");
       }
       else
@@ -40,31 +40,52 @@ public sealed class HtmlHeaderRenderer : INodeRenderer
       }
    }
 
-   private static void WriteSlug(
+   private static void WriteUniqueSlug<TData>(
+      MarkdownContext<TData> context,
       ref TextWriterIndentSlim writer, in MarkdownNode header,
       ReadOnlySpan<MarkdownNode> nodes, ReadOnlySpan<char> rawText)
    {
       var hasWrittenContent = false;
       var pendingHyphen = false;
 
-      WriteSlugRecursive(
-         header.FirstChildIndex, ref writer, nodes, rawText, 
-         ref hasWrittenContent, ref pendingHyphen);
+      Span<char> slugBuffer = stackalloc char[256];
+      Span<char> plainTextBuffer = stackalloc char[256];
+      var slugLength = 0;
+      var plainTextLength = 0;
+
+      GenerateSlugAndPlainText(
+         header.FirstChildIndex, slugBuffer, ref slugLength, plainTextBuffer, ref plainTextLength, 
+         nodes, rawText, ref hasWrittenContent, ref pendingHyphen);
 
       if (!hasWrittenContent)
       {
          ReadOnlySpan<char> fallback = "section";
-         writer.Write(fallback);
+         fallback.CopyTo(slugBuffer);
+         slugLength = fallback.Length;
+         fallback.CopyTo(plainTextBuffer);
+         plainTextLength = fallback.Length;
       }
+
+      var baseSlug = slugBuffer[..slugLength].ToString();
+      var plainText = plainTextBuffer[..plainTextLength].ToString();
+      var uniqueSlug = baseSlug;
+      var counter = 1;
+
+      while (context.SlugToPlainText.ContainsKey(uniqueSlug))
+      {
+         uniqueSlug = $"{baseSlug}-{counter++}";
+      }
+
+      context.SlugToPlainText[uniqueSlug] = plainText;
+      writer.Write(uniqueSlug);
    }
 
-   private static void WriteSlugRecursive(
-      int childIdx, ref TextWriterIndentSlim writer,
+   private static void GenerateSlugAndPlainText(
+      int childIdx, Span<char> slugBuffer, ref int slugLength, 
+      Span<char> plainTextBuffer, ref int plainTextLength,
       ReadOnlySpan<MarkdownNode> nodes, ReadOnlySpan<char> rawText,
       ref bool hasWrittenContent, ref bool pendingHyphen)
    {
-      Span<char> buffer = stackalloc char[1];
-
       while (childIdx != -1)
       {
          ref readonly var child = ref nodes[childIdx];
@@ -74,21 +95,27 @@ public sealed class HtmlHeaderRenderer : INodeRenderer
             var text = rawText.Slice(
                child.TextSpan.Start, child.TextSpan.Length);
 
+            if (plainTextLength + text.Length <= plainTextBuffer.Length)
+            {
+               text.CopyTo(plainTextBuffer[plainTextLength..]);
+               plainTextLength += text.Length;
+            }
+
             foreach (var c in text)
             {
                if (char.IsLetterOrDigit(c))
                {
-                  if (pendingHyphen)
+                  if (pendingHyphen && slugLength < slugBuffer.Length)
                   {
-                     buffer[0] = '-';
-                     writer.Write(buffer);
+                     slugBuffer[slugLength++] = '-';
                      pendingHyphen = false;
                   }
 
-                  buffer[0] = char.ToLowerInvariant(c);
-                  writer.Write(buffer);
-                  
-                  hasWrittenContent = true;
+                  if (slugLength < slugBuffer.Length)
+                  {
+                     slugBuffer[slugLength++] = char.ToLowerInvariant(c);
+                     hasWrittenContent = true;
+                  }
                }
                else if (hasWrittenContent && (c is ' ' or '-' or '_'))
                {
@@ -99,9 +126,9 @@ public sealed class HtmlHeaderRenderer : INodeRenderer
 
          if (child.FirstChildIndex != -1)
          {
-            WriteSlugRecursive(
-               child.FirstChildIndex, ref writer, nodes, rawText, 
-               ref hasWrittenContent, ref pendingHyphen);
+            GenerateSlugAndPlainText(
+               child.FirstChildIndex, slugBuffer, ref slugLength, plainTextBuffer, ref plainTextLength, 
+               nodes, rawText, ref hasWrittenContent, ref pendingHyphen);
          }
 
          childIdx = child.NextSiblingIndex;
