@@ -17,6 +17,8 @@ public sealed class MarkdownOptionBuilder
    
    // render options
    private bool _preserveSoftBreaks = true;
+   private bool _enableSluggableHeaders;
+   
    private readonly List<INodeRenderer> _nodeRenderers = new (_defaultRenderOptions.NodeRenderers.Length);
    
    private Func<ReadOnlySpan<char>, string>? _sanitizerFunc;
@@ -26,6 +28,7 @@ public sealed class MarkdownOptionBuilder
    private readonly List<IInlineParser> _inlineParsers = new (_defaultParserOptions.InlineParsers.Length);
    
    private int _maxBlockDepth = 16;
+   private bool _parseFrontMatter;
    
    private MarkdownOptionBuilder()
    {
@@ -41,6 +44,12 @@ public sealed class MarkdownOptionBuilder
       return this;
    }
 
+   public MarkdownOptionBuilder WithFrontMatter()
+   {
+      _parseFrontMatter = true;
+      return this;
+   }
+
    public MarkdownOptionBuilder WithSanitizer(Func<ReadOnlySpan<char>, string> sanitizerFunc)
    {
       _sanitizerFunc = sanitizerFunc;
@@ -50,6 +59,12 @@ public sealed class MarkdownOptionBuilder
    public MarkdownOptionBuilder WithPreserveSoftBreaks(bool preserveSoftBreaks)
    {
       _preserveSoftBreaks = preserveSoftBreaks;
+      return this;
+   }
+
+   public MarkdownOptionBuilder WithSluggableHeaders()
+   {
+      _enableSluggableHeaders = true;
       return this;
    }
 
@@ -86,11 +101,13 @@ public sealed class MarkdownOptionBuilder
          RenderOptions = new RenderOptions(_nodeRenderers)
          {
             PreserveSoftBreaks = _preserveSoftBreaks,
-            SanitizerFunc = _sanitizerFunc
+            SanitizerFunc = _sanitizerFunc,
+            EnableSluggableHeaders = _enableSluggableHeaders
          },
          ParserOptions = new ParserOptions(_blockParsers, _inlineParsers)
          {
-            MaxBlockDepth = _maxBlockDepth
+            MaxBlockDepth = _maxBlockDepth,
+            ParseFrontMatter = _parseFrontMatter
          }
       };
    }

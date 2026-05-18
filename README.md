@@ -15,6 +15,8 @@ for .NET. It is built from the ground up to leverage modern C# features like `Sp
   - [Main Features](#main-features)
   - [Currently Supported Blocks & Inlines](#currently-supported-blocks--inlines)
   - [Future Plans](#future-plans)
+- [Frontmatter Parsing](#frontmatter-parsing)
+- [Sluggable Headers](#sluggable-headers)
 - [⚠️ Security Warning](#%EF%B8%8F-security-warning)
 - [Simple custom markdown extensions](#simple-custom-markdown-extensions)
   - [Simple inline extension](#simple-inline-extension)
@@ -33,7 +35,7 @@ for .NET. It is built from the ground up to leverage modern C# features like `Sp
 - **Low Allocation**: Minimizes pressure on the Garbage Collector by using stack-allocated buffers and pooling where possible.
 - **Modern C#**: Built for modern .NET, taking advantage of the latest language and runtime optimizations.
 - **Simplicity**: A clean, easy-to-use API that gets the job done without unnecessary complexity.
-- **Tests**: 980 passing tests (652 **CommonMark** Spec Tests)
+- **Tests**: 998 passing tests (652 **CommonMark** Spec Tests)
 
 ## Motivation
 
@@ -63,8 +65,10 @@ Console.WriteLine(html);
 - **Modern**: Built for modern .NET, taking advantage of the latest language and runtime optimizations.
 - **Easy to Use**: A clean, intuitive API that makes Markdown processing straightforward.
 - **Extensible**: Easily add support for new Markdown features or extensions.
+- **Frontmatter**: Built-in support for parsing document frontmatter.
+- **Sluggable Headers**: Automatically generate `id` attributes for headers.
 - **Advanced**: Supports contextual rendering
-- **Tests**: 980 passing tests (652 **CommonMark** Spec Tests)
+- **Tests**: 999 passing tests (652 **CommonMark** Spec Tests)
 
 ### Currently Supported Blocks & Inlines
 - **Blocks**:
@@ -91,7 +95,6 @@ Console.WriteLine(html);
 
 ### Future Plans
 - [ ] In memory assembly baking
-- [ ] More tests and examples
 
 ## ⚠️ Security Warning
 
@@ -112,6 +115,69 @@ var options = RenderOptions.HtmlDefault;
 options.SanitizerFunc = (span) => HtmlSanitizer.Sanitize(span);
 
 var safeHtml = BeMarkdown.ToHtml(userContent, renderOptions: options);
+```
+
+## Frontmatter Parsing
+
+Beskar.Markdown can automatically parse YAML-like frontmatter into key-value pairs.
+To enable this, use the `WithFrontMatter()` option and the `Parse` method:
+
+```csharp
+var options = MarkdownOptionBuilder.Create()
+    .WithFrontMatter()
+    .Build();
+
+var markdown = """
+               ---
+               title: My Awesome Page
+               author: Marvin
+               ---
+               # Content
+               """;
+
+var result = BeMarkdown.Parse(markdown, options);
+
+Console.WriteLine(result.Context.FrontMatter["title"]); // My Awesome Page
+Console.WriteLine(result.Html); // <h1>Content</h1>
+```
+
+## Sluggable Headers
+
+Beskar.Markdown can automatically generate `id` attributes for headers based on their text content.
+To enable this, use the `WithSluggableHeaders()` option:
+
+```csharp
+var options = MarkdownOptionBuilder.Create()
+    .WithSluggableHeaders()
+    .Build();
+
+var markdown = "# My Header Text";
+var html = BeMarkdown.ToHtml(markdown, options);
+
+Console.WriteLine(html);
+// Output: <h1 id="my-header-text">My Header Text</h1>
+```
+
+If you need a table of contents or anchor list, use `Parse` instead of `ToHtml`.
+The returned context exposes headers in document order through `Context.Headers`.
+Each item contains the generated slug, the plain text, and the heading level:
+
+```csharp
+var markdown = """
+               # My Header Text
+               ## Details
+               """;
+
+var result = BeMarkdown.Parse(markdown, options);
+
+foreach (var header in result.Context.Headers)
+{
+    Console.WriteLine($"{header.Level}: {header.PlainText} -> #{header.Slug}");
+}
+
+// Output:
+// 1: My Header Text -> #my-header-text
+// 2: Details -> #details
 ```
 
 ## Simple custom markdown extensions

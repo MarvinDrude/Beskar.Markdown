@@ -23,6 +23,8 @@ public sealed class ParserOptions
          field = value;
       }
    } = 16;
+
+   public bool ParseFrontMatter { get; init; }
    
    private readonly IBlockParser[] _blockParsers;
    private readonly IBlockParser?[] _blockParserLookup = new IBlockParser?[_builtInNodeTypeCount];
