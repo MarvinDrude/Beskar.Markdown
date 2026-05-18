@@ -18,6 +18,7 @@ public ref struct MarkdownParser<TData>(
 {
    public ReadOnlySpan<MarkdownNode> WrittenNodes => _writer.WrittenSpan;
 
+   private readonly ReadOnlySpan<char> _sourceText = rawText;
    private ReadOnlySpan<char> _rawText = rawText;
    private BufferWriter<MarkdownNode> _writer = new(initialNodeBuffer);
 
@@ -31,8 +32,8 @@ public ref struct MarkdownParser<TData>(
          Data = data
       };
 
-      var originalRawText = _rawText;
       var initialOffset = 0;
+      
       if (options.ParseFrontMatter)
       {
          initialOffset = FrontMatterUtils.ParseFrontMatter(ref _rawText, context);
@@ -52,7 +53,7 @@ public ref struct MarkdownParser<TData>(
       openBlocks[0] = documentIndex;
       var openBlockCount = 1;
 
-      var iterator = new LineIterator(_rawText, initialOffset, originalRawText);
+      var iterator = new LineIterator(_rawText, initialOffset, _sourceText);
       var lastLineWasBlank = false;
 
       while (iterator.TryMoveNext(context, out var state))
@@ -346,7 +347,7 @@ public ref struct MarkdownParser<TData>(
       ApplyLooseListParagraphs();
 
       // process inlines
-      var inlineParser = new InlineParser<TData>(originalRawText);
+      var inlineParser = new InlineParser<TData>(_sourceText);
       inlineParser.Parse(ref _writer, context, options);
 
       return context;
@@ -429,7 +430,7 @@ public ref struct MarkdownParser<TData>(
                var nextItemStart = nodes[nextItemIndex].TextSpan.Start;
                if (itemEnd >= 0
                    && nextItemStart > itemEnd
-                   && ContainsBlankLine(_rawText[itemEnd..nextItemStart]))
+                   && ContainsBlankLine(_sourceText[itemEnd..nextItemStart]))
                {
                   _writer.GetReference(i).IsLoose = 1;
                   break;
@@ -457,7 +458,7 @@ public ref struct MarkdownParser<TData>(
             if (childEnd >= 0
                 && nextChildStart > childEnd
                 && ContainsBlankLine(
-                   _rawText[childEnd..nextChildStart],
+                   _sourceText[childEnd..nextChildStart],
                    child.Type == NodeType.Paragraph && nextChild.Type == NodeType.Paragraph))
             {
                return true;
@@ -573,7 +574,7 @@ public ref struct MarkdownParser<TData>(
          if (lastChild.Type == NodeType.Text)
          {
             var span = lastChild.TextSpan;
-            var content = _rawText.Slice(span.Start, span.Length);
+            var content = _sourceText.Slice(span.Start, span.Length);
             var trimCount = 0;
 
             // Look back from the end of the span for whitespace
@@ -643,7 +644,7 @@ public ref struct MarkdownParser<TData>(
       ref var lastChild = ref writer.GetReference(para.LastChildIndex);
       if (lastChild.Type != NodeType.Text) return false;
 
-      var headerLine = _rawText.Slice(lastChild.TextSpan.Start, lastChild.TextSpan.Length);
+      var headerLine = _sourceText.Slice(lastChild.TextSpan.Start, lastChild.TextSpan.Length);
       var headerColumnCount = TableUtils.CountHeaderColumns(headerLine);
 
       if (headerColumnCount != columnCount) return false;

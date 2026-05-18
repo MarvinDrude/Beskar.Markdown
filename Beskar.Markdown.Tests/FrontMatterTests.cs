@@ -61,6 +61,28 @@ public class FrontMatterTests
    }
 
    [Test]
+   public async Task ShouldHandleCorrectly()
+   {
+      var markdown = """
+                     ---
+                     Hallo:   Welt
+                     ---
+                     # My Content *hallo* `test` a
+
+                     - item 1
+                     - item 2
+                     """;
+
+      var options = MarkdownOptionBuilder.Create()
+         .WithFrontMatter()
+         .Build();
+
+      var result = BeMarkdown.Parse(markdown.AsSpan(), options);
+
+      await Assert.That(result.Context.FrontMatter["Hallo"]).IsEqualTo("Welt");
+   }
+
+   [Test]
    public async Task ShouldHandleMalformedFrontMatter()
    {
       var markdown = """
@@ -77,7 +99,7 @@ public class FrontMatterTests
 
       var result = BeMarkdown.Parse(markdown.AsSpan(), options);
 
-      await Assert.That(result.Context.FrontMatter).HasCount(1);
+      await Assert.That(result.Context.FrontMatter).Count().IsEqualTo(1);
       await Assert.That(result.Context.FrontMatter["author"]).IsEqualTo("Marvin:Extra");
       await Assert.That(result.Html.Trim()).IsEqualTo("<h1>My Content</h1>");
    }
