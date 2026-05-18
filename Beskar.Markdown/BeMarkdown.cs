@@ -79,6 +79,46 @@ public static class BeMarkdown
          writer.Dispose();
       }
    }
+
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
+   public static MarkdownResult<object> Parse(
+      [StringSyntax("Markdown")] ReadOnlySpan<char> markdown, 
+      MarkdownOptions? options = null)
+   {
+      return Parse<object>(markdown, options);
+   }
+
+   public static MarkdownResult<TContext> Parse<TContext>(
+      [StringSyntax("Markdown")] ReadOnlySpan<char> markdown, 
+      MarkdownOptions? options = null,
+      TContext? data = default)
+   {
+      var parserOptions = options?.ParserOptions ?? _defaultParserOptions;
+      var renderOptions = options?.RenderOptions ?? _defaultRenderOptions;
+       
+      using var parser = new MarkdownParser<TContext>(
+         markdown, stackalloc MarkdownNode[GetInitialNodeBufferLength(markdown.Length)]);
+      var context = parser.Parse(parserOptions, data);
+      
+      var renderer = new MarkdownRenderer(markdown);
+      var writer = new TextWriterIndentSlim(
+         stackalloc char[512], stackalloc char[64]);
+      
+      try
+      {
+         renderer.Render(context, parser.WrittenNodes, renderOptions, ref writer);
+
+         var html = renderOptions.SanitizerFunc is not null 
+            ? renderOptions.SanitizerFunc(writer.WrittenSpan) 
+            : writer.ToString();
+            
+         return new MarkdownResult<TContext>(html, context);
+      }
+      finally
+      {
+         writer.Dispose();
+      }
+   }
    
    [MethodImpl(MethodImplOptions.AggressiveInlining)]
    private static int GetInitialNodeBufferLength(int markdownLength)

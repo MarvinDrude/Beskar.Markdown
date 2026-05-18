@@ -26,6 +26,7 @@ public sealed class MarkdownOptionBuilder
    private readonly List<IInlineParser> _inlineParsers = new (_defaultParserOptions.InlineParsers.Length);
    
    private int _maxBlockDepth = 16;
+   private bool _parseFrontMatter;
    
    private MarkdownOptionBuilder()
    {
@@ -38,6 +39,12 @@ public sealed class MarkdownOptionBuilder
    public MarkdownOptionBuilder WithMaxBlockDepth(int maxBlockDepth)
    {
       _maxBlockDepth = maxBlockDepth;
+      return this;
+   }
+
+   public MarkdownOptionBuilder WithFrontMatter()
+   {
+      _parseFrontMatter = true;
       return this;
    }
 
@@ -90,7 +97,8 @@ public sealed class MarkdownOptionBuilder
          },
          ParserOptions = new ParserOptions(_blockParsers, _inlineParsers)
          {
-            MaxBlockDepth = _maxBlockDepth
+            MaxBlockDepth = _maxBlockDepth,
+            ParseFrontMatter = _parseFrontMatter
          }
       };
    }
