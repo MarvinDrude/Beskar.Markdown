@@ -16,6 +16,7 @@ for .NET. It is built from the ground up to leverage modern C# features like `Sp
   - [Currently Supported Blocks & Inlines](#currently-supported-blocks--inlines)
   - [Future Plans](#future-plans)
 - [⚠️ Security Warning](#%EF%B8%8F-security-warning)
+- [Frontmatter Parsing](#frontmatter-parsing)
 - [Simple custom markdown extensions](#simple-custom-markdown-extensions)
   - [Simple inline extension](#simple-inline-extension)
   - [Simple block extension](#simple-block-extension)
@@ -33,7 +34,7 @@ for .NET. It is built from the ground up to leverage modern C# features like `Sp
 - **Low Allocation**: Minimizes pressure on the Garbage Collector by using stack-allocated buffers and pooling where possible.
 - **Modern C#**: Built for modern .NET, taking advantage of the latest language and runtime optimizations.
 - **Simplicity**: A clean, easy-to-use API that gets the job done without unnecessary complexity.
-- **Tests**: 980 passing tests (652 **CommonMark** Spec Tests)
+- **Tests**: 990 passing tests (652 **CommonMark** Spec Tests)
 
 ## Motivation
 
@@ -63,8 +64,9 @@ Console.WriteLine(html);
 - **Modern**: Built for modern .NET, taking advantage of the latest language and runtime optimizations.
 - **Easy to Use**: A clean, intuitive API that makes Markdown processing straightforward.
 - **Extensible**: Easily add support for new Markdown features or extensions.
+- **Frontmatter**: Built-in support for parsing document frontmatter.
 - **Advanced**: Supports contextual rendering
-- **Tests**: 980 passing tests (652 **CommonMark** Spec Tests)
+- **Tests**: 990 passing tests (652 **CommonMark** Spec Tests)
 
 ### Currently Supported Blocks & Inlines
 - **Blocks**:
@@ -91,7 +93,6 @@ Console.WriteLine(html);
 
 ### Future Plans
 - [ ] In memory assembly baking
-- [ ] More tests and examples
 
 ## ⚠️ Security Warning
 
@@ -112,6 +113,30 @@ var options = RenderOptions.HtmlDefault;
 options.SanitizerFunc = (span) => HtmlSanitizer.Sanitize(span);
 
 var safeHtml = BeMarkdown.ToHtml(userContent, renderOptions: options);
+```
+
+## Frontmatter Parsing
+
+Beskar.Markdown can automatically parse YAML-like frontmatter into key-value pairs.
+To enable this, use the `WithFrontMatter()` option and the `Parse` method:
+
+```csharp
+var options = MarkdownOptionBuilder.Create()
+    .WithFrontMatter()
+    .Build();
+
+var markdown = """
+               ---
+               title: My Awesome Page
+               author: Marvin
+               ---
+               # Content
+               """;
+
+var result = BeMarkdown.Parse(markdown, options);
+
+Console.WriteLine(result.Context.FrontMatter["title"]); // My Awesome Page
+Console.WriteLine(result.Html); // <h1>Content</h1>
 ```
 
 ## Simple custom markdown extensions
