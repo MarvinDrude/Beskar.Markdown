@@ -77,6 +77,7 @@ public sealed class HtmlHeaderRenderer : INodeRenderer
       }
 
       context.SlugToPlainText[uniqueSlug] = plainText;
+      context.Headers.Add(new HeaderInfo(uniqueSlug, plainText, header.HeadingLevel));
       writer.Write(uniqueSlug);
    }
 

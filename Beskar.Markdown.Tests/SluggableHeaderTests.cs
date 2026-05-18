@@ -70,4 +70,34 @@ public class SluggableHeaderTests
       await Assert.That(result.Context.SlugToPlainText["duplicate-1"]).IsEqualTo("Duplicate");
       await Assert.That(result.Context.SlugToPlainText["duplicate-2"]).IsEqualTo("Duplicate");
    }
+
+   [Test]
+   public async Task ShouldStoreOrderedHeadersInContext()
+   {
+      var markdown = """
+                     # Main Title
+                     ## Sub Section
+                     ### Third Level
+                     """;
+
+      var options = MarkdownOptionBuilder.Create()
+         .WithSluggableHeaders()
+         .Build();
+
+      var result = BeMarkdown.Parse(markdown, options);
+
+      await Assert.That(result.Context.Headers).HasCount(3);
+
+      await Assert.That(result.Context.Headers[0].Slug).IsEqualTo("main-title");
+      await Assert.That(result.Context.Headers[0].PlainText).IsEqualTo("Main Title");
+      await Assert.That(result.Context.Headers[0].Level).IsEqualTo(1);
+
+      await Assert.That(result.Context.Headers[1].Slug).IsEqualTo("sub-section");
+      await Assert.That(result.Context.Headers[1].PlainText).IsEqualTo("Sub Section");
+      await Assert.That(result.Context.Headers[1].Level).IsEqualTo(2);
+
+      await Assert.That(result.Context.Headers[2].Slug).IsEqualTo("third-level");
+      await Assert.That(result.Context.Headers[2].PlainText).IsEqualTo("Third Level");
+      await Assert.That(result.Context.Headers[2].Level).IsEqualTo(3);
+   }
 }
