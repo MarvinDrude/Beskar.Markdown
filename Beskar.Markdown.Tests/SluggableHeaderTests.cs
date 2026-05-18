@@ -79,7 +79,7 @@ public class SluggableHeaderTests
    {
       var markdown = """
                      # *Duplicate*
-                     # Duplicate
+                     # `Duplicate`
                      """;
 
       var options = MarkdownOptionBuilder.Create()

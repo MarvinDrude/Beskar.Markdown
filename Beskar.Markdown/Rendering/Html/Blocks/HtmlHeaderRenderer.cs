@@ -95,7 +95,7 @@ public sealed class HtmlHeaderRenderer : INodeRenderer
       {
          ref readonly var child = ref nodes[childIdx];
          
-         if (child.Type is NodeType.Text)
+         if (child.Type is NodeType.Text or NodeType.InlineCode)
          {
             var text = rawText.Slice(
                child.TextSpan.Start, child.TextSpan.Length);

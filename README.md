@@ -68,7 +68,7 @@ Console.WriteLine(html);
 - **Frontmatter**: Built-in support for parsing document frontmatter.
 - **Sluggable Headers**: Automatically generate `id` attributes for headers.
 - **Advanced**: Supports contextual rendering
-- **Tests**: 998 passing tests (652 **CommonMark** Spec Tests)
+- **Tests**: 999 passing tests (652 **CommonMark** Spec Tests)
 
 ### Currently Supported Blocks & Inlines
 - **Blocks**:
