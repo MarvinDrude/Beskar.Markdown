@@ -17,6 +17,8 @@ public sealed class MarkdownOptionBuilder
    
    // render options
    private bool _preserveSoftBreaks = true;
+   private bool _enableSluggableHeaders;
+   
    private readonly List<INodeRenderer> _nodeRenderers = new (_defaultRenderOptions.NodeRenderers.Length);
    
    private Func<ReadOnlySpan<char>, string>? _sanitizerFunc;
@@ -60,6 +62,12 @@ public sealed class MarkdownOptionBuilder
       return this;
    }
 
+   public MarkdownOptionBuilder WithSluggableHeaders()
+   {
+      _enableSluggableHeaders = true;
+      return this;
+   }
+
    public MarkdownOptionBuilder WithExtension(IMarkdownExtension extension)
    {
       return WithExtensions(extension);
@@ -93,7 +101,8 @@ public sealed class MarkdownOptionBuilder
          RenderOptions = new RenderOptions(_nodeRenderers)
          {
             PreserveSoftBreaks = _preserveSoftBreaks,
-            SanitizerFunc = _sanitizerFunc
+            SanitizerFunc = _sanitizerFunc,
+            EnableSluggableHeaders = _enableSluggableHeaders
          },
          ParserOptions = new ParserOptions(_blockParsers, _inlineParsers)
          {

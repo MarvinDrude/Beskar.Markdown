@@ -11,12 +11,13 @@ for .NET. It is built from the ground up to leverage modern C# features like `Sp
 - [Why use this library?](#why-use-this-library)
 - [Motivation](#motivation)
 - [Getting Started](#getting-started)
+- [Frontmatter Parsing](#frontmatter-parsing)
+- [Sluggable Headers](#sluggable-headers)
 - [Features](#features)
   - [Main Features](#main-features)
   - [Currently Supported Blocks & Inlines](#currently-supported-blocks--inlines)
   - [Future Plans](#future-plans)
 - [⚠️ Security Warning](#%EF%B8%8F-security-warning)
-- [Frontmatter Parsing](#frontmatter-parsing)
 - [Simple custom markdown extensions](#simple-custom-markdown-extensions)
   - [Simple inline extension](#simple-inline-extension)
   - [Simple block extension](#simple-block-extension)
@@ -34,7 +35,7 @@ for .NET. It is built from the ground up to leverage modern C# features like `Sp
 - **Low Allocation**: Minimizes pressure on the Garbage Collector by using stack-allocated buffers and pooling where possible.
 - **Modern C#**: Built for modern .NET, taking advantage of the latest language and runtime optimizations.
 - **Simplicity**: A clean, easy-to-use API that gets the job done without unnecessary complexity.
-- **Tests**: 990 passing tests (652 **CommonMark** Spec Tests)
+- **Tests**: 993 passing tests (652 **CommonMark** Spec Tests)
 
 ## Motivation
 
@@ -65,8 +66,9 @@ Console.WriteLine(html);
 - **Easy to Use**: A clean, intuitive API that makes Markdown processing straightforward.
 - **Extensible**: Easily add support for new Markdown features or extensions.
 - **Frontmatter**: Built-in support for parsing document frontmatter.
+- **Sluggable Headers**: Automatically generate `id` attributes for headers.
 - **Advanced**: Supports contextual rendering
-- **Tests**: 990 passing tests (652 **CommonMark** Spec Tests)
+- **Tests**: 993 passing tests (652 **CommonMark** Spec Tests)
 
 ### Currently Supported Blocks & Inlines
 - **Blocks**:
@@ -137,6 +139,23 @@ var result = BeMarkdown.Parse(markdown, options);
 
 Console.WriteLine(result.Context.FrontMatter["title"]); // My Awesome Page
 Console.WriteLine(result.Html); // <h1>Content</h1>
+```
+
+## Sluggable Headers
+
+Beskar.Markdown can automatically generate `id` attributes for headers based on their text content.
+To enable this, use the `WithSluggableHeaders()` option:
+
+```csharp
+var options = MarkdownOptionBuilder.Create()
+    .WithSluggableHeaders()
+    .Build();
+
+var markdown = "# My Header Text";
+var html = BeMarkdown.ToHtml(markdown, options);
+
+Console.WriteLine(html);
+// Output: <h1 id="my-header-text">My Header Text</h1>
 ```
 
 ## Simple custom markdown extensions
