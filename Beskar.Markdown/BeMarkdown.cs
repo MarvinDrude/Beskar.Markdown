@@ -85,10 +85,10 @@ public static class BeMarkdown
       [StringSyntax("Markdown")] ReadOnlySpan<char> markdown, 
       MarkdownOptions? options = null)
    {
-      return Parse<object>(markdown, options);
+      return ParseContextual<object>(markdown, options);
    }
 
-   public static MarkdownResult<TContext> Parse<TContext>(
+   public static MarkdownResult<TContext> ParseContextual<TContext>(
       [StringSyntax("Markdown")] ReadOnlySpan<char> markdown, 
       MarkdownOptions? options = null,
       TContext? data = default)

@@ -35,7 +35,7 @@ for .NET. It is built from the ground up to leverage modern C# features like `Sp
 - **Low Allocation**: Minimizes pressure on the Garbage Collector by using stack-allocated buffers and pooling where possible.
 - **Modern C#**: Built for modern .NET, taking advantage of the latest language and runtime optimizations.
 - **Simplicity**: A clean, easy-to-use API that gets the job done without unnecessary complexity.
-- **Tests**: 993 passing tests (652 **CommonMark** Spec Tests)
+- **Tests**: 998 passing tests (652 **CommonMark** Spec Tests)
 
 ## Motivation
 
@@ -68,7 +68,7 @@ Console.WriteLine(html);
 - **Frontmatter**: Built-in support for parsing document frontmatter.
 - **Sluggable Headers**: Automatically generate `id` attributes for headers.
 - **Advanced**: Supports contextual rendering
-- **Tests**: 993 passing tests (652 **CommonMark** Spec Tests)
+- **Tests**: 998 passing tests (652 **CommonMark** Spec Tests)
 
 ### Currently Supported Blocks & Inlines
 - **Blocks**:
@@ -156,6 +156,28 @@ var html = BeMarkdown.ToHtml(markdown, options);
 
 Console.WriteLine(html);
 // Output: <h1 id="my-header-text">My Header Text</h1>
+```
+
+If you need a table of contents or anchor list, use `Parse` instead of `ToHtml`.
+The returned context exposes headers in document order through `Context.Headers`.
+Each item contains the generated slug, the plain text, and the heading level:
+
+```csharp
+var markdown = """
+               # My Header Text
+               ## Details
+               """;
+
+var result = BeMarkdown.Parse(markdown, options);
+
+foreach (var header in result.Context.Headers)
+{
+    Console.WriteLine($"{header.Level}: {header.PlainText} -> #{header.Slug}");
+}
+
+// Output:
+// 1: My Header Text -> #my-header-text
+// 2: Details -> #details
 ```
 
 ## Simple custom markdown extensions

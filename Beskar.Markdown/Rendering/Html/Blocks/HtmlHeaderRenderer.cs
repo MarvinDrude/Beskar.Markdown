@@ -48,45 +48,49 @@ public sealed class HtmlHeaderRenderer : INodeRenderer
       var hasWrittenContent = false;
       var pendingHyphen = false;
 
-      Span<char> slugBuffer = stackalloc char[256];
-      Span<char> plainTextBuffer = stackalloc char[256];
-      var slugLength = 0;
-      var plainTextLength = 0;
+      var slugWriter = new TextWriterIndentSlim(stackalloc char[128], stackalloc char[1]);
+      var plainTextWriter = new TextWriterIndentSlim(stackalloc char[128], stackalloc char[1]);
 
-      GenerateSlugAndPlainText(
-         header.FirstChildIndex, slugBuffer, ref slugLength, plainTextBuffer, ref plainTextLength, 
-         nodes, rawText, ref hasWrittenContent, ref pendingHyphen);
-
-      if (!hasWrittenContent)
+      try
       {
-         ReadOnlySpan<char> fallback = "section";
-         fallback.CopyTo(slugBuffer);
-         slugLength = fallback.Length;
-         fallback.CopyTo(plainTextBuffer);
-         plainTextLength = fallback.Length;
+         GenerateSlugAndPlainText(
+            header.FirstChildIndex, ref slugWriter, ref plainTextWriter, 
+            nodes, rawText, ref hasWrittenContent, ref pendingHyphen);
+
+         if (!hasWrittenContent)
+         {
+            slugWriter.Write("section");
+            plainTextWriter.Write("section");
+         }
+
+         var baseSlug = slugWriter.ToString();
+         var plainText = plainTextWriter.ToString();
+         
+         var uniqueSlug = baseSlug;
+         var counter = 1;
+
+         while (context.SlugToPlainText.ContainsKey(uniqueSlug))
+         {
+            uniqueSlug = $"{baseSlug}-{counter++}";
+         }
+
+         context.SlugToPlainText[uniqueSlug] = plainText;
+         context.Headers.Add(new HeaderInfo(uniqueSlug, plainText, header.HeadingLevel));
+         writer.Write(uniqueSlug);
       }
-
-      var baseSlug = slugBuffer[..slugLength].ToString();
-      var plainText = plainTextBuffer[..plainTextLength].ToString();
-      var uniqueSlug = baseSlug;
-      var counter = 1;
-
-      while (context.SlugToPlainText.ContainsKey(uniqueSlug))
+      finally
       {
-         uniqueSlug = $"{baseSlug}-{counter++}";
+         slugWriter.Dispose();
+         plainTextWriter.Dispose();
       }
-
-      context.SlugToPlainText[uniqueSlug] = plainText;
-      context.Headers.Add(new HeaderInfo(uniqueSlug, plainText, header.HeadingLevel));
-      writer.Write(uniqueSlug);
    }
 
    private static void GenerateSlugAndPlainText(
-      int childIdx, Span<char> slugBuffer, ref int slugLength, 
-      Span<char> plainTextBuffer, ref int plainTextLength,
+      int childIdx, ref TextWriterIndentSlim slugWriter, ref TextWriterIndentSlim plainTextWriter,
       ReadOnlySpan<MarkdownNode> nodes, ReadOnlySpan<char> rawText,
       ref bool hasWrittenContent, ref bool pendingHyphen)
    {
+      Span<char> charBuffer = stackalloc char[1];
       while (childIdx != -1)
       {
          ref readonly var child = ref nodes[childIdx];
@@ -96,27 +100,22 @@ public sealed class HtmlHeaderRenderer : INodeRenderer
             var text = rawText.Slice(
                child.TextSpan.Start, child.TextSpan.Length);
 
-            if (plainTextLength + text.Length <= plainTextBuffer.Length)
-            {
-               text.CopyTo(plainTextBuffer[plainTextLength..]);
-               plainTextLength += text.Length;
-            }
+            plainTextWriter.Write(text);
 
             foreach (var c in text)
             {
                if (char.IsLetterOrDigit(c))
                {
-                  if (pendingHyphen && slugLength < slugBuffer.Length)
+                  if (pendingHyphen)
                   {
-                     slugBuffer[slugLength++] = '-';
+                     charBuffer[0] = '-';
+                     slugWriter.Write(charBuffer);
                      pendingHyphen = false;
                   }
 
-                  if (slugLength < slugBuffer.Length)
-                  {
-                     slugBuffer[slugLength++] = char.ToLowerInvariant(c);
-                     hasWrittenContent = true;
-                  }
+                  charBuffer[0] = char.ToLowerInvariant(c);
+                  slugWriter.Write(charBuffer);
+                  hasWrittenContent = true;
                }
                else if (hasWrittenContent && (c is ' ' or '-' or '_'))
                {
@@ -128,7 +127,7 @@ public sealed class HtmlHeaderRenderer : INodeRenderer
          if (child.FirstChildIndex != -1)
          {
             GenerateSlugAndPlainText(
-               child.FirstChildIndex, slugBuffer, ref slugLength, plainTextBuffer, ref plainTextLength, 
+               child.FirstChildIndex, ref slugWriter, ref plainTextWriter, 
                nodes, rawText, ref hasWrittenContent, ref pendingHyphen);
          }
 
