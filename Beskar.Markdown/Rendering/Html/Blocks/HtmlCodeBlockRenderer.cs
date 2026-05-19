@@ -20,12 +20,62 @@ public sealed class HtmlCodeBlockRenderer : INodeRenderer
    {
       var span = current.TextSpan;
       var text = span.Slice(rawText);
-      
-      if (current is { CodeLangSpanStart: > -1, CodeLangSpanLength: > 0 })
+      var language = current is { CodeLangSpanStart: > -1, CodeLangSpanLength: > 0 }
+         ? rawText.Slice(current.CodeLangSpanStart, current.CodeLangSpanLength)
+         : [];
+
+      if (options.CodeBlockRenderer is not null)
       {
-         var slice = rawText.Slice(current.CodeLangSpanStart, current.CodeLangSpanLength);
+         if (current.CodeBlockIndent <= 0)
+         {
+            if (options.CodeBlockRenderer.TryRender(context, ref writer, text, language))
+            {
+               return;
+            }
+         }
+         else
+         {
+            using var buffer = new BufferWriter<char>(text.Length);
+            var lineIterator = new LineIterator(text);
+            
+            while (lineIterator.TryMoveNext(context, out var line))
+            {
+               var lineSpan = line.RawLine;
+               var spacesRemoved = 0;
+               var charIndex = 0;
+               var indentToRemove = current.CodeBlockIndent;
+
+               for (; charIndex < lineSpan.Length && spacesRemoved < indentToRemove; charIndex++)
+               {
+                  var c = lineSpan[charIndex];
+                  if (c == ' ') spacesRemoved++;
+                  else if (c == '\t') spacesRemoved += 4;
+                  else break;
+               }
+
+               if (spacesRemoved > indentToRemove)
+               {
+                  for (var i = 0; i < spacesRemoved - indentToRemove; i++) buffer.Write([' ']);
+               }
+
+               if (charIndex < lineSpan.Length)
+               {
+                  buffer.Write(lineSpan[charIndex..]);
+               }
+               buffer.Write(['\n']);
+            }
+
+            if (options.CodeBlockRenderer.TryRender(context, ref writer, buffer.WrittenSpan, language))
+            {
+               return;
+            }
+         }
+      }
+      
+      if (language.Length > 0)
+      {
          writer.Write("<pre><code class=\"language-");
-         writer.WriteHtmlDecodedAndEncoded(slice);
+         writer.WriteHtmlDecodedAndEncoded(language);
          writer.Write("\">");
       }
       else

@@ -17,6 +17,7 @@ for .NET. It is built from the ground up to leverage modern C# features like `Sp
   - [Future Plans](#future-plans)
 - [Frontmatter Parsing](#frontmatter-parsing)
 - [Sluggable Headers](#sluggable-headers)
+- [Code Block Intercept](#code-block-intercept)
 - [⚠️ Security Warning](#%EF%B8%8F-security-warning)
 - [Simple custom markdown extensions](#simple-custom-markdown-extensions)
   - [Simple inline extension](#simple-inline-extension)
@@ -35,7 +36,7 @@ for .NET. It is built from the ground up to leverage modern C# features like `Sp
 - **Low Allocation**: Minimizes pressure on the Garbage Collector by using stack-allocated buffers and pooling where possible.
 - **Modern C#**: Built for modern .NET, taking advantage of the latest language and runtime optimizations.
 - **Simplicity**: A clean, easy-to-use API that gets the job done without unnecessary complexity.
-- **Tests**: 998 passing tests (652 **CommonMark** Spec Tests)
+- **Tests**: 1,009 passing tests (652 **CommonMark** Spec Tests)
 
 ## Motivation
 
@@ -68,7 +69,7 @@ Console.WriteLine(html);
 - **Frontmatter**: Built-in support for parsing document frontmatter.
 - **Sluggable Headers**: Automatically generate `id` attributes for headers.
 - **Advanced**: Supports contextual rendering
-- **Tests**: 999 passing tests (652 **CommonMark** Spec Tests)
+- **Tests**: 1,009 passing tests (652 **CommonMark** Spec Tests)
 
 ### Currently Supported Blocks & Inlines
 - **Blocks**:
@@ -179,6 +180,53 @@ foreach (var header in result.Context.Headers)
 // 1: My Header Text -> #my-header-text
 // 2: Details -> #details
 ```
+
+## Code Block Intercept
+
+You can intercept the rendering of code blocks (both fenced and indented) to provide your own 
+HTML output. This is particularly useful for server-side syntax highlighting (e.g., using 
+libraries like `ColorCode` or calling a highlighting service).
+
+To use this, implement the `ICodeBlockRenderer` interface and register it via `WithCodeBlockRenderer`:
+
+```csharp
+public sealed class MySyntaxHighlighter : ICodeBlockRenderer
+{
+    public bool TryRender<TData>(
+        MarkdownContext<TData> context,
+        ref TextWriterIndentSlim writer,
+        ReadOnlySpan<char> code,
+        ReadOnlySpan<char> language)
+    {
+        // Intercept only C# blocks
+        if (language.Equals("csharp", StringComparison.OrdinalIgnoreCase))
+        {
+            writer.Write("<div class=\"highlight\">");
+            writer.WriteHtmlDecodedAndEncoded(language);
+            writer.Write(":");
+            
+            // Your custom highlighting logic here
+            writer.Write(code); 
+            
+            writer.Write("</div>");
+            return true; // Successfully intercepted
+        }
+
+        return false; // Fallback to default renderer
+    }
+}
+
+// Usage:
+var options = MarkdownOptionBuilder.Create()
+    .WithCodeBlockRenderer(new MySyntaxHighlighter())
+    .Build();
+
+var html = BeMarkdown.ToHtml("```csharp\nvar x = 1;\n```", options);
+```
+
+> **Note**: When writing the `language` span to the output, always use `writer.WriteHtmlDecodedAndEncoded(language)` 
+> to ensure proper HTML encoding.
+
 
 ## Simple custom markdown extensions
 
