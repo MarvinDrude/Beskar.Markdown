@@ -201,7 +201,7 @@ public sealed class MySyntaxHighlighter : ICodeBlockRenderer
         // Intercept only C# blocks
         if (language.Equals("csharp", StringComparison.OrdinalIgnoreCase))
         {
-            writer.Write("<div class=\"highlight\">");.
+            writer.Write("<div class=\"highlight\">");
             writer.WriteHtmlDecodedAndEncoded(language);
             writer.Write(":");
             
