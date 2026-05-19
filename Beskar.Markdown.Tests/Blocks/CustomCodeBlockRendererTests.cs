@@ -82,6 +82,19 @@ public sealed class CustomCodeBlockRendererTests
    }
 
    [Test]
+   public Task IndentedCodeBlock_WithBlankLines_WithCustomRenderer_ShouldUseCustomOutput()
+   {
+      var markdown = "    line 1\n\n    line 2";
+      var expectedHtml = "<div class=\"custom-code\" data-lang=\"\">line 1\n\nline 2\n</div>";
+
+      var options = MarkdownOptionBuilder.Create()
+         .WithCodeBlockRenderer(new TestCodeBlockRenderer())
+         .Build();
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml, options.ParserOptions, options.RenderOptions);
+   }
+
+   [Test]
    public Task IndentedCodeBlock_WithCustomRendererReturningFalse_ShouldUseDefaultOutput()
    {
       var markdown = "    var x = 1;\n    var y = 2;";
