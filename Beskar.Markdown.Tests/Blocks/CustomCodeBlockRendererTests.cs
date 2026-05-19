@@ -28,6 +28,18 @@ public sealed class CustomCodeBlockRendererTests
       }
    }
 
+   private class FallbackCodeBlockRenderer : ICodeBlockRenderer
+   {
+      public bool TryRender<TData>(
+         MarkdownContext<TData> context,
+         ref TextWriterIndentSlim writer,
+         ReadOnlySpan<char> code,
+         ReadOnlySpan<char> language)
+      {
+         return false;
+      }
+   }
+
    [Test]
    public Task FencedCodeBlock_WithCustomRenderer_ShouldUseCustomOutput()
    {
@@ -42,6 +54,21 @@ public sealed class CustomCodeBlockRendererTests
    }
 
    [Test]
+   public Task FencedCodeBlock_WithCustomRendererReturningFalse_ShouldUseDefaultOutput()
+   {
+      var markdown = "```csharp\nvar x = 1;\n```";
+      var expectedHtml = "<pre><code class=\"language-csharp\">var x = 1;\n</code></pre>";
+
+      var options = MarkdownOptionBuilder.Create()
+         .WithCodeBlockRenderer(new FallbackCodeBlockRenderer())
+         .Build();
+      
+      options.RenderOptions.AddBlockNewLines = false;
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml, options.ParserOptions, options.RenderOptions);
+   }
+
+   [Test]
    public Task IndentedCodeBlock_WithCustomRenderer_ShouldUseCustomOutput()
    {
       var markdown = "    var x = 1;\n    var y = 2;";
@@ -50,6 +77,21 @@ public sealed class CustomCodeBlockRendererTests
       var options = MarkdownOptionBuilder.Create()
          .WithCodeBlockRenderer(new TestCodeBlockRenderer())
          .Build();
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml, options.ParserOptions, options.RenderOptions);
+   }
+
+   [Test]
+   public Task IndentedCodeBlock_WithCustomRendererReturningFalse_ShouldUseDefaultOutput()
+   {
+      var markdown = "    var x = 1;\n    var y = 2;";
+      var expectedHtml = "<pre><code>var x = 1;\nvar y = 2;\n</code></pre>";
+
+      var options = MarkdownOptionBuilder.Create()
+         .WithCodeBlockRenderer(new FallbackCodeBlockRenderer())
+         .Build();
+
+      options.RenderOptions.AddBlockNewLines = false;
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml, options.ParserOptions, options.RenderOptions);
    }
