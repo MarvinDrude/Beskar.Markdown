@@ -80,6 +80,19 @@ public sealed class CustomCodeBlockRendererTests
 
       return MarkdownAssert.RendersHtml(markdown, expectedHtml, options.ParserOptions, options.RenderOptions);
    }
+   
+   [Test]
+   public Task IndentedCodeBlock_WithCustomRenderer_ShouldUseCustomOutputTwo()
+   {
+      var markdown = "    var x = 1;\n     var y = 2;";
+      var expectedHtml = "<div class=\"custom-code\" data-lang=\"\">var x = 1;\n var y = 2;\n</div>";
+
+      var options = MarkdownOptionBuilder.Create()
+         .WithCodeBlockRenderer(new TestCodeBlockRenderer())
+         .Build();
+
+      return MarkdownAssert.RendersHtml(markdown, expectedHtml, options.ParserOptions, options.RenderOptions);
+   }
 
    [Test]
    public Task IndentedCodeBlock_WithBlankLines_WithCustomRenderer_ShouldUseCustomOutput()

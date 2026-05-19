@@ -36,7 +36,7 @@ for .NET. It is built from the ground up to leverage modern C# features like `Sp
 - **Low Allocation**: Minimizes pressure on the Garbage Collector by using stack-allocated buffers and pooling where possible.
 - **Modern C#**: Built for modern .NET, taking advantage of the latest language and runtime optimizations.
 - **Simplicity**: A clean, easy-to-use API that gets the job done without unnecessary complexity.
-- **Tests**: 1.008 passing tests (652 **CommonMark** Spec Tests)
+- **Tests**: 1,009 passing tests (652 **CommonMark** Spec Tests)
 
 ## Motivation
 
@@ -69,7 +69,7 @@ Console.WriteLine(html);
 - **Frontmatter**: Built-in support for parsing document frontmatter.
 - **Sluggable Headers**: Automatically generate `id` attributes for headers.
 - **Advanced**: Supports contextual rendering
-- **Tests**: 1.008 passing tests (652 **CommonMark** Spec Tests)
+- **Tests**: 1,009 passing tests (652 **CommonMark** Spec Tests)
 
 ### Currently Supported Blocks & Inlines
 - **Blocks**:
