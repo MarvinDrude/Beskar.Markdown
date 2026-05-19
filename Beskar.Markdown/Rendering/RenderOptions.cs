@@ -17,6 +17,8 @@ public sealed class RenderOptions
 
    public bool EnableSluggableHeaders { get; set; }
    
+   public ICodeBlockRenderer? CodeBlockRenderer { get; set; }
+   
    public Func<ReadOnlySpan<char>, string>? SanitizerFunc { get; set; }
    
    private readonly INodeRenderer[] _nodeRenderer;
