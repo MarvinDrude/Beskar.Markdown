@@ -1,8 +1,9 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using Beskar.Markdown.Extensions;
 using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Utils;
-using Me.Memory.Buffers;
+using Beskar.Memory.Buffers;
+using Beskar.Memory.Writers;
 
 namespace Beskar.Markdown.Parsing;
 

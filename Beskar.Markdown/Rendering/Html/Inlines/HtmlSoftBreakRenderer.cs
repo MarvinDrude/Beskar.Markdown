@@ -1,6 +1,7 @@
-﻿using Beskar.Markdown.Parsing.Models;
+using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Rendering.Interfaces;
-using Me.Memory.Buffers;
+using Beskar.Memory.Buffers;
+using Beskar.Memory.Writers;
 
 namespace Beskar.Markdown.Rendering.Html.Inlines;
 

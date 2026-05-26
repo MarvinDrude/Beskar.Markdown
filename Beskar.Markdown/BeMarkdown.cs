@@ -1,10 +1,11 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Beskar.Markdown.Builders;
 using Beskar.Markdown.Parsing;
 using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Rendering;
-using Me.Memory.Buffers;
+using Beskar.Memory.Buffers;
+using Beskar.Memory.Writers;
 
 namespace Beskar.Markdown;
 

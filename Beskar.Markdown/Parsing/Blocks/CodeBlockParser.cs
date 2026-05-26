@@ -1,8 +1,9 @@
-﻿using System.Resources;
+using System.Resources;
 using Beskar.Markdown.Extensions;
 using Beskar.Markdown.Parsing.Interfaces;
 using Beskar.Markdown.Parsing.Models;
-using Me.Memory.Buffers;
+using Beskar.Memory.Buffers;
+using Beskar.Memory.Writers;
 
 namespace Beskar.Markdown.Parsing.Blocks;
 

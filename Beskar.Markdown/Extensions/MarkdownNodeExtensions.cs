@@ -1,7 +1,8 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Rendering;
-using Me.Memory.Buffers;
+using Beskar.Memory.Buffers;
+using Beskar.Memory.Writers;
 
 namespace Beskar.Markdown.Extensions;
 

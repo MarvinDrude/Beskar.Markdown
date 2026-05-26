@@ -1,5 +1,6 @@
-﻿using System.Runtime.InteropServices;
-using Me.Memory.Buffers;
+using System.Runtime.InteropServices;
+using Beskar.Memory.Buffers;
+using Beskar.Memory.Writers;
 
 namespace Beskar.Markdown.Extensions;
 
