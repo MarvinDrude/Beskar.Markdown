@@ -1,8 +1,9 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Text;
 using Beskar.Markdown.Parsing.Utils;
 using Beskar.Markdown.Utils;
-using Me.Memory.Buffers;
+using Beskar.Memory.Buffers;
+using Beskar.Memory.Writers;
 
 namespace Beskar.Markdown.Extensions;
 
