@@ -17,6 +17,7 @@ for .NET. It is built from the ground up to leverage modern C# features like `Sp
   - [Future Plans](#future-plans)
 - [Frontmatter Parsing](#frontmatter-parsing)
 - [Sluggable Headers](#sluggable-headers)
+- [Template Variables](#template-variables)
 - [Code Block Intercept](#code-block-intercept)
 - [⚠️ Security Warning](#%EF%B8%8F-security-warning)
 - [Simple custom markdown extensions](#simple-custom-markdown-extensions)
@@ -179,6 +180,122 @@ foreach (var header in result.Context.Headers)
 // Output:
 // 1: My Header Text -> #my-header-text
 // 2: Details -> #details
+```
+
+## Template Variables
+
+Beskar.Markdown supports optional context-rendered template variables using standard `{{ ... }}` syntax.
+
+### Enabling the Feature
+
+To preserve standard CommonMark handling by default, template variables are **disabled by default**.
+To enable them, call `.WithVariables()` on `MarkdownOptionBuilder`:
+
+```csharp
+var options = MarkdownOptionBuilder.Create()
+    .WithVariables()
+    .Build();
+```
+
+### Supported Variable Formats
+
+| Format | Syntax | Description |
+|---|---|---|
+| **Plain Text** | `{{name}}`<br>`{{name:text}}` | Replaces with value and **HTML-encodes** special characters (`<`, `>`, `&`, `"`, `'`). |
+| **Markdown** | `{{name:md}}`<br>`{{name:markdown}}` | Parses and renders the value as **Markdown** into the HTML stream. |
+| **Raw HTML** | `{{name::html}}`<br>`{{name:html}}` | Emits the value **1:1 directly** into the HTML output without escaping. |
+
+> **Tip**: Whitespace inside braces is automatically trimmed (e.g. `{{ name }}`, `{{ name : md }}`, and `{{ name :: html }}` are all valid).
+
+### Inline vs. Block-Level Usage
+
+- **Inline Variables**: When placed within running text (e.g. `Hello {{name}}!`), plain text is encoded, and Markdown variables (`{{name:md}}`) embed their inline formatting without injecting unwanted outer `<p>` tags.
+- **Block-Level Variables**: When placed **alone on their own line** (e.g. `{{content:md}}` or `{{widget::html}}`), they are treated as top-level blocks. Multi-line Markdown variables render headings, lists, tables, and paragraphs cleanly without being wrapped in an outer `<p>...</p>`.
+
+### Supplying Context Variables
+
+You can supply variable values in three ways:
+
+1. **Dictionary Context**: Pass a dictionary directly to `ToContextualHtml` or `ParseContextual`:
+   ```csharp
+   var variables = new Dictionary<string, string>
+   {
+       ["user"] = "Marvin",
+       ["badge"] = "**Admin**",
+       ["icon"] = "<span class=\"badge\">★</span>"
+   };
+
+   var html = BeMarkdown.ToContextualHtml(markdown, options.ParserOptions, options.RenderOptions, variables);
+   ```
+
+2. **Context Variables Dictionary**:
+   ```csharp
+   var result = BeMarkdown.ParseContextual(markdown, options);
+   result.Context.Variables["user"] = "Marvin";
+   ```
+
+3. **Dynamic Variable Resolver Delegate**:
+   ```csharp
+   using var parser = new MarkdownParser<object>(markdown, stackalloc MarkdownNode[32]);
+   var context = parser.Parse(options.ParserOptions);
+   context.VariableResolver = key => key switch
+   {
+       "time" => DateTime.UtcNow.ToString("yyyy-MM-dd"),
+       "calc" => (40 + 2).ToString(),
+       _ => null
+   };
+   ```
+
+### Complete Example
+
+```csharp
+using Beskar.Markdown;
+using Beskar.Markdown.Builders;
+
+var options = MarkdownOptionBuilder.Create()
+    .WithVariables()
+    .Build();
+
+var markdown = """
+   # Welcome {{user}}!
+
+   {{announcement:md}}
+
+   {{card::html}}
+
+   Contact: {{email}}
+   """;
+
+var variables = new Dictionary<string, string>
+{
+    ["user"] = "Alice",
+    ["announcement"] = """
+       ### Maintenance Notice
+       The server will restart at **midnight**. Please save your work:
+       - Item 1
+       - Item 2
+       """,
+    ["card"] = "<div class=\"alert alert-info\">System Status: Green</div>",
+    ["email"] = "support@example.com <do-not-reply>"
+};
+
+var html = BeMarkdown.ToContextualHtml(markdown, options.ParserOptions, options.RenderOptions, variables);
+
+Console.WriteLine(html);
+```
+
+**Output:**
+
+```html
+<h1>Welcome Alice!</h1>
+<h3>Maintenance Notice</h3>
+<p>The server will restart at <strong>midnight</strong>. Please save your work:</p>
+<ul>
+<li>Item 1</li>
+<li>Item 2</li>
+</ul>
+<div class="alert alert-info">System Status: Green</div>
+<p>Contact: support@example.com &lt;do-not-reply&gt;</p>
 ```
 
 ## Code Block Intercept
