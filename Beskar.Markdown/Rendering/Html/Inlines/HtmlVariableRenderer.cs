@@ -42,19 +42,41 @@ public sealed class HtmlVariableRenderer : INodeRenderer
          return;
       }
 
+      var isBlock = current.VariableIsBlock == 1;
+
       switch (current.VariableFormat)
       {
          case VariableFormat.Html:
             writer.Write(value);
+            if (isBlock && options.AddBlockNewLines)
+            {
+               writer.WriteLine();
+            }
             break;
 
          case VariableFormat.Markdown:
-            RenderMarkdown(context, value, ref writer, options);
+            RenderMarkdown(context, value, ref writer, options, isBlock);
             break;
 
          case VariableFormat.Text:
          default:
-            writer.WriteHtmlDecodedAndEncoded(value.AsSpan(), encodeApostrophe: false);
+            if (isBlock)
+            {
+               writer.Write("<p>");
+               writer.WriteHtmlDecodedAndEncoded(value.AsSpan(), encodeApostrophe: false);
+               if (options.AddBlockNewLines)
+               {
+                  writer.WriteLine("</p>");
+               }
+               else
+               {
+                  writer.Write("</p>");
+               }
+            }
+            else
+            {
+               writer.WriteHtmlDecodedAndEncoded(value.AsSpan(), encodeApostrophe: false);
+            }
             break;
       }
    }
@@ -102,7 +124,8 @@ public sealed class HtmlVariableRenderer : INodeRenderer
       MarkdownContext<TData> context,
       string value,
       ref TextWriterIndentSlim writer,
-      RenderOptions options)
+      RenderOptions options,
+      bool isBlock)
    {
       var parserOptions = options.EnableVariables ? _variableEnabledParserOptions : ParserOptions.Default;
       var span = value.AsSpan();
@@ -121,7 +144,7 @@ public sealed class HtmlVariableRenderer : INodeRenderer
       subContext.VariableResolver = context.VariableResolver;
 
       var subNodes = subParser.WrittenNodes;
-      if (subNodes.Length > 1 && subNodes[0].Type == NodeType.Document)
+      if (!isBlock && subNodes.Length > 1 && subNodes[0].Type == NodeType.Document)
       {
          var firstChildIdx = subNodes[0].FirstChildIndex;
          if (firstChildIdx != -1 && subNodes[firstChildIdx].NextSiblingIndex == -1 && subNodes[firstChildIdx].Type == NodeType.Paragraph)

@@ -4,73 +4,44 @@ using Beskar.Markdown.Parsing.Models;
 using Beskar.Memory.Buffers;
 using Beskar.Memory.Writers;
 
-namespace Beskar.Markdown.Parsing.Inlines;
+namespace Beskar.Markdown.Parsing.Blocks;
 
-public sealed class VariableParser : IInlineParser
+public sealed class VariableBlockParser : IBlockParser
 {
-   public int Priority => 18_000;
+   public int Priority => 10_065;
    public int SupportedTypeValue => (int)NodeType.Variable;
 
-   public char TriggerChar => '{';
-   public char TriggerAltChar => '{';
-
-   public bool TryMatch<TData>(
-      ref InlineState<TData> state,
-      int parentIndex,
-      ref BufferWriter<MarkdownNode> writer,
-      scoped ref InlineParser<TData> parser,
-      ParserOptions options)
+   public int TryMatch<TData>(ref LineState<TData> state, int parentIndex, ref BufferWriter<MarkdownNode> writer)
    {
-      if (!options.EnableVariables)
+      if (state.IsBlank || state.LeadingSpaces >= 4)
       {
-         return false;
+         return -1;
       }
 
-      var text = state.RemainingText;
-      if (text.Length < 4 || text[0] != '{' || text[1] != '{')
+      var rawLine = state.RawLine;
+      var trimmed = rawLine[state.FirstNonSpaceIndex..].TrimEnd();
+
+      if (trimmed.Length < 4 || trimmed[0] != '{' 
+            || trimmed[1] != '{' || (trimmed.Length > 2 && trimmed[2] == '{') 
+            || !trimmed.EndsWith("}}") || trimmed.EndsWith("}}}"))
       {
-         return false;
+         return -1;
       }
 
-      var rawText = state.RawText;
-      var rawBase = state.GlobalOffset;
-      var scanBound = state.BlockEnd;
-
-      var closeIndex = -1;
-      var scanIndex = 2;
-
-      while (rawBase + scanIndex + 1 < scanBound)
+      var innerWithoutEnds = trimmed[2..^2];
+      var closeIndex = innerWithoutEnds.IndexOf("}}");
+      if (closeIndex != -1)
       {
-         var c = rawText[rawBase + scanIndex];
-         if (c is '\n' or '\r')
-         {
-            break;
-         }
-
-         if (c == '}' && rawText[rawBase + scanIndex + 1] == '}')
-         {
-            closeIndex = scanIndex;
-            break;
-         }
-
-         scanIndex++;
+         return -1;
       }
 
-      if (closeIndex == -1)
+      if (innerWithoutEnds.IsEmpty || innerWithoutEnds.IsWhiteSpace())
       {
-         return false;
-      }
-
-      var innerContent = rawText.Slice(rawBase + 2, closeIndex - 2);
-      if (innerContent.IsEmpty || innerContent.IsWhiteSpace())
-      {
-         return false;
+         return -1;
       }
 
       var format = VariableFormat.Text;
-      var trimmedInner = innerContent.Trim();
-      var relativeStart = innerContent.IndexOf(trimmedInner);
-      var innerOffset = rawBase + 2 + relativeStart;
+      var trimmedInner = innerWithoutEnds.Trim();
 
       ReadOnlySpan<char> nameSpan;
 
@@ -125,11 +96,11 @@ public sealed class VariableParser : IInlineParser
       nameSpan = nameSpan.Trim("{} \t".AsSpan());
       if (nameSpan.IsEmpty)
       {
-         return false;
+         return -1;
       }
 
-      var nameOffsetInInner = innerContent.IndexOf(nameSpan);
-      var nameStart = rawBase + 2 + nameOffsetInInner;
+      var relativeStart = rawLine.IndexOf(nameSpan);
+      var nameStart = state.GlobalOffset + relativeStart;
       var nameLength = nameSpan.Length;
 
       var nodeIndex = writer.WrittenSpan.Length;
@@ -138,13 +109,18 @@ public sealed class VariableParser : IInlineParser
          Type = NodeType.Variable,
          TextSpan = new TextSpan(nameStart, nameLength),
          VariableFormat = format,
+         VariableIsBlock = 1,
          FirstChildIndex = -1,
          LastChildIndex = -1,
          NextSiblingIndex = -1
       });
 
-      parser.LinkInlineNode(ref writer, parentIndex, nodeIndex);
-      state.Advance(closeIndex + 2);
-      return true;
+      state.ConsumeRest();
+      return nodeIndex;
+   }
+
+   public bool CanContinue<TData>(ref MarkdownNode node, ref LineState<TData> state, ref BufferWriter<MarkdownNode> writer)
+   {
+      return false;
    }
 }

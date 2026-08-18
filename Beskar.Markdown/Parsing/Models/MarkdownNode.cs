@@ -54,6 +54,8 @@ public struct MarkdownNode
    public int TitleSpanStart;
    [FieldOffset(24)] // NodeType.Variable
    public VariableFormat VariableFormat;
+   [FieldOffset(25)] // NodeType.Variable
+   public byte VariableIsBlock;
    
    // --- Second offset Metadata
    [FieldOffset(28)] // NodeType.List 

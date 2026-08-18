@@ -1,5 +1,6 @@
 using Beskar.Markdown.Addons;
 using Beskar.Markdown.Addons.Interfaces;
+using Beskar.Markdown.Parsing.Blocks;
 using Beskar.Markdown.Parsing.Interfaces;
 using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Rendering;
@@ -109,6 +110,11 @@ public sealed class MarkdownOptionBuilder
                _blockParsers.AddRange(block.Parsers);
                break;
          }
+      }
+
+      if (_enableVariables && !_blockParsers.Any(p => p is VariableBlockParser))
+      {
+         _blockParsers.Add(new VariableBlockParser());
       }
       
       return new MarkdownOptions()

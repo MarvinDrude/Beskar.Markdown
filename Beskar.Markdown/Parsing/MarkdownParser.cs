@@ -622,6 +622,7 @@ public ref struct MarkdownParser<TData>(
          NodeType.ListItem => IsPossibleListMarkerStart(firstChar),
          NodeType.BlockQuote => firstChar == '>',
          NodeType.HtmlBlock => state.LeadingSpaces < 4 && firstChar == '<',
+         NodeType.Variable => state.LeadingSpaces < 4 && firstChar == '{',
          _ => true
       };
    }
