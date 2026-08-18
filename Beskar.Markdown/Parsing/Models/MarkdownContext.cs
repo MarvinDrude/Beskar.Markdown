@@ -10,6 +10,10 @@ public sealed class MarkdownContext<TData>
 
    public List<HeaderInfo> Headers => field ??= [];
    
+   public Dictionary<string, string> Variables => field ??= [];
+
+   public Func<string, string?>? VariableResolver { get; set; }
+
    public TData? Data { get; set; }
 }
 

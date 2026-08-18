@@ -1,4 +1,4 @@
-﻿using Beskar.Markdown.Parsing.Blocks;
+using Beskar.Markdown.Parsing.Blocks;
 using Beskar.Markdown.Parsing.Inlines;
 using Beskar.Markdown.Parsing.Interfaces;
 
@@ -9,7 +9,7 @@ public sealed class ParserOptions
    public ReadOnlySpan<IBlockParser> BlockParsers => _blockParsers;
    public ReadOnlySpan<IInlineParser> InlineParsers => _inlineParsers;
 
-   private const int _builtInNodeTypeCount = (int)NodeType.Autolink + 1;
+   private const int _builtInNodeTypeCount = (int)NodeType.Variable + 1;
 
    public int MaxBlockDepth
    {
@@ -25,6 +25,8 @@ public sealed class ParserOptions
    } = 16;
 
    public bool ParseFrontMatter { get; init; }
+   
+   public bool EnableVariables { get; init; }
    
    private readonly IBlockParser[] _blockParsers;
    private readonly IBlockParser?[] _blockParserLookup = new IBlockParser?[_builtInNodeTypeCount];
@@ -170,6 +172,7 @@ public sealed class ParserOptions
       new LineBreakParser(),
       new StrikethroughParser(),
       new AutolinkParser(),
-      new InlineHtmlParser()
+      new InlineHtmlParser(),
+      new VariableParser()
    ]);
 }
