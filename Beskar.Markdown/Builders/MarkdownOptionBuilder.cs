@@ -1,5 +1,6 @@
-﻿using Beskar.Markdown.Addons;
+using Beskar.Markdown.Addons;
 using Beskar.Markdown.Addons.Interfaces;
+using Beskar.Markdown.Parsing.Blocks;
 using Beskar.Markdown.Parsing.Interfaces;
 using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Rendering;
@@ -18,6 +19,7 @@ public sealed class MarkdownOptionBuilder
    // render options
    private bool _preserveSoftBreaks = true;
    private bool _enableSluggableHeaders;
+   private bool _enableVariables;
    
    private ICodeBlockRenderer? _codeBlockRenderer;
    
@@ -70,6 +72,12 @@ public sealed class MarkdownOptionBuilder
       return this;
    }
 
+   public MarkdownOptionBuilder WithVariables(bool enable = true)
+   {
+      _enableVariables = enable;
+      return this;
+   }
+
    public MarkdownOptionBuilder WithCodeBlockRenderer(ICodeBlockRenderer codeBlockRenderer)
    {
       _codeBlockRenderer = codeBlockRenderer;
@@ -103,6 +111,11 @@ public sealed class MarkdownOptionBuilder
                break;
          }
       }
+
+      if (_enableVariables && !_blockParsers.Any(p => p is VariableBlockParser))
+      {
+         _blockParsers.Add(new VariableBlockParser());
+      }
       
       return new MarkdownOptions()
       {
@@ -111,12 +124,14 @@ public sealed class MarkdownOptionBuilder
             PreserveSoftBreaks = _preserveSoftBreaks,
             SanitizerFunc = _sanitizerFunc,
             EnableSluggableHeaders = _enableSluggableHeaders,
+            EnableVariables = _enableVariables,
             CodeBlockRenderer = _codeBlockRenderer
          },
          ParserOptions = new ParserOptions(_blockParsers, _inlineParsers)
          {
             MaxBlockDepth = _maxBlockDepth,
-            ParseFrontMatter = _parseFrontMatter
+            ParseFrontMatter = _parseFrontMatter,
+            EnableVariables = _enableVariables
          }
       };
    }

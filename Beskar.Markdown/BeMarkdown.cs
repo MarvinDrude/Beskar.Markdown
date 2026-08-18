@@ -11,7 +11,7 @@ namespace Beskar.Markdown;
 
 public static class BeMarkdown
 {
-   public const int BuiltInNodeTypeValueOffset = (int)NodeType.Autolink + 1;
+   public const int BuiltInNodeTypeValueOffset = (int)NodeType.Variable + 1;
    
    private static readonly ParserOptions _defaultParserOptions = ParserOptions.Default;
    private static readonly RenderOptions _defaultRenderOptions = RenderOptions.HtmlDefault;

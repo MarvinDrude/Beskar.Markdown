@@ -1,4 +1,4 @@
-﻿using Beskar.Markdown.Rendering.Html.Blocks;
+using Beskar.Markdown.Rendering.Html.Blocks;
 using Beskar.Markdown.Rendering.Html.Inlines;
 using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Rendering.Interfaces;
@@ -7,7 +7,7 @@ namespace Beskar.Markdown.Rendering;
 
 public sealed class RenderOptions
 {
-   private const int _builtInNodeTypeCount = (int)NodeType.Autolink + 1;
+   private const int _builtInNodeTypeCount = (int)NodeType.Variable + 1;
    
    public ReadOnlySpan<INodeRenderer> NodeRenderers => _nodeRenderer;
     
@@ -16,6 +16,8 @@ public sealed class RenderOptions
    public bool AddBlockNewLines { get; set; } = true;
 
    public bool EnableSluggableHeaders { get; set; }
+   
+   public bool EnableVariables { get; set; }
    
    public ICodeBlockRenderer? CodeBlockRenderer { get; set; }
    
@@ -88,6 +90,7 @@ public sealed class RenderOptions
       new HtmlSoftBreakRenderer(),
       new HtmlStrikeThroughRenderer(),
       new HtmlStrongEmphasisRenderer(),
-      new HtmlLinkRenderer()
+      new HtmlLinkRenderer(),
+      new HtmlVariableRenderer()
    ]);
 }

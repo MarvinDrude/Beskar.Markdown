@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 
 namespace Beskar.Markdown.Parsing.Models;
 
@@ -52,6 +52,10 @@ public struct MarkdownNode
    public byte InlineCodeIsInsideTable;
    [FieldOffset(24)] // NodeType.LinkReferenceDefinition
    public int TitleSpanStart;
+   [FieldOffset(24)] // NodeType.Variable
+   public VariableFormat VariableFormat;
+   [FieldOffset(25)] // NodeType.Variable
+   public byte VariableIsBlock;
    
    // --- Second offset Metadata
    [FieldOffset(28)] // NodeType.List 

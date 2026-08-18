@@ -4,5 +4,9 @@
       <LangVersion>Preview</LangVersion>
       <ImplicitUsings>enable</ImplicitUsings>
       <Nullable>enable</Nullable>
+      
+      <AssemblyVersion>10.0.0</AssemblyVersion>
+      <FileVersion>10.0.0</FileVersion>
+      <Version>10.0.0</Version>
    </PropertyGroup>
 </Project>

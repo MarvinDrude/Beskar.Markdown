@@ -1,4 +1,4 @@
-﻿namespace Beskar.Markdown.Parsing.Models;
+namespace Beskar.Markdown.Parsing.Models;
 
 public enum NodeType
 {
@@ -34,7 +34,8 @@ public enum NodeType
    SoftBreak,
    LineBreak,
    StrikeThrough,
-   Autolink
+   Autolink,
+   Variable
    
    // Custom User Space
 }
