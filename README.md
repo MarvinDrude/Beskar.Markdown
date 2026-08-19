@@ -1,35 +1,47 @@
-# Beskar.Markdown
-
-[![NuGet](https://img.shields.io/nuget/v/Beskar.Markdown)](https://www.nuget.org/packages/Beskar.Markdown)
-
-Beskar.Markdown is a high-performance, low-allocation Markdown parser and HTML renderer 
-for .NET. It is built from the ground up to leverage modern C# features like `Span<T>`, 
-`ReadOnlySequence<T>`, and efficient memory management to provide a blazing-fast and lean experience.
-
-## Table of Contents
-
-- [Why use this library?](#why-use-this-library)
-- [Motivation](#motivation)
-- [Getting Started](#getting-started)
-- [Features](#features)
-  - [Main Features](#main-features)
-  - [Currently Supported Blocks & Inlines](#currently-supported-blocks--inlines)
-  - [Future Plans](#future-plans)
-- [Frontmatter Parsing](#frontmatter-parsing)
-- [Sluggable Headers](#sluggable-headers)
-- [Template Variables](#template-variables)
-- [Code Block Intercept](#code-block-intercept)
-- [⚠️ Security Warning](#%EF%B8%8F-security-warning)
-- [Simple custom markdown extensions](#simple-custom-markdown-extensions)
-  - [Simple inline extension](#simple-inline-extension)
-  - [Simple block extension](#simple-block-extension)
-- [Benchmark Results](#benchmark-results)
+<h1>
+<p align="center">
+   <img src="https://github.com/MarvinDrude/Beskar.Markdown/blob/master/Resources/banner.png" alt="Logo" width="256" />
+   <br />
+   Beskar.Markdown
+</p>
+</h1>
+<p align="center">
+   Fast, <code>.NET 10</code> native, high-performance, low-allocation Markdown parser and HTML renderer.<br/>
+   Built for modern <code>C#</code> with <code>Span&lt;T&gt;</code>, zero-copy parsing, AST extensions, and template variables.<br/>
+   No external runtime dependencies besides <b>Beskar</b>.<br/><br/>
+   <a href="#why-use-this-library">Why Use This Library</a>
+   ·
+   <a href="#motivation">Motivation</a>
+   ·
+   <a href="#getting-started">Getting Started</a>
+   ·
+   <a href="#features">Features</a>
+   ·
+   <a href="#frontmatter-parsing">Frontmatter</a>
+   ·
+   <a href="#sluggable-headers">Sluggable Headers</a>
+   ·
+   <a href="#template-variables">Variables</a>
+   ·
+   <a href="#code-block-intercept">Code Intercept</a>
+   ·
+   <a href="#simple-custom-markdown-extensions">Extensions</a>
+   ·
+   <a href="#benchmark-results">Benchmarks</a>
+</p>
+<br/>
 
 ---
+<br/>
 
-> Disclaimer: This is just my fun project i do on the side. I do not want to replace any of the major
-> markdown solutions for csharp, neither could I do that even if i wanted. It's just for me internally
-> to use.
+![.NET 10](https://img.shields.io/badge/.NET-10.0-blueviolet)
+![Code Poetry](https://img.shields.io/badge/code-is_poetry-orange)
+[![NuGet](https://img.shields.io/nuget/v/Beskar.Markdown)](https://www.nuget.org/packages/Beskar.Markdown)
+![Issues](https://img.shields.io/github/issues/MarvinDrude/Beskar.Markdown)
+![Repo Size](https://img.shields.io/github/repo-size/MarvinDrude/Beskar.Markdown.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://raw.githubusercontent.com/MarvinDrude/Beskar.Markdown/master/LICENSE.md)
+
+---
 
 ## Why use this library?
 
