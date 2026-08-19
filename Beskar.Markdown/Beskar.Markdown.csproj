@@ -18,10 +18,12 @@
       <IncludeSource>true</IncludeSource>
       <EmbedUntrackedSources>true</EmbedUntrackedSources>
       <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+      <PackageIcon>logo.png</PackageIcon>
    </PropertyGroup>
 
    <ItemGroup>
       <None Include="../README.md" Pack="true" PackagePath="\"/>
+      <None Include="../Resources/logo.png" Pack="true" PackagePath="\" Visible="false"/>
    </ItemGroup>
    
    <ItemGroup>
