@@ -1,6 +1,6 @@
 <h1>
 <p align="center">
-   <img src="https://github.com/MarvinDrude/Beskar.Markdown/blob/master/Resources/banner.png" alt="Logo" width="256" />
+   <img src="https://github.com/MarvinDrude/Beskar.Markdown/blob/master/Resources/logo.png" alt="Logo" width="256" />
    <br />
    Beskar.Markdown
 </p>
