@@ -14,6 +14,52 @@ public static class TextWriterIndentSlimExtensions
 
    extension(ref TextWriterIndentSlim writer)
    {
+      public void WriteHtmlDecoded(scoped ReadOnlySpan<char> text)
+      {
+         if (text.IsEmpty) return;
+         var lastIndex = 0;
+         Span<char> decodedBuffer = stackalloc char[2];
+         Span<char> charBuffer = stackalloc char[1];
+
+         for (var i = 0; i < text.Length; i++)
+         {
+            var c = text[i];
+
+            if (c == '\\' && i + 1 < text.Length)
+            {
+               var next = text[i + 1];
+               if (LinkUtils.IsAsciiPunctuation(next))
+               {
+                  if (i > lastIndex) writer.Write(text[lastIndex..i]);
+
+                  charBuffer[0] = next;
+                  writer.Write(charBuffer);
+
+                  i++;
+                  lastIndex = i + 1;
+                  continue;
+               }
+            }
+            else if (c == '&')
+            {
+               if (SpanUtils.TryParseEntity(text[i..], decodedBuffer, out var decoded, out var consumed))
+               {
+                  if (i > lastIndex)
+                     writer.Write(text[lastIndex..i]);
+
+                  writer.Write(decoded);
+
+                  i += consumed - 1;
+                  lastIndex = i + 1;
+                  continue;
+               }
+            }
+         }
+
+         if (lastIndex < text.Length)
+            writer.Write(text[lastIndex..]);
+      }
+
       public void WriteHtmlDecodedAndEncoded(scoped ReadOnlySpan<char> text, bool encodeApostrophe = true)
       {
          if (text.IsEmpty) return;

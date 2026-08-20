@@ -27,6 +27,21 @@ internal static class MarkdownAssert
          .IsEqualTo(NormalizeLineEndings(expectedHtml));
    }
 
+   public static async Task RendersPlainText(string markdown, string expectedText, 
+      ParserOptions? parserOptions = null, RenderOptions? renderOptions = null)
+   {
+      if (renderOptions is null)
+      {
+         renderOptions = RenderOptions.PlainDefault;
+         renderOptions.AddBlockNewLines = false;
+      }
+      
+      var text = BeMarkdown.ToPlainText(markdown, parserOptions, renderOptions);
+      
+      await Assert.That(NormalizeLineEndings(text))
+         .IsEqualTo(NormalizeLineEndings(expectedText));
+   }
+
    private static string NormalizeLineEndings(string text)
    {
       return text.Replace("\r\n", "\n");
