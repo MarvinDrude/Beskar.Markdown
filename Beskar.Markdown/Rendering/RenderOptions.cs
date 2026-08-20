@@ -1,5 +1,7 @@
 using Beskar.Markdown.Rendering.Html.Blocks;
 using Beskar.Markdown.Rendering.Html.Inlines;
+using Beskar.Markdown.Rendering.Plain.Blocks;
+using Beskar.Markdown.Rendering.Plain.Inlines;
 using Beskar.Markdown.Parsing.Models;
 using Beskar.Markdown.Rendering.Interfaces;
 
@@ -93,4 +95,39 @@ public sealed class RenderOptions
       new HtmlLinkRenderer(),
       new HtmlVariableRenderer()
    ]);
+
+   public static RenderOptions PlainDefault => new([
+      // Default block renderers
+      new PlainDocumentRenderer(),
+      new PlainHeaderRenderer(),
+      new PlainBlockQuoteRenderer(),
+      new PlainHtmlBlockRenderer(),
+      new PlainCodeBlockRenderer(),
+      new PlainIndentedCodeBlockRenderer(),
+      new PlainListRenderer(),
+      new PlainListItemRenderer(),
+      new PlainParagraphRenderer(),
+      new PlainThematicBreakRenderer(),
+      new PlainTableRenderer(),
+      new PlainLinkReferenceDefinitionRenderer(),
+      new PlainTableHeaderRenderer(),
+      new PlainTableBodyRenderer(),
+      new PlainTableRowRenderer(),
+      new PlainTableCellRenderer(),
+      // Default inline renderers
+      new PlainTextRenderer(),
+      new PlainAutolinkRenderer(),
+      new PlainEmphasisRenderer(),
+      new PlainImageRenderer(),
+      new PlainInlineCodeRenderer(),
+      new PlainInlineHtmlRenderer(),
+      new PlainLineBreakRenderer(),
+      new PlainSoftBreakRenderer(),
+      new PlainStrikeThroughRenderer(),
+      new PlainStrongEmphasisRenderer(),
+      new PlainLinkRenderer(),
+      new PlainVariableRenderer()
+   ]);
+
+   public static RenderOptions PlainTextDefault => PlainDefault;
 }

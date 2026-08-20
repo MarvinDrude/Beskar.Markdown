@@ -15,6 +15,8 @@ public static class BeMarkdown
    
    private static readonly ParserOptions _defaultParserOptions = ParserOptions.Default;
    private static readonly RenderOptions _defaultRenderOptions = RenderOptions.HtmlDefault;
+
+   private static readonly RenderOptions _defaultPlainRenderOptions = RenderOptions.PlainDefault;
    
    [MethodImpl(MethodImplOptions.AggressiveInlining)]
    public static string ToHtml(
@@ -58,6 +60,71 @@ public static class BeMarkdown
    {
       parserOptions ??= _defaultParserOptions;
       renderOptions ??= _defaultRenderOptions;
+       
+      using var parser = new MarkdownParser<TContext>(
+         markdown, stackalloc MarkdownNode[GetInitialNodeBufferLength(markdown.Length)]);
+      var context = parser.Parse(parserOptions, data);
+      
+      var renderer = new MarkdownRenderer(markdown);
+      var writer = new TextWriterIndentSlim(
+         stackalloc char[512], stackalloc char[64]);
+      
+      try
+      {
+         renderer.Render(context, parser.WrittenNodes, renderOptions, ref writer);
+
+         return renderOptions.SanitizerFunc is not null 
+            ? renderOptions.SanitizerFunc(writer.WrittenSpan) 
+            : writer.ToString();
+      }
+      finally
+      {
+         writer.Dispose();
+      }
+   }
+
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
+   public static string ToPlainText(
+      [StringSyntax("Markdown")] string markdown, 
+      ParserOptions? parserOptions = null, 
+      RenderOptions? renderOptions = null)
+   {
+      return ToPlainText(markdown.AsSpan(), parserOptions, renderOptions);
+   }
+
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
+   public static string ToPlainText(
+      [StringSyntax("Markdown")] string markdown, 
+      MarkdownOptions options)
+   {
+      return ToPlainText(markdown.AsSpan(), options);
+   }
+
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
+   public static string ToPlainText(
+      [StringSyntax("Markdown")] ReadOnlySpan<char> markdown, 
+      ParserOptions? parserOptions = null, 
+      RenderOptions? renderOptions = null)
+   {
+      return ToContextualPlainText<object>(markdown, parserOptions, renderOptions);
+   }
+
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
+   public static string ToPlainText(
+      [StringSyntax("Markdown")] ReadOnlySpan<char> markdown, 
+      MarkdownOptions options)
+   {
+      return ToPlainText(markdown, options.ParserOptions, options.RenderOptions);
+   }
+
+   public static string ToContextualPlainText<TContext>(
+      [StringSyntax("Markdown")] ReadOnlySpan<char> markdown, 
+      ParserOptions? parserOptions = null, 
+      RenderOptions? renderOptions = null,
+      TContext? data = default)
+   {
+      parserOptions ??= _defaultParserOptions;
+      renderOptions ??= _defaultPlainRenderOptions;
        
       using var parser = new MarkdownParser<TContext>(
          markdown, stackalloc MarkdownNode[GetInitialNodeBufferLength(markdown.Length)]);
