@@ -6,7 +6,7 @@
 </p>
 </h1>
 <p align="center">
-   Fast, <code>.NET 10</code> native, high-performance, low-allocation Markdown parser and HTML renderer.<br/>
+   Fast, <code>.NET 11</code> native, high-performance, low-allocation Markdown parser and HTML renderer.<br/>
    Built for modern <code>C#</code> with <code>Span&lt;T&gt;</code>, zero-copy parsing, AST extensions, and template variables.<br/>
    No external runtime dependencies besides <b>Beskar</b>.<br/><br/>
    <a href="#why-use-this-library">Why Use This Library</a>
@@ -34,7 +34,7 @@
 ---
 <br/>
 
-![.NET 10](https://img.shields.io/badge/.NET-10.0-blueviolet)
+![.NET 11](https://img.shields.io/badge/.NET-11.0-blueviolet)
 ![Code Poetry](https://img.shields.io/badge/code-is_poetry-orange)
 [![NuGet](https://img.shields.io/nuget/v/Beskar.Markdown)](https://www.nuget.org/packages/Beskar.Markdown)
 ![Issues](https://img.shields.io/github/issues/MarvinDrude/Beskar.Markdown)

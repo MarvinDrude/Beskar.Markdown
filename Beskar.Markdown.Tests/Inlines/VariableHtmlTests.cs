@@ -823,7 +823,7 @@ public sealed class VariableHtmlTests
 
       var html = BeMarkdown.ToContextualHtml(markdown.AsSpan(), options.ParserOptions, options.RenderOptions, variables);
 
-      await Assert.That(html).Contains("<pre><code class=\"language-csharp\">var x = 10;\n</code></pre>");
+      await Assert.That(html.Replace("\r\n", "\n")).Contains("<pre><code class=\"language-csharp\">var x = 10;\n</code></pre>");
    }
 
    [Test]
